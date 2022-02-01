@@ -1,0 +1,589 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/05/14
+// File : SoundObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : SoundObject
+//------------------------------------------------------------------------------
+@if (__SOUNDOBJECT_TJS__== 0)
+@set(__SOUNDOBJECT_TJS__ = 1)
+
+class _SOUNDOBJECT extends WaveSoundBuffer, BaseObject {
+	
+	/*-----------------------------------------
+	■ パラメータ
+	-----------------------------------------*/
+	var MainWnd;		//MainObject
+	
+	var soundtype;		//SOUND 種別
+	
+						//bgm　se　voice　movie
+	
+	var FadeStopflag;	//Fadeフラグ
+	
+	var WaitTimer;		//Wait タイマーオブジェクト
+	
+	var WaitParam = %[];//Wait用パラメータ
+	
+	var labelFlag;		//ラベルフラグ
+	
+	var ResFile;		//リソースファイル名
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function _SOUNDOBJECT(type, obj)
+	{
+		MainWnd   = obj;
+		
+		soundtype = type;
+		
+		WaveSoundBuffer(this);
+		
+		BaseObject(obj, obj.PrimaryLayer);
+		
+		labelFlag = false;
+		
+		
+		//ボリューム設定
+		volume2 = 100000;
+		
+		//typeによって分かれる
+		if(type == "bgm"){
+			volume  = MainWnd.SoundObj.BgmVolume   * 1000;
+		}else if(type == "se"){
+			volume  = MainWnd.SoundObj.SeVolume    * 1000;
+		}else if(type == "voice"){
+			volume  = MainWnd.SoundObj.VoiceVolume * 1000;
+		}else if(type == "system_se"){
+			volume  = MainWnd.SoundObj.SystemVolume* 1000;
+		}else if(type == "movie"){
+			volume  = MainWnd.SoundObj.MovieVolume * 1000;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ファイナライズ
+	
+	引数：
+	なし
+	
+	-----------------------------------------*/
+	function finalize()
+	{
+		global.WaveSoundBuffer.finalize(...);
+		
+		global.BaseObject.finalize(...);
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ フェード終了関数
+	-----------------------------------------*/
+	function onFadeCompleted()
+	{
+		if(FadeStopflag)
+		{
+			//フェード終了フラグを寝かす
+			FadeStopflag = false;
+			
+			stop();
+			
+			ResFile = void;
+			
+			paused = false;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	ラベル通過時に発生するイベント
+	
+	-----------------------------------------*/
+	function onLabel( name )
+	{
+		if(
+			(s["voice_mask"] == true) &&
+			(( name == "mute_on") || ( name == "mute_off"))
+		){
+			if(name == "mute_on"){
+			//ミュート
+				volume = 0;
+			}else{
+			//解除
+				volume  = MainWnd.SoundObj.VoiceVolume * 1000;
+			}
+		}else{
+			labelFlag = name;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント監視関数
+	
+	引数：
+	なし
+	
+	説明：
+	ラベル通過時に発生するイベントを監視する
+	
+	-----------------------------------------*/	
+	function Checklabelfunc()
+	{
+		if(labelFlag != false)
+		{
+			//フラグをクリア
+			labelFlag = false;
+			
+			//監視対象からこの関数を外す
+			System.removeContinuousHandler(Checklabelfunc);
+			
+			//次のタグを取得しにいく
+			MainWnd.PaserObj.GetTagload();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	●play関数
+	
+	引数：
+	
+	file	再生するファイル名(拡張子付き)
+	
+	
+	説明：
+	
+	ファイルを再生します
+	
+	-----------------------------------------*/
+	function FilePlay(file, mode = false, time = false, waittime = false)
+	{
+		
+		//リソース確認
+		if(ResourceCheck(file + ".ogg")){
+			file += ".ogg";
+		}else if(ResourceCheck(file + ".wav")){
+			file += ".wav";
+		}else if(!ResourceCheck(file)){
+			//リソース検索
+			if (InforFlag == true) {
+				DebugMess(file + "がありませんでした");
+				return;
+			}
+		}
+		
+		
+		//FileOpen
+		if(
+			(!ResourceCheck(file)) &&
+			(!ResourceCheck(file + ".ogg")) &&
+			(!ResourceCheck(file + ".wav"))
+		){
+			//リソース無し
+			if (InforFlag == true) {
+				DebugMess(file + " が見つかりません");
+			}
+			
+			return;
+		}
+		
+		
+		//フェードstopの最中ならここで終了
+		if(FadeStopflag){
+			stopFade();
+			stop();
+			ResFile = void;
+			paused = false;
+			FadeStopflag = false;
+		}
+		
+		
+		//WaitObjectを初期化しておく
+		WaitTimer = void;
+		
+		//ラベルフラグを寝かせておく
+		labelFlag = false;
+		
+		if(waittime){
+			//タイマー作成
+			WaitTimer = new Timer(WaitPlayFunc,"");
+			
+			// WaitParam の内容をクリア
+			(Dictionary.clear incontextof WaitParam)();
+			
+			//パラメータを保存しておく
+			WaitParam["file"] = file;
+			WaitParam["mode"] = mode;
+			WaitParam["time"] = time;
+			
+			WaitTimer.enabled  = true;
+			
+			WaitTimer.interval = waittime;
+			
+			return;
+		}
+		
+		
+		
+		//ループフラグ
+		looping = mode;
+		
+		//media open
+		open(file);
+		
+		//ファイル保持
+		ResFile = file;
+		
+		if(time != false)
+		{//FADE 設定
+			
+			volume = 0;
+			
+			//再生
+			play();
+			
+			if(soundtype == "bgm"){
+				
+				fade((MainWnd.SoundObj.BgmVolume * 1000), time);
+				
+			}else if(soundtype == "se"){
+				
+				fade((MainWnd.SoundObj.SeVolume * 1000), time);
+				
+			}
+			
+		}else{
+		//通常音量
+			//typeによって分かれる
+			if(soundtype == "bgm"){
+				volume  = MainWnd.SoundObj.BgmVolume   * 1000;
+			}else if(soundtype == "se"){
+				volume  = MainWnd.SoundObj.SeVolume    * 1000;
+			}else if(soundtype == "voice"){
+				volume  = MainWnd.SoundObj.VoiceVolume * 1000;
+			}else if(soundtype == "system_se"){
+				volume  = MainWnd.SoundObj.SystemVolume* 1000;
+			}
+			
+			//再生
+			play();
+			
+		}
+		
+		
+		
+		
+		return true;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	○ Wait再生関数
+	-----------------------------------------*/
+	function WaitPlayFunc()
+	{
+		
+		//タイマーを停止＆破棄
+		WaitTimer.enabled  = false;
+		
+		invalidate WaitTimer;
+		
+		WaitTimer = void;
+		
+		//ファイルを再生する
+		FilePlay(WaitParam["file"], WaitParam["mode"], WaitParam["time"]);
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	●stop関数
+	
+	引数：
+	
+	mode false:normal true:loop
+	
+	
+	説明：
+	
+	停止関数
+	
+	-----------------------------------------*/
+	function FileStop(time = false)
+	{
+		
+		
+		//停止
+		//Waitは停止
+		if(WaitTimer !== void){
+			//タイマーを停止＆破棄
+			WaitTimer.enabled  = false;
+			
+			invalidate WaitTimer;
+			
+			WaitTimer = void;
+		}
+		
+		
+		if(time){
+			
+			if(soundtype == "bgm"){
+				
+				volume = MainWnd.SoundObj.BgmVolume * 1000;
+				
+				fade(0, time);
+				
+				FadeStopflag = true;
+				
+			}else{
+				
+				volume = MainWnd.SoundObj.SeVolume * 1000;
+				
+				fade(0, time);
+				
+				FadeStopflag = true;
+				
+			}
+			
+		}else{
+			
+			FadeStopflag = false;
+			
+			stop();
+			
+			ResFile = void;
+			
+			stopFade();
+			
+			paused = false;
+		}
+		
+		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Idol状態に呼び出される関数
+	
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		//エンディング中は無視
+		if(f.ending_start)return;
+		
+		
+		//再生終了をみて次へ
+		if(SetState(3) != "play")MainWnd.PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ クリック待ち
+	-----------------------------------------*/
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		//エンディング中は無視
+		if(f.ending_start)return;
+		
+		//停止して次へ
+		FileStop();
+		
+		
+		
+		//次のタグを取得しにいく
+		MainWnd.PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆RightMouseUpAction関数
+	
+	引数：
+	無し
+	
+	説明：
+	このクラスオブジェクトのRightMouseUpAction
+	
+	-----------------------------------------*/
+	function RightMouseUpAction(){
+		
+		//エンディング中処理
+		if(f.ending_start)return;
+			
+		//停止して次へ
+		FileStop();
+		
+		//次のタグを取得しにいく
+		MainWnd.PaserObj.GetTagload();
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	●SetState関数
+	
+	引数：
+	
+	mode	0:再生TYPE			0:通常再生 1:loop再生
+			1:PAN設定			-100 ～ 0 ～ 100
+			2:一時停止			0:解除 1:一時停止
+			3:再生状態の取得	"play","stop","susppend"
+			4:再生時間の取得	
+			5:音量設定			0 ～ 100
+			6:総再生時間の取得	
+	説明：
+	
+	色々な値を設定する
+	
+	-----------------------------------------*/
+	function SetState(mode, value = 0)
+	{
+		
+		switch(mode){
+		case 0:{//再生TYPE			0:通常再生 1:loop再生
+			
+			looping = value;
+			
+		}break;
+		case 1:{//PAN設定			-100 ～ 0 ～ 100
+			
+			pan = value;
+			
+		}break;
+		case 2:{//一時停止			0:解除 1:一時停止
+			
+			paused = value;
+			
+		}break;
+		case 3:{//再生状態の取得	"play","stop","susppend","unload"
+			
+			if(paused)return "susppend";
+			
+			return status;
+			
+		}break;
+		case 4:{//再生時間の取得
+			
+			return position;
+			
+		}break;
+		case 5:{//音量設定
+			
+			//typeによって分かれる
+			if(soundtype == "bgm"){
+			//BGM
+				MainWnd.SoundObj.BgmVolume  = value;
+				
+				//MOVIE もBGMに合わせる
+				MainWnd.SoundObj.MovieVolume= value;
+				volume  = MainWnd.SoundObj.BgmVolume   * 1000;
+				
+			}else if(soundtype == "se"){
+			//効果音
+				MainWnd.SoundObj.SeVolume = value;
+				volume  = MainWnd.SoundObj.SeVolume    * 1000;
+				
+			}else if(soundtype == "voice"){
+			//音声VOLUME
+				MainWnd.SoundObj.VoiceVolume = value;
+				volume  = MainWnd.SoundObj.VoiceVolume * 1000;
+				
+			}else if(soundtype == "movie"){
+			//MOVIE VOLUME
+				MainWnd.SoundObj.MovieVolume = value;
+				volume  = MainWnd.SoundObj.MovieVolume * 1000;
+				
+			}else if(soundtype == "system_se"){
+			//SYSTEM効果音
+				MainWnd.SoundObj.SystemVolume = value;
+				volume  = MainWnd.SoundObj.SystemVolume * 1000;
+			}
+			
+		}break;
+		case 6:{//総再生時間の取得
+			
+			return (status != "unload") ? totalTime : 0;
+			
+		}break;
+		}
+	}
+	
+}
+
+
+@endif

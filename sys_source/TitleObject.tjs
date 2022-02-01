@@ -1,0 +1,1368 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2011/02/22
+// File : TitleObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo :Title Object
+//------------------------------------------------------------------------------
+@if (__TITLEOBJECT_TJS__== 0)
+@set(__TITLEOBJECT_TJS__ = 1)
+
+class _TITLEOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	◆ パラメータ
+	-----------------------------------------*/
+	
+	var BaseBgLayer;			//背景レイヤ
+	
+	var BaseBordLayer;			//ベースボード
+	
+	var SpecialBgLayer;			//スペシャル背景
+	
+	var TrialLogoLayer;			//トライアルロゴレイヤ
+	
+	var PartsLayer;				//パーツレイヤ
+	
+	var PartsLayer2;			//パーツレイヤ
+	
+	var MapReg;					//MAP番号
+	
+	var TempReg;				//Temp
+	
+	var FinalizeFlag;			//削除フラグ
+	
+	var ButtonLayer = [];		//ボタンレイヤ
+	
+	var LoadDataFlag;			//ロードデータ存在フラグ
+	
+	var SpecialFlag;			//スペシャル選択処理
+	
+	var QuickDataFlag;			//Quickデータフラグ
+	
+	var ContinueDataFlag;		//Continueデータフラグ
+	
+	var QuickDataBord;			//Quickデータボード
+	
+	var ContinueDataBord;		//Continueデータボード
+	
+	var Quickfile;				//QuickFile
+	
+	var QuickThum;				//Quick Thumbnail
+	
+	var QuickText;				//Quick Text
+	
+	var QuickTime;				//Quick Time
+	
+	var QuickNum;				//Quick Number
+	
+	var ContinueThum;			//Continue Thumbnail
+	
+	var ContinueText;			//Continue Text
+	
+	var ContinueTime;			//Continue Time
+	
+	var ContinueNum;			//Continue Number
+	
+	var QuickRewrite;			//QUICK再描画フラグ
+	
+	var BgLayer;				//背景レイヤ
+	
+	
+	
+	
+	var m_left;					//mouse left
+	
+	var m_top;					//mouse top
+	
+	var keyactive;				//key active
+	
+	var ReturnReplayFlag;		//リターンリプレイフラグ
+	
+	var ReturnExtraMode;		//リターンＥＸＴＲＡフラグ
+	
+	
+	@if(_DEBUG == 1)
+	var DebugObj;				//デバッグオブジェクト
+	@endif
+	
+	
+	//スクロール設定
+	var nRIGHT_POS  = 1200;
+	var nLEFT_POS   = 80;
+	var nBOTTOM_POS = 645;
+	var nTOP_POS    = 640;
+	
+	var nSCROLL_SPD = 5;
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ コンストラクタ
+	-----------------------------------------*/
+	function _TITLEOBJECT(wnd, pri)
+	{
+		super.BaseObject(wnd, pri);
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		FinalizeFlag = true;
+		
+		invalidate BaseBgLayer;
+		
+		invalidate PartsLayer;
+		
+		invalidate PartsLayer2;
+		
+		for(var i=0; i<ButtonLayer.count; i++){
+			invalidate ButtonLayer[i];
+		}
+		
+		invalidate BaseBordLayer;
+		
+		invalidate SpecialBgLayer;
+		
+		BaseBgLayer = void;
+		
+		PartsLayer  = void;
+		
+		if(QuickDataBord !== void)
+		{
+			invalidate QuickDataBord;	//Quickデータボード
+			
+			invalidate QuickThum;		//Quick Thumbnail
+			
+			invalidate QuickText;		//Quick Text
+			
+			invalidate QuickTime;		//Quick Time
+			
+			invalidate QuickNum;
+		}
+		
+		if(ContinueDataBord !== void)
+		{
+			invalidate ContinueDataBord;	//Continueデータボード
+			
+			invalidate ContinueThum;		//Continue Thumbnail
+			
+			invalidate ContinueText;		//Continue Text
+			
+			invalidate ContinueTime;		//Continue Time
+			
+			invalidate ContinueNum;
+		}
+		
+		QuickDataBord    = void;	//Quickデータボード
+		ContinueDataBord = void;	//Continueデータボード
+		QuickThum        = void;	//Quick Thumbnail
+		QuickText        = void;	//Quick Text
+		QuickTime        = void;	//Quick Time
+		ContinueThum     = void;	//Continue Thumbnail
+		ContinueText     = void;	//Continue Text
+		ContinueTime     = void;	//Continue Time
+		FinalizeFlag     = void;	//削除フラグをねかす
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 画面作成関数
+	-----------------------------------------*/
+	function TitleCreate(type = false)
+	{
+		//背景レイヤ
+		if(f.midnight == true){
+			MainWnd.add(BaseBgLayer  = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0,"frm_title03_01" ));
+		}else{
+			MainWnd.add(BaseBgLayer  = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0,"frm_title02_01" ));
+		}
+		
+		BaseBgLayer.absolute = nTITLELAYER;
+		
+		BaseBgLayer.loadProvinceImage("title_map.png");
+		
+		//パーツレイヤ
+		PartsLayer             = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0, 0, 0, 0, "frm_title04");
+		
+		PartsLayer.visible     = false;
+		
+		
+		//背景レイヤの参照を取得
+		BgLayer = MainWnd.ImageObj.GetImageAdress( 0 );
+		
+		
+		@if(_DEBUG == 1)
+		if(System.getKeyState(VK_TAB)){
+			s["game_clear"] = true;
+		}
+		@endif
+		
+		
+		
+		//ボタンレイヤ
+		for(var i=0; i<11; i++){
+			
+			var x,y,srcx,srcy,wid,hei;
+			
+			switch(i){
+			case 0:{//はじめから
+				x = 180;
+				y = 675;
+				srcx=0;
+				srcy=0;
+				wid=114;
+				hei=27;
+			}break;
+			case 1:{//つづきから
+				x = 308;
+				y = 675;
+				srcx=114;
+				srcy=0;
+				wid=71;
+				hei=27;
+			}break;
+			case 2:{//quick
+				x = 393;
+				y = 675;
+				srcx=185;
+				srcy=0;
+				wid=159;
+				hei=27;
+			}break;
+			case 3:{//continue
+				x = 563;
+				y = 674;
+				srcx=344;
+				srcy=0;
+				wid=158;
+				hei=27;
+			}break;
+			case 4:{//config
+				x = 734;
+				y = 674;
+				srcx=502;
+				srcy=0;
+				wid=116;
+				hei=28;
+			}break;
+			case 5:{//すぺしゃる
+				x = 863;
+				y = 674;
+				srcx=618;
+				srcy=0;
+				wid=116;
+				hei=27;
+			}break;
+			case 6:{//終了
+				x = 1002;
+				y = 674;
+				srcx=734;
+				srcy=0;
+				wid=94;
+				hei=28;
+			}break;
+			case 7:{//はじまりの日
+				x = 15;
+				y = 675;
+				srcx=828;
+				srcy=0;
+				wid=136;
+				hei=27;
+			}break;
+			case 8:{//ｃｇモード
+				x = 394;
+				y = 675;
+				srcx=964;
+				srcy=0;
+				wid=103;
+				hei=27;
+			}break;
+			case 9:{//リプレイもーど
+				x = 580;
+				y = 674;
+				srcx=1067;
+				srcy=0;
+				wid=115;
+				hei=28;
+			}break;
+			case 10:{//えくすとら
+				x = 771;
+				y = 674;
+				srcx=1182;
+				srcy=0;
+				wid=115;
+				hei=27;
+			}break;
+			
+			}
+			
+			ButtonLayer[i]   = new BaseLayer(MainWnd, MainWnd.CaptureLayer, x, y, wid, hei);
+			
+			ButtonLayer[i].copyRect(0,0,PartsLayer,srcx,srcy,wid,hei);
+			
+			ButtonLayer[i].absolute = (BaseBgLayer.absolute+1) + i;
+			
+			ButtonLayer[i].visible  = true;
+			
+			//ロードデータが無ければロードは塞ぐ
+			if(i == 1){
+				
+				//セーブデータチェック
+				for(var t=nN_SAVENUM; t<nN_SAVELAST; t++){
+					//データが存在していたら終了
+					if(ResourceCheck("savedata%03d.bmp".sprintf(t))){
+						LoadDataFlag = true;
+						break;
+					}else{
+						LoadDataFlag = false;
+					}
+				}
+				
+				//ボタンを塞ぐ
+				if(LoadDataFlag == false){
+					ButtonLayer[i].copyRect(0,0,PartsLayer,srcx,hei*3,wid,hei);
+				}
+				
+			}else if( i == 2 ){
+			//QUICK チェック
+				//QUICKの最新はひとつ前
+				var new_quick = ((s["quick_number"] - 1) < 0) ? (nSAVE_PAGE_NUM-1) : (s["quick_number"]-1);
+				
+				//Continue チェック
+				if(!ResourceCheck("savedata%03d.bmp".sprintf(nQ_SAVENUM+new_quick))){
+					ButtonLayer[i].copyRect(0,0,PartsLayer,srcx,hei*3,wid,hei);
+					QuickDataFlag = false;
+				}else{
+					
+					QuickDataFlag = true;
+					
+					if(nQUICK_BORD_TYPE == 0){
+						QuickDataBord = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 393,525,0,0, "frm_quickbord.png");
+					}else{
+						QuickDataBord = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 393,525,0,0, "frm_quickbord2.png");
+					}
+					
+					Quickfile = "savedata%03d.bmp".sprintf(nQ_SAVENUM+new_quick);
+					QuickThum = new BaseLayer(MainWnd, QuickDataBord,135,12,nTHUMBNAIL_W,nTHUMBNAIL_H);
+					QuickThum.loadImages(Quickfile);
+					
+					//*
+					//コメント有りのみ
+					if(nQUICK_BORD_TYPE == 0){
+						QuickText = new BaseLayer(MainWnd, QuickDataBord,327+nSAVE_XPOS,11+nSAVE_YPOS,225,nSAVETEXT_FONTSIZE*4);
+						QuickText.font.face   = nSAVETEXT_FONTNAME;
+						QuickText.font.height = nSAVETEXT_FONTSIZE;
+					}
+					//*/
+					
+					
+					QuickTime = new BaseLayer(MainWnd, QuickDataBord,34,73 ,75,(nTIMESTAMP_FONTSIZE+nTIMESTAMP_GYOUKAN)*2);
+					QuickTime.font.height = nTIMESTAMP_FONTSIZE;
+					
+					//Quickネームとナンバー
+					QuickNum  = new BaseLayer(MainWnd, QuickDataBord,31,29 ,75,25);
+					
+					//Quickネームとナンバー
+					QuickNum.fileCopyRect(0, 0, new FileLayer(MainWnd, PriLayer, "frm_quickname.png"), 0, 0, 75, 25);
+					
+					QuickNum.fileCopyRect(42, 3, new FileLayer(MainWnd, PriLayer, "frm_qnumber.png"), 0, 20*new_quick, 30, 20);
+					
+					//TEXT
+					var text = s[Quickfile];
+					
+					//ボードに取得したデータを書き込む
+					MainWnd.DataBordWirte( QuickText, QuickTime, text );
+					
+					QuickDataBord.visible = false;
+				}
+				
+			}else if( i == 3 ){
+			//Continue チェック
+				//Continue チェック
+				if(!ResourceCheck("savedata%03d.bmp".sprintf(nC_SAVENUM))){
+					ButtonLayer[i].copyRect(0,0,PartsLayer,srcx,hei*3,wid,hei);
+					ContinueDataFlag = false;
+				}else{
+					ContinueDataFlag = true;
+					
+					if(nQUICK_BORD_TYPE == 0){
+						ContinueDataBord = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 563, 525,0,0,"frm_quickbord.png");
+					}else{
+						ContinueDataBord = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 563, 525,0,0,"frm_quickbord2.png");
+					}
+					
+					var Continuefile = "savedata%03d.bmp".sprintf(nC_SAVENUM);
+					ContinueThum     = new BaseLayer(MainWnd, ContinueDataBord,135,12,nTHUMBNAIL_W,nTHUMBNAIL_H);
+					ContinueThum.loadImages(Continuefile);
+					
+					//コメント有りのみ
+					//*
+					if(nQUICK_BORD_TYPE == 0){
+						ContinueText = new BaseLayer(MainWnd, ContinueDataBord,327+nSAVE_XPOS,11+nSAVE_YPOS,225,nSAVETEXT_FONTSIZE*4);
+						ContinueText.font.face   = nSAVETEXT_FONTNAME;
+						ContinueText.font.height = nSAVETEXT_FONTSIZE;
+					}
+					//*/
+					
+					
+					
+					ContinueTime = new BaseLayer(MainWnd, ContinueDataBord,34,73,75,(nTIMESTAMP_FONTSIZE+nTIMESTAMP_GYOUKAN)*2);
+					ContinueTime.font.height = nTIMESTAMP_FONTSIZE;
+					
+					//Quickネームとナンバー
+					ContinueNum  = new BaseLayer(MainWnd, ContinueDataBord,31,29 ,75,25);
+					
+					//Quickネームとナンバー
+					ContinueNum.fileCopyRect(0, 0, new FileLayer(MainWnd, PriLayer, "frm_continuename.png"), 0, 0, 75, 25);
+					
+					//TEXT
+					var text = s[Continuefile];
+					
+					//ボードに取得したデータを書き込む
+					MainWnd.DataBordWirte( ContinueText, ContinueTime, text );
+					
+					ContinueDataBord.visible = false;
+				}
+				
+			}
+			
+			
+			//クリアフラグが無ければスペシャルは塞ぐ
+			if(i == 5){
+				SpecialFlag = false;
+				
+				if(s["game_clear"] == false){
+					ButtonLayer[i].copyRect(0,0,PartsLayer,srcx,hei*3,wid,hei);
+				}else{
+					SpecialFlag = true;
+				}
+			}
+			
+			
+			//ALL CLEARのときは表示
+			if( (i == 7) && (s['ALL_CLEAR'] == false) ) {
+				ButtonLayer[i].visible = false;
+			}
+			
+			//はじまりの日フラグが立ててなければ非表示にする
+			if((i == 7) && nPROLOGU_PATCH == false){
+				ButtonLayer[i].visible = false;
+			}
+			
+			
+			//CG MODEとREPLAY MODE は最初伏せておく
+			if(7 < i){
+				
+				ButtonLayer[i].absolute = (nTITLELAYER+10) + i;
+				
+				ButtonLayer[i].visible = false;
+			}
+		}
+		
+		
+		
+		TempReg = 0;
+		
+		MapReg  = 0;
+		
+		//メッセージ系のパラメータを初期化しておく
+		MainWnd.MessObj.logcnt     = 0;
+		
+		MainWnd.MessObj.lognum     = 0;
+		
+		MainWnd.MessObj.hitret_cnt = 0;
+		
+		//シナリオフラグをクリアする
+		//Data Clear
+		for(var i=0; i<nSCENARIOFLAG; i++){
+			var Index = "%d".sprintf(i);
+			
+			MainWnd.PaserObj.temp_f[Index] = 0;
+			
+			f[Index] = 0;
+		}
+		
+		//先頭データをクリアしておく
+		(Dictionary.clear incontextof MainWnd.PaserObj.temp_f)();
+		
+		@if(_DEBUG == 1)
+		//DEBUG用のレジスタをクリア
+		(Dictionary.clear incontextof debug_f)();
+		@endif
+		
+		
+		//リプレイフラグを寝かせる
+		ReturnReplayFlag = false;
+		ReturnExtraMode  = false;
+		//エクストラフラグを寝かしておく
+		f["extra"]       = false;
+		MainWnd.ExtraFlag= false;
+		
+		//LOG JUMPパラメータをクリアしておく
+		MainWnd.LogJumpObj.JumpParamClear();
+		
+		
+		
+		//REPLAYファイルから戻ってきた
+		if(type == 1){
+			//スペシャル用タイトルに切り替え
+			SpecialWork();
+			MapReg           = 10;
+			ReturnReplayFlag = true;
+			ButtonWork();
+		}else if(type == 2){
+		//EXTRA
+			//スペシャル用タイトルに切り替え
+			SpecialWork();
+			MapReg           = 11;
+			ReturnExtraMode  = true;
+			ButtonWork();
+		
+		}else{
+			//TITLE BGM を保持しておく
+			f["titlebgm"] = f["bgm"];
+			//クリアしておく
+			MainWnd.ReplayPage = 0;
+			
+			
+			//マウスカーソル自動移動
+			/*
+			if( s["mouse"] == true ){
+				
+				MainWnd.PrimaryLayer.cursorX = ButtonLayer[0].left + (ButtonLayer[0].width\2);
+				
+				MainWnd.PrimaryLayer.cursorY = ButtonLayer[0].top  + (ButtonLayer[0].height\2);
+				
+				//移動アニメ ※言われたら使用するってことで
+				//MainWnd.SetCursorMove( ButtonLayer[0].left + (ButtonLayer[0].width\2), ButtonLayer[0].top  + (ButtonLayer[0].height\2), nMOUSE_MOVE_TIME );
+			}
+			*/
+		}
+		
+		
+		//エクストラシナリオフラグ確認
+		if(
+			ResourceCheck(nEXTRAFILE01) || ResourceCheck(nEXTRAFILE02) || ResourceCheck(nEXTRAFILE03) ||
+			ResourceCheck(nEXTRAFILE04) || ResourceCheck(nEXTRAFILE05) || ResourceCheck(nEXTRAFILE06) ||
+			ResourceCheck(nEXTRAFILE07) || ResourceCheck(nEXTRAFILE08) || ResourceCheck(nEXTRAFILE09)
+		){
+			s["extra_flag"] = true;
+		}else{
+			//s["extra_flag"] = false;
+		}
+		
+		
+		
+		//コンティニューフラグ
+		MainWnd.ContinueFlag = false;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Default Func
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		for(var i=0; i<ButtonLayer.count; i++){
+		
+			if(ButtonLayer[i].PaintFlag){
+				
+				ButtonLayer[i].PaintFlag = false;
+				
+				Wait(nBUTTON_WAIT);
+				
+				ButtonWork();
+				
+				return;
+			}
+		}
+		
+		if(!keyactive){
+		//mouse 制御
+			MapReg = BaseBgLayer.GetProvincePixel();
+		}else{
+		//key 制御
+			if(	(m_left != MainWnd.PrimaryLayer.cursorX) ||
+				(m_top  != MainWnd.PrimaryLayer.cursorY)
+			){
+				keyactive = false;
+			}
+		}
+		
+		
+		if(MapReg != TempReg)
+		{
+			ActionFunction();
+			
+			ClearFunction();
+		}
+		
+		TempReg = MapReg;
+		
+		
+		//カーソル位置チェック
+		CursorPosCheck(MainWnd.PrimaryLayer.cursorX, MainWnd.PrimaryLayer.cursorY);
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		//左クリック排他処理
+		if(
+			(MainWnd.LoadFlag) ||
+			(DeleteObject !== void) ||
+			(MainWnd.EffectObj.LoadTrans) ||
+			((MapReg == 11) && (!s["extra_flag"]))
+		){
+			return;
+		}
+		
+		//クリック処理
+		ClickWork();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		//スペシャル用の背景が表示されている場合はここまで
+		if(ButtonLayer[8].visible){
+			ButtonLayer[5].copyRect(0,0,PartsLayer,618,0,ButtonLayer[5].width,ButtonLayer[5].height);
+			ButtonLayer[8].visible = false;
+			ButtonLayer[9].visible = false;
+			ButtonLayer[10].visible= false;
+			MapReg                 = 0;
+			TempReg                = 6;
+			
+			//通常用ボタンを表示する
+			for(var i=0; i<7; i++){
+				ButtonLayer[i].visible = true;
+			}
+			
+			
+			if((s['ALL_CLEAR'] == true) && (nPROLOGU_PATCH == true)){
+				ButtonLayer[7].visible = true;
+			}
+			
+			//clipmapの変更
+			BaseBgLayer.loadProvinceImage("title_map.png");
+			
+			return;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ アクティブ関数
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function ActionFunction()
+	{
+		if(MapReg <= 0)return;
+		
+		switch(MapReg){
+			case 1://start
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,0,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 2://load
+				if((MapReg == 2) && (!LoadDataFlag))return;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,114,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 3://quick
+				if((MapReg == 3) && (!QuickDataFlag))return;
+				//Quick表示
+				if(MapReg == 3)QuickDataBord.visible = true;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,185,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 4://continue
+				if((MapReg == 4) && (!ContinueDataFlag))return;
+				//Continue表示
+				if(MapReg == 4)ContinueDataBord.visible = true;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,344,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 5://config
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,502,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 6://special
+				if((MapReg == 6) && (!SpecialFlag))return;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,618,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 7://end
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,734,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 8://はじまりの日
+				if(!ButtonLayer[MapReg-1].visible)return;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,828,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 9://cg mode
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,964,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 10://replay mode
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,1067,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 11:{//extra mode
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,1182,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 消去関数
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function ClearFunction()
+	{
+		switch(TempReg){
+			case 1://start
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,0,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 2://load
+				if((TempReg == 2) && (!LoadDataFlag))return;
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,114,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 3://quick
+				if((TempReg == 3) && (!QuickDataFlag))return;
+				//Quick非表示
+				if(TempReg == 3)QuickDataBord.visible = false;
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,185,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 4://continue
+				if((TempReg == 4) && (!ContinueDataFlag))return;
+				//Continue非表示
+				if(TempReg == 4)ContinueDataBord.visible = false;
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,344,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 5://config
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,502,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 6://special
+				if((TempReg == 6) && (!SpecialFlag))return;
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,618,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 7://end
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,734,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 8://はじまりの日
+				if(!ButtonLayer[TempReg-1].visible)return;
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,828,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 9://cg mode
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,964,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 10://replay mode
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,1067,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			break;
+			case 11:{//extra mode
+				ButtonLayer[TempReg-1].copyRect(0,0,PartsLayer,1182,0,ButtonLayer[TempReg-1].width,ButtonLayer[TempReg-1].height);
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ クリック処理
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function ClickWork()
+	{
+		if(MapReg <= 0)return;
+		
+		switch(MapReg){
+			case 1:{//start
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,0,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			}break;
+			case 2://load
+				if((MapReg == 2) && (!LoadDataFlag))return;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,114,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 3://quick
+				if((MapReg == 3) && (!QuickDataFlag))return;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,185,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 4://continue
+				if((MapReg == 4) && (!ContinueDataFlag))return;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,344,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 5://config
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,502,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 6://special
+				if((MapReg == 6) && (!SpecialFlag))return;
+				
+				@if(_DEBUG == 1)
+				if(System.getKeyState(VK_TAB)){
+					if(MapReg == 6)s["extra_flag"] = true;
+				}
+				@endif
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,618,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 7://end
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,734,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 8://はじまりの日
+				if(!ButtonLayer[MapReg-1].visible)return;
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,828,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 9://cg mode
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,964,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 10://replay mode
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,1067,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			break;
+			case 11:{//extra mode
+				ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,1182,ButtonLayer[MapReg-1].height*2,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			}break;
+		}
+		
+		
+		//画面更新
+		ButtonLayer[(MapReg-1)].update();
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ボタン処理
+	-----------------------------------------*/
+	function ButtonWork()
+	{
+		switch(MapReg){
+		case 1://start
+		case 8:{//はじめから
+			
+			if( MapReg == 1 ){
+				f.changefile = 1;
+			}else{
+				f.changefile = 8;
+			}
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//コンティニュー用SAVEフラグ
+			MainWnd.ContinueFlag = true;
+			
+			
+			//削除処理
+			DeleteWork( TitleDelete );
+			
+		}break;
+		
+		case 2:{//load
+			
+			ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,114,ButtonLayer[MapReg-1].height,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//SYSTEM音声の再生
+			if(s["system"] == true) {
+				var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_LOADCALL;
+				MainWnd.SystemVoicePlay(file);
+			}
+			
+			//LOAD画面を作成する
+			MainWnd.SaveLoadObj          = new _SAVELOADOBJECT(MainWnd, PriLayer, nLOAD_SC);
+			
+			//アクティブオブジェクトをLOADに変更
+			MainWnd.ChangeActive(MainWnd.SaveLoadObj);
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+		}break;
+		
+		case 3:{//quick
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			//ロード実行
+			//１つ前の数値が最新
+			var now_new_quick = s["quick_number"] - 1;
+			if(now_new_quick < 0)now_new_quick = nQ_SAVELAST-1;
+			
+			MainWnd.DataLoadAction(nQ_SAVENUM + now_new_quick);
+			//LOAD処理
+			MainObj.LoadAction();
+			
+		}break;
+		
+		case 4:{//continue
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			//ロード実行
+			MainWnd.DataLoadAction(nC_SAVENUM);
+			//LOAD処理
+			MainObj.LoadAction();
+			
+		}break;
+		
+		case 5:{//config
+			
+			ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,502,0,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			
+			MapReg = 0;
+			
+			TempReg= 0;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//SYSTEM音声の再生
+			if(s["system"] == true) {
+				var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_CONFIGCALL;
+				MainWnd.SystemVoicePlay(file);
+			}
+			
+			//CONFIG画面を作成する
+			MainWnd.ConfigObj = new _CONFIGOBJECT(MainWnd, PriLayer, true);
+			
+			//アクティブオブジェクトをCONFIGに変更
+			MainWnd.ChangeActive(MainWnd.ConfigObj);
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+		}break;
+		
+		case 6:{//special
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//SYSTEM音声の再生
+			if(s["system"] == true) {
+				var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_SPECIALCALL;
+				MainWnd.SystemVoicePlay(file);
+			}
+			
+			//スペシャル用ボタンを表示する
+			SpecialWork();
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+		}break;
+		
+		case 7:{//end
+			
+			ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,734,0,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			
+			//ダイアログを表示
+			MainWnd.onCloseQuery(true);
+			
+		}break;
+		
+		case 9:{//cg mode
+			
+			
+			
+			MainWnd.CgReplayObj    = new _CGREPLAYMODE(MainWnd, PriLayer , nCGMODE_SC);
+			
+			ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,964,0,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);	
+			
+			//スペシャル用の背景を消しておく
+			MapReg                 = 0;
+			TempReg                = 9;
+			
+			return;
+			
+		}break;
+		
+		case 10:{//replay
+			
+			
+			MainWnd.CgReplayObj = new _CGREPLAYMODE(MainWnd, PriLayer , nREPLAYMODE_SC , ReturnReplayFlag);
+			
+			ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,1067,0,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			
+			//スペシャル用の背景を消しておく
+			MapReg                 = 0;
+			TempReg                = 10;
+			
+			//フラグをここで寝かしておく
+			ReturnReplayFlag = false;
+			
+			return;
+			
+		}break;
+		case 11:{//extra
+			
+			//SYSTEM音声の再生
+			if(s["system"] == true) {
+				var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_EXTRAMODE;
+				MainWnd.SystemVoicePlay(file);
+			}
+			
+			MainWnd.ExtraObj    = new _EXTRAOBJECT(MainWnd, PriLayer, ReturnExtraMode);
+			
+			ButtonLayer[MapReg-1].copyRect(0,0,PartsLayer,1182,0,ButtonLayer[MapReg-1].width,ButtonLayer[MapReg-1].height);
+			
+			MapReg                 = 0;
+			TempReg                = 11;
+			
+			//SYS00_A00016.ogg extraシナリオ
+			ReturnExtraMode = false;
+			
+		}break;
+		
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ スペシャル画面切り替え処理
+	----------------------------------------------------------*/
+	function SpecialWork()
+	{
+		//スペシャル用ボタンを表示する
+		for(var i=0; i<8; i++){
+			ButtonLayer[i].visible = false;
+		}
+		
+		//CG MODE & REPLAY MODE
+		ButtonLayer[8].visible       = true;
+		ButtonLayer[9].visible       = true;
+		
+		//エクストラフラグ
+		if(s["extra_flag"]){
+			ButtonLayer[10].visible   = true;
+		}
+		
+		ButtonLayer[8].copyRect(0,0,PartsLayer,964,0);
+		
+		ButtonLayer[9].copyRect(0,0,PartsLayer,1067,0);
+		
+		ButtonLayer[10].copyRect(0,0,PartsLayer,1182,0);
+		
+		//clipmapの変更
+		BaseBgLayer.loadProvinceImage("title_map2.png");
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ KEY UP
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		if(key == VK_CONTROL)return;
+		
+		switch(key){
+			case VK_RETURN:{
+			//return
+			//altキーが押されていたらここまで
+			if(shift & ssAlt)return;
+				LeftMouseUpAction();
+			}break;
+			
+			case VK_LEFT:{
+			//←
+				
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				--MapReg;
+				
+				//スペシャル中のみ
+				if(ButtonLayer[8].visible){
+					if(MapReg < 1){
+						MapReg = 9;
+					}else if(MapReg < 9){
+						MapReg = 11;
+					}
+				}else{
+					if(MapReg < 1){
+						MapReg = 8;
+					}
+				}
+				
+				
+				//キースキップ処理
+				switch(MapReg){
+				case 11://extra
+					if(s["extra_flag"] == false){ MapReg = 10; }
+				break;
+				case 8://始まりの日
+					if( (MapReg == 8) && ((!s['ALL_CLEAR']) || (!nPROLOGU_PATCH)) ){ MapReg = 7; }
+				case 6://special
+					if((MapReg == 6) && (!SpecialFlag)){ MapReg = 5; }
+				case 4://continue
+					if((MapReg == 4) && (!ContinueDataFlag)){ MapReg = 3; }
+				case 3://quick
+					if((MapReg == 3) && (!QuickDataFlag)){ MapReg = 2; }
+				case 2://load
+					if((MapReg == 2) && (!LoadDataFlag)){ MapReg = 1; }
+				break;
+				}
+				
+				
+			}break;
+			
+			case VK_RIGHT:{
+			//→
+				
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				++MapReg;
+				
+				//スペシャル中のみ
+				if(ButtonLayer[8].visible){
+					if(MapReg < 9){
+						MapReg = 9;
+					}else if(11 < MapReg){
+						MapReg = 9;
+					}
+				}else{
+					if(8 < MapReg){
+						MapReg = 1;
+					}else if(MapReg < 1){
+						MapReg = 7;
+					}
+				}
+				
+				
+				//キースキップ処理
+				switch(MapReg){
+				case 2://load
+					if((MapReg == 2) && (!LoadDataFlag)){ MapReg = 3; }
+				case 3://quick
+					if((MapReg == 3) && (!QuickDataFlag)){ MapReg = 4; }
+				case 4://continue
+					if((MapReg == 4) && (!ContinueDataFlag)){ MapReg = 5; }
+				case 6://special
+					if((MapReg == 6) && (!SpecialFlag)){ MapReg = 7; }
+				break;
+				case 8:
+					if((MapReg == 8) && ((!s['ALL_CLEAR']) || (!nPROLOGU_PATCH)) ){ MapReg = 1; }
+				break;
+				case 11://extra
+					if(s["extra_flag"] == false){ MapReg = 9; }
+				break;
+				}
+				
+			}break;
+			
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ カーソル位置チェック
+	-----------------------------------------*/
+	function CursorPosCheck( cur_x, cur_y )
+	{
+		/*
+		if( nRIGHT_POS < cur_x ){
+			
+			if( (BgLayer.left - nSCROLL_SPD) < -84 ){
+				BgLayer.left = -84;
+			}else{
+				BgLayer.left -= nSCROLL_SPD;
+			}
+			
+		}
+		
+		if( cur_x < nLEFT_POS ){
+			
+			if( 0 < (BgLayer.left + nSCROLL_SPD) ){
+				BgLayer.left = 0;
+			}else{
+				BgLayer.left += nSCROLL_SPD;
+			}
+			
+		}
+		*/
+		
+		if( nBOTTOM_POS < cur_y ){
+			
+			if( (BgLayer.top - nSCROLL_SPD) < -183 ){
+				BgLayer.top = -183;
+			}else{
+				BgLayer.top -= nSCROLL_SPD;
+			}
+			
+		}
+		
+		if( cur_y < nTOP_POS){
+			
+			if( -65 < (BgLayer.top + nSCROLL_SPD) ){
+				BgLayer.top = -65;
+			}else{
+				BgLayer.top += nSCROLL_SPD;
+			}
+			
+		}
+		
+		
+		//
+		if(!LoadDataFlag){
+			ButtonLayer[1].copyRect(0,0,PartsLayer,114,ButtonLayer[1].height*3,ButtonLayer[1].width,ButtonLayer[1].height);
+		}
+		
+		
+		if(!QuickDataFlag){
+			ButtonLayer[2].copyRect(0,0,PartsLayer,185,ButtonLayer[2].height*3,ButtonLayer[2].width,ButtonLayer[2].height);
+		}
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ QUICK更新テキスト
+	-----------------------------------------*/
+	function QuickBordText()
+	{
+		//QUICKの最新はひとつ前
+		var new_quick = ((s["quick_number"] - 1) < 0) ? (nSAVE_PAGE_NUM-1) : (s["quick_number"]-1);
+		
+		//画像更新
+		var Quickfile = "savedata%03d.bmp".sprintf(nQ_SAVENUM + new_quick);
+		QuickThum.loadImages(Quickfile);
+		
+		//Quickネームとナンバー
+		QuickNum.fileCopyRect(0, 0, new FileLayer(MainWnd, PriLayer, "frm_quickname.png"), 0, 0, 75, 25);
+		
+		QuickNum.fileCopyRect(42, 3, new FileLayer(MainWnd, PriLayer, "frm_qnumber.png"), 0, 20*new_quick, 30, 20);
+		
+		//TEXT
+		var text = s[Quickfile];
+		
+		//ボードに取得したデータを書き込む
+		MainWnd.DataBordWirte( QuickText, QuickTime, text );
+		
+	}
+	
+	
+}
+
+
+
+
+
+
+/*-----------------------------------------
+■ 削除関数
+-----------------------------------------*/
+function TitleDelete()
+{
+	//オブジェクトを削除
+	invalidate MainObj.TitleObj;
+	
+	MainObj.TitleObj = void;
+	
+	//ガベージを強制的に動かす
+	System.doCompact();
+	
+	//次のタグを取得しにいく
+	MainObj.PaserObj.ChageFile("start.ks", false);
+}
+
+
+@endif
+
+

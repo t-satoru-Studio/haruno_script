@@ -1,0 +1,1787 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/04/27
+// File : ImageObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Back Ground Control
+//------------------------------------------------------------------------------
+
+@if(__IMAGEOBJECT_TJS__ == 0)
+@set(__IMAGEOBJECT_TJS__ = 1)
+
+
+
+/*-----------------------------------------
+□Imageクラス
+
+
+説明：
+画像の処理をするオブジェクトクラス
+-----------------------------------------*/
+class ImageObject extends BaseObject {
+	
+	/*-----------------------------------------
+	□メンバ　オブジェクト
+	-----------------------------------------*/
+	var ImgObj       = [];	//画像配列
+	
+	var ImgTempObj   = [];	//TEMP画像配列
+	
+	var ZoomObj      = [];	//ズームオブジェクト
+	
+	var moveObject   = [];	//移動オブジェクト
+	
+	var DrawWaitObj  = [];	//描画WAIT
+	
+	var AffineObj    = [];	//回転オブジェクト
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	
+	引数：
+	
+	wnd MainWnd
+	
+	pri PrimaryLayer
+	
+	-----------------------------------------*/
+	function ImageObject(wnd, pri)
+	{
+		super.BaseObject(wnd, pri);
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ファイナライズ
+	
+	引数：
+	
+	なし
+	
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+		
+		
+		var cnt = ZoomObj.count;
+		
+		for(var i=0; i<cnt; i++){
+			
+			if(ZoomObj[i] !== void)invalidate ZoomObj[i];
+			
+			ZoomObj[i] = void;
+		}
+		
+		cnt     = DrawWaitObj.count;
+		
+		for(var i=0; i<cnt; i++){
+			
+			if(DrawWaitObj[i] !== void)invalidate DrawWaitObj[i];
+			
+			DrawWaitObj[i] = void;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	shift	同時キー
+	
+	delta	方向：正:奥　負:手前
+	
+	x		X座標
+	
+	y		Y座標
+	
+	説明：
+	Mouse Wheelを処理するハンドラ
+	
+	-----------------------------------------*/
+	function MouseWheelAction(shift, delta, x, y)
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆画像表示関数
+	
+	引数：
+	
+	value:パラメータ辞書配列
+	
+	
+	-----------------------------------------*/
+	function ImageDraw( value )
+	{
+		//LayerIndexの判定
+		var index = +value.layer;
+		
+		//セーブファイルINDEX
+		var FileIndex = "imagefile%d".sprintf(index);
+		
+		//再読み込みフラグ
+		var ReloadFileFlag = false;
+		
+		var BuTempFile1    = value.file;
+		
+		var BuTempFile2    = value.file2;
+		
+		var EvCgSetFlag    = false;
+		
+		
+		//・画像判定処理
+		// 立ち絵か、その他かの判定、その他はCG MODEのフラグチェックが必要になる
+		if(value.file.indexOf("CH_") == -1) {
+		//その他
+			//EVかそれ以外 CG FLAG CHECK
+			//大文字にしておく
+			value.file = value.file.toUpperCase();
+			
+			if(
+				(value.file.indexOf("EV_") != -1) ||
+				(value.file.indexOf("EH_") != -1) ||
+				(value.file.indexOf("SD_") != -1) ||
+				(value.file.indexOf("EX_") != -1)
+			){
+				//EV(EH) CG FLAG は頭から nCGMODE_FLAG_INDEX_LEN 文字
+				//SD CG FLAG は頭から nCGMODE_FLAG_INDEX_LEN 文字
+				s[value.file.substr(0,nCGMODE_FLAG_INDEX_LEN)] = true;
+				
+				s[ value.file ]                                = true;
+				
+				//CGフラグを立てた
+				EvCgSetFlag               = true;
+				
+				//SYSTEM SAVEもしておく
+				//MainWnd.SystemSave();
+				
+			}
+			
+		}else if(s["ApendUse"] == true){
+		//立ち絵でアペンドフラグが立っている場合
+		//キャラ毎に処理が違うかも……
+			
+			//共通追加パッチ処理
+			BuTempFile1 = CommonApend( value.file );
+			
+			//FILE2があればそちらもCOPYしておく
+			if(value.file2 !== void) {
+			//共通追加パッチ処理
+			BuTempFile2 = CommonApend( value.file2 );
+			}
+		}
+		
+		
+		
+		
+		
+		
+		//リソース確認
+		if(ResourceCheck(value.file + ".bmp")){
+			value.file += ".bmp";
+		}else if(ResourceCheck(value.file + ".png")){
+			value.file += ".png";
+		}else if(ResourceCheck(value.file + ".jpg")){
+			value.file += ".jpg";
+		}else if(!ResourceCheck(value.file)){
+			//リソース検索
+			if(InforFlag == true){
+				DebugMess(value.file + "がありませんでした");
+			}
+			return;
+		}
+		
+		
+		
+		
+		//作成済みか？
+		if(ImgObj[index] === void)
+		{//作成してない
+			if(ApendFlag == false){
+				MainWnd.add(ImgObj[index]      = new BaseLayer(MainWnd, MainWnd.CaptureLayer, +value.x, +value.y, 0,0, value.file));
+			}else{
+				MainWnd.add(ImgObj[index]      = new BaseLayer(MainWnd, MainWnd.CaptureLayer, +value.x, +value.y, 0,0, BuTempFile1));
+			}
+			
+			//ZOOM OBJECTも作成しておく
+			ZoomObj[index]                 = new _ZOOMOBJECT(MainWnd, PriLayer);
+			
+			//サイズを保存しておく
+			f[FileIndex+"_width"]          = ImgObj[index].width;
+			
+			f[FileIndex+"_height"]         = ImgObj[index].height;
+			
+			f[FileIndex+"rate"]            = 100;
+			
+			//TEMPを作成しておく
+			if(value.file2 !== void){
+				
+				if(ApendFlag == false){
+					MainWnd.add(ImgTempObj[index]  = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0,value.file2));
+				}else{
+					MainWnd.add(ImgTempObj[index]  = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0,BuTempFile2));
+				}
+				
+				ImgTempObj[index].visible      = false;
+			}
+			
+			//情報をクリアしておく
+			f[FileIndex+"zoom"]      = void;
+			f[FileIndex+"rate"]      = 100;
+			f[FileIndex+"zoom_type"] = void;
+			
+		}else{
+		 //作成済み
+			if(value.file !== void){
+				value.file  = value.file.toUpperCase();
+			}
+			
+			if(f[FileIndex] !== void){
+				f[FileIndex]= f[FileIndex].toUpperCase();
+			}
+			
+			//FILE名が一緒なら読み込まない
+			if(f[FileIndex] != value.file){
+				
+				//背景からEV(EH,SD)系への変更する場合座標をクリアする
+				if(
+					(ImgObj[index].ResFile !== void) &&
+					(ImgObj[index].ResFile.indexOf("BG_") != -1) &&
+					(EvCgSetFlag == true)
+				){
+					ImgObj[index].left = 0;
+					ImgObj[index].top  = 0;
+				}
+				
+				
+				if(ApendFlag == false){
+					ImgObj[index].loadImages(value.file);
+				}else{
+					ImgObj[index].loadImages(BuTempFile1);
+				}
+				
+				ImgObj[index].setSizeToImageSize();
+				
+			}else{
+				//既に同じファイルが読み込まれている
+				ReloadFileFlag = true;
+			}
+			
+			
+			//ZOOM継続フラグが無い場合はクリアする
+			if(+value.zoom == false)
+			{
+				if(//サイズが違うのでzoom系の情報を解除
+					(f[FileIndex+"_width"]  != ImgObj[index].width) ||
+					(f[FileIndex+"_height"] != ImgObj[index].height)
+				){
+					f[FileIndex+"zoom"]      = void;
+					f[FileIndex+"rate"]      = 100;
+					f[FileIndex+"zoom_type"] = void;
+				}
+			}
+			
+			//サイズを更新しておく
+			f[FileIndex+"_width"] = ImgObj[index].width;
+			f[FileIndex+"_height"]= ImgObj[index].height;
+			
+			
+			//TEMP 処理
+			// FILE2だけ指定した場合もここで処理
+			if(value.file2 !== void){
+				
+				invalidate ImgTempObj[index];
+				
+				ImgTempObj[index] = void;
+				
+				if(ApendFlag == false){
+					MainWnd.add(ImgTempObj[index]  = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0,value.file2));
+				}else{
+					MainWnd.add(ImgTempObj[index]  = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0,BuTempFile2));
+				}
+				
+				ImgTempObj[index].absolute     = ImgObj[index].absolute + 1;
+				
+				ImgTempObj[index].setPos(ImgObj[index].left, ImgObj[index].top);
+				
+				ImgTempObj[index].visible      = false;
+				
+			}
+			
+		}
+		
+		
+		
+		//ファイル名格納
+		f[FileIndex]                   = value.file;
+		
+		var x_pos, y_pos;
+		
+		
+		//位置指定がある場合はここから
+		if(value.pos !== void){
+			
+			//レイヤサイズ
+			var image_harf  = ImgObj[index].width / 2;
+			
+			//画面サイズ
+			var screen_harf = MainWnd.PrimaryLayer.width / 2;
+			
+			switch(value.pos){
+				
+				case "C":
+				case "c":{
+				//CENTER
+					x_pos = screen_harf - image_harf;
+					x_pos += BU_POS_C;
+				}break;
+				
+				case "R":
+				case "r":{
+				//RIGHT
+					x_pos = (screen_harf+(screen_harf/2)) - image_harf;
+					x_pos += BU_POS_R;
+				}break;
+				
+				case "L":
+				case "l":{
+				//LEFT
+					x_pos = (screen_harf-(screen_harf/2)) - image_harf;
+					x_pos += BU_POS_L;
+				}break;
+				
+				case "LC":
+				case "lc":{
+				//CENTER LEFT
+					x_pos = (screen_harf-(screen_harf/4)) - image_harf;
+					x_pos += BU_POS_LC;
+				}break;
+				
+				case "RC":
+				case "rc":{
+				//CENTER RIGHT
+					x_pos = (screen_harf+(screen_harf/4)) - image_harf;
+					x_pos += BU_POS_RC;
+				}break;
+				
+				case "LO":
+				case "lo":{
+				//LONG LEFT
+					x_pos = 0 - image_harf;
+					x_pos += BU_POS_LO;
+				}break;
+				
+				case "RO":
+				case "ro":{
+				//LONG RIGHT
+					x_pos = MainWnd.PrimaryLayer.width - image_harf;
+					x_pos += BU_POS_RO;
+				}break;
+				default:{
+				//無い場合は CENTER
+					x_pos = screen_harf - image_harf;
+					x_pos += BU_POS_C;
+				}break;
+			}
+			
+			//X座標を入れる
+			value.x = x_pos;
+			
+		}else if(value.x !== void){
+			//値を座標に入れる
+			ImgObj[index].left = +value.x;
+		}else{
+			//現在のレイヤのX座標を入れる
+			value.x = ImgObj[index].left;
+			
+			//背景用指定
+			if(value.file.indexOf("BG_") != -1){
+				if(value.def == true)
+				{
+					if(value.file.indexOf("@") != -1){
+					//LARGE用指定
+						value.x = BG_LARGE_XPOS;
+					}else{
+					//NORMAL用指定
+						value.x = BG_NORMAL_XPOS;
+					}
+				}
+			}
+			
+		}
+		
+		
+		
+		
+		//立ち絵毎にY座標が違う
+		if(value.pos !== void){
+			
+			//■立ち絵のキャラ毎に基本設定が有る
+			if(value.file.indexOf("CH_A") != -1){
+			//「菜乃花」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_A_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_A_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_A_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_B") != -1){
+			//「このみ」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_B_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_B_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_B_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_C") != -1){
+			//「花梨」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_C_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_C_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_C_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_D") != -1){
+			//「雨音」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_D_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_D_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_D_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_E") != -1){
+			//「彩菜」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_E_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_E_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_E_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_F") != -1){
+			//「玲於奈」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_F_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_F_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_F_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_G") != -1){
+			//「時雨」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_G_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_G_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_G_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_H") != -1){
+			//「潤」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_H_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_H_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_H_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_I") != -1){
+			//「祐希」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_I_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_I_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_I_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_J") != -1){
+			//「真澄」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_J_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_J_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_J_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_K") != -1){
+			//「あんず」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_K_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_K_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_K_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_L") != -1){
+			//「晴乃」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_L_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_L_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_L_TOP_S;
+					}break;
+				}
+			}else if(value.file.indexOf("CH_M") != -1){
+			//「氷雨」
+				//■サイズ判定
+				switch((value.file.charAt(7)).toUpperCase()){
+					case "L":{
+						ImgObj[index].top = BU_M_TOP_L;
+					}break;
+					case "M":{
+						ImgObj[index].top = BU_M_TOP_M;
+					}break;
+					case "S":{
+						ImgObj[index].top = BU_M_TOP_S;
+					}break;
+				}
+			}
+			
+			
+			value.y = ImgObj[index].top;
+			
+		}else if(value.y !== void){
+			//指定した座標を入れる
+			ImgObj[index].top = +value.y;
+		}else{
+			//現在のレイヤのY座標を入れる
+			value.y = ImgObj[index].top;
+			
+			//背景用指定
+			if(value.file.indexOf("BG_") != -1){
+				if(value.def == true)
+				{
+					if(value.file.indexOf("@") != -1){
+					//LARGE用指定
+						value.y = BG_LARGE_YPOS;
+					}else{
+					//NORMAL用指定
+						value.y = BG_NORMAL_YPOS;
+					}
+				}
+			}
+			
+		}
+		
+		
+		
+		
+		//ZOOM フラグ
+		if(
+			(MainWnd.LoadFlag == false) &&
+			(+value.zoom == true)       &&
+			(f[FileIndex+"zoom"] == true)
+		){	//ZOOM WORK コマンド
+			ZoomWork(index);
+		}
+		
+		//レイヤ座標
+		ImgObj[index].setPos(+value.x, +value.y);
+		
+		//座標を合わせる
+		if(ImgTempObj[index] !== void)ImgTempObj[index].setPos(+value.x, +value.y);
+		
+		
+		
+		//透過度
+		if(value.opacity === void){
+			value.opacity = 255;
+		}
+		
+		
+		
+		//オーダー設定
+		ImgObj[index].absolute     = (nIMAGELAYER + (index*5));
+		
+		if(value.absolute !== void){
+			ImgObj[index].absolute = +value.absolute;
+		}
+		
+		if(ImgTempObj[index] !== void){
+			ImgTempObj[index].absolute = (ImgObj[index].absolute + 1);
+		}
+		
+		
+		//透過度設定
+		ImgObj[index].opacity  = +value.opacity;
+		
+		//layer タイプ
+		ImgObj[index].type     = (value.type === void) ? ltAlpha : getDrawLayerType(value.type);
+		
+		
+		//親レイヤ設定
+		if( (value.parent !== void) && (ImgObj[+value.parent] !== void) ){
+			ImgObj[index].parent   = ImgObj[+value.parent];
+			ImgObj[index].absolute = (nIMAGELAYER + (index*5));
+		}
+		
+		
+		
+		//立ち絵はガンマ処理を行っておく
+		if(	(value.file.indexOf("CH_") != -1) && (value.file.indexOf("EYE") == -1) && 
+			((f["BuTimeSelect"] === 1) || (f["BuTimeSelect"] === 2) || 
+			(f["BuTimeSelect"]  === 3) || (f["BuTimeSelect"] === 4))
+		){
+			if(ReloadFileFlag == false)
+			{//再読込の場合はガンマ処理を行わない
+				
+				//共通ガンマ処理
+				CommonGammaColor( ImgObj[index] );
+			}
+			
+			//TEMP処理
+			if(ImgTempObj[index] !== void){
+				//共通ガンマ処理
+				CommonGammaColor( ImgTempObj[index] );
+			}
+		}
+		
+		
+		//ロード中はここまで
+		if(MainWnd.LoadFlag)return;
+		
+		
+		
+		//描画WAIT
+		if(value.time !== void)
+		{
+			if(DrawWaitObj[index] !== void){
+				invalidate DrawWaitObj[index];
+				DrawWaitObj[index] = void;
+			}
+			
+			if((f[FileIndex+"zoom"] == true) && (+value.zoom == true)){
+			//ZOOMされている場合はテンポラリもZOOMする
+			
+				if(ImgTempObj[index] !== void)
+				{
+					var ZoomTemp = void;
+					
+					if(ApendFlag == false){
+						ZoomTemp = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0, value.file2);
+					}else{
+						ZoomTemp = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0,0,0,0, BuTempFile2);
+					}
+					
+					ImgTempObj[index].width  = ImgObj[index].width;
+					ImgTempObj[index].height = ImgObj[index].height;
+					ImgTempObj[index].stretchCopy(0,0, ImgObj[index].width, ImgObj[index].height, ZoomTemp, 0, 0, ZoomTemp.width, ZoomTemp.height, stFastLinear);
+					
+					invalidate ZoomTemp;
+					ZoomTemp = void;
+				}
+			}
+			
+			
+			//WAIT OBJECTを作成する
+			DrawWaitObj[index] = new _DELAYDRAW(ImgObj[index], ImgTempObj[index], +value.time, +value.fade, +value.drawtype);
+			
+			//ファイル名を変更しておく
+			f[FileIndex] = value.file2;
+			
+			//SKIP処理
+			if(	(MainWnd.ActiveObj == this) &&
+				(MainWnd.SkipCheck())){
+				//SKIP処理
+				DrawWaitObj[index].EndWork();
+			}
+			
+		}
+		
+		
+		
+		
+		//座標
+		f[FileIndex+"_x"]       = +value.x;
+		
+		f[FileIndex+"_y"]       = +value.y;
+		
+		//透過度
+		f[FileIndex+"_opacity"] = +value.opacity;
+		
+		//レイヤタイプ
+		f[FileIndex+"_type"]    = ImgObj[index].type;
+		
+		//レイヤ深度
+		if(value.absolute !== void){
+			f[FileIndex+"_absolute"] = +value.absolute;
+		}else{
+			f[FileIndex+"_absolute"] = ImgObj[index].absolute;
+		}
+		
+		
+		//ZOOM フラグ
+		if((value.zoom === void) || (+value.zoom === false)){
+			f[FileIndex+"zoom"] = void;
+			f[FileIndex+"rate"] = 100;
+		}
+		
+		//グレースケールフラグ
+		f[FileIndex + "_gray"]  = void;
+		
+		
+		//ガンマフラグ
+		f[FileIndex + "_gamma"] = void;
+		
+		//ガンマ値保存
+		f[FileIndex + "_rgamma"]= void;
+		
+		f[FileIndex + "_ggamma"]= void;
+		
+		f[FileIndex + "_bgamma"]= void;
+		
+		//色をクリア
+		f[FileIndex+"_color"]   = void;
+		
+		f[FileIndex+"_color_flag"] = void;
+		
+		//明度・コントラストフラグ
+		f[FileIndex+"_light_flag"] = void;
+		
+		f[FileIndex+"_light"]      = void;
+		
+		f[FileIndex+"_contrast"]   = void;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ 共通ガンマ処理
+	----------------------------------------------------------*/
+	function CommonGammaColor( layer, timeselect = void )
+	{
+		//ガンマ値
+		var rgamma = 0, ggamma = 0, bgamma = 0;
+		
+		//明度とコンストラストの変更
+		var layerlight = 0, layerCotrast = 0;
+		
+		//時間指定をCOPYする
+		if(timeselect === void)timeselect = f["BuTimeSelect"];
+		
+		
+		//時間レジスタによってガンマ処理をかける
+		if((timeselect === 1)){
+		//夕方
+			rgamma       = BU_GAMMA_01_R;
+			ggamma       = BU_GAMMA_01_G;
+			bgamma       = BU_GAMMA_01_B;
+			layerlight   = BU_LIGHT_01_L;
+			layerCotrast = BU_CONT_01_C;
+			
+		}else if((timeselect === 2)){
+		//夜１
+			rgamma       = BU_GAMMA_02_R;
+			ggamma       = BU_GAMMA_02_G;
+			bgamma       = BU_GAMMA_02_B;
+			layerlight   = BU_LIGHT_02_L;
+			layerCotrast = BU_CONT_02_C;
+			
+		}else if((timeselect === 3)){
+		//夜２
+			rgamma       = BU_GAMMA_03_R;
+			ggamma       = BU_GAMMA_03_G;
+			bgamma       = BU_GAMMA_03_B;
+			layerlight   = BU_LIGHT_03_L;
+			layerCotrast = BU_CONT_03_C;
+			
+		}else if((timeselect === 4)){
+		//夜３
+			rgamma       = BU_GAMMA_04_R;
+			ggamma       = BU_GAMMA_04_G;
+			bgamma       = BU_GAMMA_04_B;
+			layerlight   = BU_LIGHT_04_L;
+			layerCotrast = BU_CONT_04_C;
+		}
+		
+		layer.adjustGamma(rgamma, 0, 255, ggamma, 0, 255, bgamma, 0, 255);
+		
+		layer.light(layerlight, layerCotrast);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ 共通アペンド処理
+	----------------------------------------------------------*/
+	function CommonApend( filename )
+	{
+		//大文字に変換しておく
+		filename = filename.toUpperCase();
+		
+		//配列に入れ替える
+		var CharFileName = new Array();
+		
+		for(var i=0; i<filename.length; i++){
+			CharFileName[i] = filename[i];
+		}
+		
+		if(filename.indexOf("CH_A") != -1){
+		//「姫乃実　みるく」
+			CharFileName[4] = "0";
+			CharFileName[6] = "0";
+			
+		}else if(filename.indexOf("CH_B") != -1){
+		//「七森　胡桃」
+			CharFileName[4] = "0";
+			CharFileName[6] = "0";
+			
+		}else if(filename.indexOf("CH_C") != -1){
+		//「夏目　咲久耶」
+			CharFileName[4] = "0";
+			//CharFileName[6] = "0";
+			
+		}else if(filename.indexOf("CH_D") != -1){
+		//「星崎　芽唯」
+			CharFileName[4] = "0";
+			CharFileName[6] = "0";
+			
+		}else if(filename.indexOf("CH_E") != -1){
+		//「クララさん」
+			CharFileName[4] = "0";
+			CharFileName[6] = "0";
+			
+		}else if(filename.indexOf("CH_F") != -1){
+		//「春菜　朋美」
+			CharFileName[4] = "0";
+			CharFileName[6] = "0";
+			
+		}
+		
+		
+		//TEMPを空にしておく
+		filename = "";
+		
+		//変換したファイル名を結合する
+		for(var i=0; i<CharFileName.count; i++){
+			filename += CharFileName[i];
+		}
+		
+		invalidate CharFileName;
+		
+		CharFileName = void;
+		
+		//ファイル名を戻す
+		return filename;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ レイヤを塗りつぶす
+	-----------------------------------------*/
+	function Imagefill(value)
+	{
+		//LayerIndexの判定
+		var index     = +value.layer;
+		
+		//セーブファイルINDEX
+		var FileIndex = "imagefile%d".sprintf(index);
+		
+		
+		if(ImgObj[index] !== void)
+		{
+			ImgObj[index].fillRect( 0,0, ImgObj[index].width, ImgObj[index].height, (0xff000000 | +value.color));
+			
+			ImgObj[index].visible = true;
+			
+		}else{
+			
+			ImgObj[index] = new BaseLayer(MainWnd, PriLayer,0,0,MainWnd.WndScreenX, MainWnd.WndScreenY);
+			
+			ImgObj[index].fillRect( 0,0, MainWnd.WndScreenX, MainWnd.WndScreenY, (0xff000000 | +value.color));
+			
+			ImgObj[index].visible = true;
+			
+			//ORDER番号を設定
+			ImgObj[index].absolute = (nIMAGELAYER + (index*5));
+			
+			//ZOOM OBJECTも作成しておく
+			ZoomObj[index]         = new _ZOOMOBJECT(MainWnd, PriLayer);
+			
+			
+		}
+		
+		//ロード中はここまで
+		if(MainWnd.LoadFlag)return;
+		
+		
+		//fileをクリア
+		f[FileIndex]               = void;
+		
+		//グレースケールフラグ
+		f[FileIndex + "_gray"]     = void;
+		
+		//ガンマフラグ
+		f[FileIndex + "_gamma"]    = void;
+		
+		//ガンマ値保存
+		f[FileIndex + "_rgamma"]   = void;
+		
+		f[FileIndex + "_ggamma"]   = void;
+		
+		f[FileIndex + "_bgamma"]   = void;
+		
+		//色を保存
+		f[FileIndex+"_color"]      = +value.color;
+		
+		f[FileIndex+"_color_flag"] = true;
+		
+		//明度・コントラストフラグ
+		f[FileIndex+"_light_flag"] = void;
+		
+		f[FileIndex+"_light"]      = void;
+		
+		f[FileIndex+"_contrast"]   = void;
+		
+		//透明度
+		f[FileIndex+"_opacity"]    = ImgObj[index].opacity;
+		
+		//サイズを保存しておく
+		f[FileIndex+"_width"]      = ImgObj[index].width;
+		
+		f[FileIndex+"_height"]     = ImgObj[index].height;
+		
+		f[FileIndex+"rate"]        = 100;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ IMAGE ZOOM 処理
+	-----------------------------------------*/
+	function ImageZoom(value)
+	{
+		var index = +value.layer;
+		
+		if(ImgObj[index] === void)return;
+		
+		//数値指定が無い場合の処理
+		value.sl = ImgObj[index].left;
+		
+		value.st = ImgObj[index].top;
+		
+		value.sw = ImgObj[index].width;
+		
+		value.sh = ImgObj[index].height;
+		
+		
+		var BaseWidth = 0, BaseHeight = 0;
+		
+		var Imagefile = "imagefile%d".sprintf(index);
+		
+		//リソースサイズを取得する
+		if(f[Imagefile] !== void){
+			var size_arr = GetResSize(f[Imagefile]);
+			
+			BaseWidth = size_arr.wid;
+			
+			BaseHeight= size_arr.hei;
+			
+		}else{
+			BaseWidth = ImgObj[index].width;
+			
+			BaseHeight= ImgObj[index].height;
+		}
+		
+		//パーセント指定から最終画像サイズを割り出す
+		if(value.rate === void)value.rate = 100;
+		
+		//拡縮率を小数点に変換
+		var rate = value.rate / 100;
+		
+		value.dw = (BaseWidth  * rate) \ 1;
+		
+		value.dh = (BaseHeight * rate) \ 1;
+		
+		if(value.accel === void){
+			value.accel = 0;
+		}
+		
+		if(value.time === void){
+			value.time  = 0;
+		}
+		
+		//ファイル名
+		if((value.image === void) || (+value.image == false)){
+		//継続フラグ
+			value.file        = f[Imagefile];
+		}else{
+			value.file        = void;
+		}
+		
+		var Imagefile_x   = Imagefile + "_x";
+		
+		var Imagefile_y   = Imagefile + "_y";
+		
+		var Imagefile_w   = Imagefile + "_width";
+		
+		var Imagefile_h   = Imagefile + "_height";
+		
+		var Imagefileflag = Imagefile + "zoom";
+		
+		var ImagefileRate = Imagefile + "rate";
+		
+		var ImagefileType = Imagefile + "zoom_type";
+		
+		//最終的な座標と画像SIZE
+		f[Imagefile_x]    = (value.dl !== void) ? +value.dl : ImgObj[index].left;
+		
+		value.dl = f[Imagefile_x];
+		
+		f[Imagefile_y]    = (value.dt !== void) ? +value.dt : ImgObj[index].top;
+		
+		value.dt = f[Imagefile_y];
+		
+		f[Imagefile_w]    = +value.dw;
+		
+		f[Imagefile_h]    = +value.dh;
+		
+		//ZOOMTYPE
+		f[ImagefileType]  = (value.type === void) ? 1 : +value.type;
+		
+		ZoomObj[index].zoomtype = f[ImagefileType];
+		
+		//ImageZoomフラグ
+		f[Imagefileflag]  = true;
+		
+		//ZoomRate
+		f[ImagefileRate]  = +value.rate;
+		
+		//色をクリア
+		f[Imagefile+"_color"] = void;
+		
+		f[Imagefile+"_color_flag"] = void;
+		
+		//ZOOMコマンド
+		ZoomObj[index].startZoom(ImgObj[index], value.file, +value.sl, +value.st, +value.sw, +value.sh, +value.dl, +value.dt, +value.dw, +value.dh, +value.time, +value.accel);
+		
+		
+		
+		//SKIP 中はすぐ終了
+		if(MainWnd.SkipCheck()|| MainWnd.EffectCheck()){
+			ZoomObj[index].finish();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ IMAGE ZOOM 簡易処理
+	-----------------------------------------*/
+	function ZoomWork(i)
+	{
+		var Imagefile = "imagefile%d".sprintf(i);
+		
+		ZoomObj[i].targetLayer = ImgObj[i];
+		
+		ZoomObj[i].tempLayer   = new Layer(MainWnd, PriLayer);
+		
+		ZoomObj[i].tempLayer.loadImages(f[Imagefile]);
+		
+		ZoomObj[i].tempLayer.setSizeToImageSize();
+		
+		var Imagefile_x   = Imagefile + "_x";
+		
+		var Imagefile_y   = Imagefile + "_y";
+		
+		var Imagefile_w   = Imagefile + "_width";
+		
+		var Imagefile_h   = Imagefile + "_height";
+		
+		ZoomObj[i].targetLayer.width = f[Imagefile_w];
+		
+		ZoomObj[i].targetLayer.height= f[Imagefile_h];
+		
+		//ZOOM処理
+		ZoomObj[i].moveAt(f[Imagefile_x], f[Imagefile_y], f[Imagefile_w], f[Imagefile_h]);
+		
+		
+		
+		//ZOOMフラグを立てておく
+		f[(Imagefile + "zoom")] = true;
+		
+		invalidate ZoomObj[i].tempLayer;
+		
+		ZoomObj[i].targetLayer = void;
+		
+		ZoomObj[i].tempLayer   = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 画像消去
+	-----------------------------------------*/
+	function ImageClear(value)
+	{
+		//LayerIndexの判定
+		var index   = +value.layer;
+		
+		var imageindex = "";
+		
+		if(index != -1){
+			imageindex = "imagefile%d".sprintf(index);
+		}
+		
+		if(index == -1){
+			
+			for(var i=0; i<nIMAGEMAX; i++){
+				
+				if(ImgObj[i] !== void)
+				{
+					invalidate ImgObj[i];
+					
+					if(ImgTempObj[i] !== void)invalidate ImgTempObj[i];
+					
+					invalidate ZoomObj[i];
+					
+					if(DrawWaitObj[i] !== void)invalidate DrawWaitObj[i];
+				}
+				
+				ImgObj[i]     = void;
+				
+				ZoomObj[i]    = void;
+				
+				ImgTempObj[i] = void;
+				
+				DrawWaitObj[i] = void;
+				
+				//ロード中はここまで
+				if(MainWnd.LoadFlag)continue;
+				
+				
+				imageindex = "imagefile%d".sprintf(i);
+				
+				//データをクリアする
+				f[imageindex]             = void;
+				
+				f[(imageindex + "_x")]    = void;
+				
+				f[(imageindex + "_y")]    = void;
+				
+				f[imageindex+"_opacity"]  = void;
+				
+				f[(imageindex + "zoom")]  = void;
+				
+				f[imageindex + "rate"]    = void;
+				
+				f[imageindex +"zoom_type"]= void;
+				
+				f[imageindex +"_width"]   = void;
+				
+				f[imageindex +"_height"]  = void;
+				
+				f[imageindex  +"_type"]   = void;
+				
+				//グレースケールフラグ
+				f[imageindex + "_gray"]   = void;
+				
+				//ガンマフラグ
+				f[imageindex + "_gamma"]  = void;
+				
+				//ガンマ値保存
+				f[imageindex + "_rgamma"] = void;
+				
+				f[imageindex + "_ggamma"] = void;
+				
+				f[imageindex + "_bgamma"] = void;
+				
+				//色をクリア
+				f[imageindex+"_color"]    = void;
+				
+				f[imageindex+"_color_flag"] = void;
+				
+				//明度・コントラストフラグ
+				f[imageindex+"_light_flag"] = void;
+				
+				f[imageindex+"_light"]      = void;
+				
+				f[imageindex+"_contrast"]   = void;
+				
+			}
+			
+		}else{
+			
+			if(ImgObj[index] === void)return;
+			
+			invalidate ImgObj[index];
+			
+			invalidate ZoomObj[index];
+			
+			if(ImgTempObj[index] !== void)invalidate ImgTempObj[index];
+			
+			if(DrawWaitObj[index] !== void)invalidate DrawWaitObj[index];
+			
+			ImgObj[index]     = void;
+			
+			ZoomObj[index]    = void;
+			
+			ImgTempObj[index] = void;
+			
+			DrawWaitObj[index]= void;
+			
+			//ロード中はここまで
+			if(MainWnd.LoadFlag)return;
+			
+			
+			//データをクリアする
+			f[imageindex] = void;
+			
+			f[(imageindex + "_x")]    = void;
+			
+			f[(imageindex + "_y")]    = void;
+			
+			f[imageindex+"_opacity"]  = void;
+			
+			f[(imageindex + "zoom")]  = void;
+			
+			f[imageindex + "rate"]    = void;
+			
+			f[imageindex +"zoom_type"]= void;
+			
+			f[imageindex +"_width"]   = void;
+			
+			f[imageindex +"_height"]  = void;
+			
+			f[imageindex  +"_type"]   = void;
+			
+			//グレースケールフラグ
+			f[imageindex + "_gray"]   = void;
+			
+			//ガンマフラグ
+			f[imageindex + "_gamma"]  = void;
+			
+			//ガンマ値保存
+			f[imageindex + "_rgamma"] = void;
+			
+			f[imageindex + "_ggamma"] = void;
+			
+			f[imageindex + "_bgamma"] = void;
+			
+			//色をクリア
+			f[imageindex+"_color"]    = void;
+			
+			f[imageindex+"_color_flag"] = void;
+			
+			//明度・コントラストフラグ
+			f[imageindex+"_light_flag"] = void;
+			
+			f[imageindex+"_light"]      = void;
+			
+			f[imageindex+"_contrast"]   = void;
+			
+		}
+		
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 画像 移動関数
+	-----------------------------------------*/
+	function ImageMove(elm)
+	{
+		//現在の座標＆透過度を格納
+		var i    = +elm.layer;
+		var array= [];
+		
+		//レイヤが無い場合はここまで
+		if(ImgObj[i] === void)return;
+		
+		array[0] = ImgObj[i].left;
+		array[1] = ImgObj[i].top;
+		array[2] = ImgObj[i].opacity;
+		
+		
+		if((elm.type == "w") || (elm.type == "W")){
+		//絶対座標
+			array[3] = +elm.x;
+			array[4] = +elm.y;
+		}else{
+		//相対座標
+			array[3] = ImgObj[i].left + +elm.x;
+			array[4] = ImgObj[i].top  + +elm.y;
+		}
+		
+		//現在の座標
+		var inx = "imagefile%d".sprintf(i);
+		
+		f[(inx + "_x")]      = array[3];
+		f[(inx + "_y")]      = array[4];
+		
+		
+		if(elm.opacity === void){
+			array[5] = ImgObj[i].opacity;
+		}else{
+			array[5] = +elm.opacity;
+		}
+		
+		f[inx+"_opacity"] = array[5];
+		
+		//移動カウントをあげておく
+		++MainWnd.MoveCount;
+		
+		// 直線補間
+		moveObject.add(new LinearMover(ImgObj[i], array, +elm.time, elm.accel === void ? 0 : +elm.accel, moveFinalFunction));
+		
+		
+		
+		//SKIP 中はすぐ終了
+		if(MainWnd.SkipCheck()|| MainWnd.EffectCheck()){
+			moveObject[(moveObject.count-1)].moving = true;
+			moveObject[(moveObject.count-1)].stopMove();
+		}else{
+			//移動開始
+			moveObject[(moveObject.count-1)].startMove(+elm.delay);		//現在の座標＆透過度を格納
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 立ち絵 移動関数
+	-----------------------------------------*/
+	function ImageSpMove(elm)
+	{
+		//現在の座標＆透過度を格納
+		var inx   = +elm.layer;
+		
+		//レイヤが無い場合はここまで
+		if(ImgObj[inx] === void)return;
+		
+		// path の分解
+		var array = [].split("(), ", elm.path, , true);
+		
+		for(var i = array.count-1; i>=0; i--){
+			array[i+3] = +array[i];
+		}
+		
+		array[0] = ImgObj[inx].left;
+		array[1] = ImgObj[inx].top;
+		array[2] = ImgObj[inx].opacity;
+		
+		
+		
+		//現在の座標
+		var index = "imagefile%d".sprintf(inx);
+		
+		f[(index + "_x")]      = array[(array.count-3)];
+		f[(index + "_y")]      = array[(array.count-2)];
+		f[(index  +"_opacity")]= array[(array.count-1)];
+		
+		
+		//移動カウントをあげておく
+		++MainWnd.MoveCount;
+		
+		// 直線補間
+		moveObject.add(new SplineMover(ImgObj[inx], array, +elm.time, elm.accel === void ? 0 : +elm.accel, moveFinalFunction, +elm.functype));
+		
+		
+		
+		
+		//SKIP 中はすぐ終了
+		if(MainWnd.SkipCheck()|| MainWnd.EffectCheck()){
+			moveObject[(moveObject.count-1)].moving = true;
+			moveObject[(moveObject.count-1)].stopMove();
+		}else{
+			//移動開始
+			moveObject[(moveObject.count-1)].startMove(+elm.delay);		//現在の座標＆透過度を格納
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ 移動終了関数
+	-----------------------------------------*/
+	function moveFinalFunction()
+	{
+		var cnt = moveObject.count;
+		
+		for(var i=0; i<cnt; i++){
+			
+			if((moveObject[i] !== void) && (!moveObject[i].moving))
+			{
+				invalidate moveObject[i];
+				
+				moveObject[i] = void;
+				
+			}
+		}
+		
+		//カウントを下げる
+		if(MainWnd.MoveCount)--MainWnd.MoveCount;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ ガンマ補正処理
+	-----------------------------------------*/
+	function ImageGamma(value)
+	{
+		//レイヤINDEX
+		var inx = +value.layer;
+		
+		//レイヤが無い場合はここまで
+		if(ImgObj[inx] === void)return;
+		
+		//セーブファイルINDEX
+		var index = "imagefile%d".sprintf(inx);
+		
+		if(+value.gray){
+		//グレイスケールに変換する
+			ImgObj[inx].doGrayScale();
+			f[(index + "_gray")] = true;
+		}
+		
+		//ガンマフラグ
+		f[(index + "_gamma")] = true;
+		
+		//ガンマ値保存
+		f[(index + "_rgamma")]= +value.rgamma;
+		
+		f[(index + "_ggamma")]= +value.ggamma;
+		
+		f[(index + "_bgamma")]= +value.bgamma;
+		
+		
+		//ガンマ変更
+		ImgObj[inx].adjustGamma(+value.rgamma, 0, 255, +value.ggamma, 0, 255, +value.bgamma, 0, 255);
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 明るさ・コントラスト調整処理
+	-----------------------------------------*/
+	function ImageLight(value)
+	{
+		//レイヤINDEX
+		var inx = +value.layer;
+		
+		//レイヤが無い場合はここまで
+		if(ImgObj[inx] === void)return;
+		
+		//セーブファイルINDEX
+		var index = "imagefile%d".sprintf(inx);
+		
+		
+		//明るさ・コントラストフラグ
+		f[(index + "_light_flag")] = true;
+		
+		//明るさ・コントラスト値保存
+		f[(index + "_light")]    = +value.light;
+		
+		f[(index + "_contrast")] = +value.contrast;
+		
+		
+		//明るさ・コントラスト変更
+		ImgObj[inx].light(+value.light, +value.contrast);
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 回転・拡縮処理
+	-----------------------------------------*/
+	function ImageAffine(value)
+	{
+		//回転オブジェクトを作成
+		AffineObj[+value.layer] = new AffinePlugin(MainWnd, PriLayer);
+		
+		
+		//関数開始
+		AffineObj[+value.layer].startaffine(
+			%[
+				"layer"=>ImgObj[+value.layer],	//レイヤ
+				"storage"=>value.storage,		//指定画像(DEF:"")
+				"time"=>value.time,				//描画を行っている時間
+				"accel"=>value.accel,			//加速をつけるかどうか
+				"cx"=>value.cx,					//注視点X座標
+				"cy"=>value.cy,					//注視点Y座標
+				"smag"=>value.smag,				//初期倍率
+				"dmag"=>value.dmag,				//最終倍率
+				"srot"=>value.srot,				//初期角度
+				"drot"=>value.drot,				//最終角度
+				"path"=>value.path,				//移動位置
+				"opacity"=>value.opacity,		//不透明度
+				"flipud"=>value.flipud,			//上下反転するか
+				"fliplr"=>value.fliplr,			//左右反転するか
+				"fade"=>value.fade,				//fadeモード(画像が徐々に消えていくor現れる)
+				"blur"=>value.blur,				//画像をぼかすか
+				"blur_inout"=>value.blur_inout,	//blur_inoutモード(画像が徐々にぼやけるor徐々にはっきりする)
+				"blur_x"=>value.blur_x,			//ブラーの横方向の強さ
+				"blur_y"=>value.blur_y			//ブラーの横方向の強さ
+			]);
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 描画遅延強制終了関数
+	-----------------------------------------*/
+	function DelayDrawEnd()
+	{
+		var max = DrawWaitObj.count;
+		
+		for(var i=0; i<max; i++){
+			
+			if(DrawWaitObj[i] !== void){
+				
+				DrawWaitObj[i].EndWork();
+				
+				invalidate DrawWaitObj[i];
+			}
+			
+			DrawWaitObj[i] = void;
+		}
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ リソースサイズ取得処理
+	-----------------------------------------*/	
+	function GetResSize(file)
+	{
+		var Basefile = file;
+		
+		var ResFlag  = true;
+		
+		//素体ファイルの検索
+		if(ResourceCheck(Basefile+".png")){
+			Basefile = Basefile + ".png";
+		}else if(ResourceCheck(Basefile+".jpg")){
+			Basefile = Basefile + ".jpg";
+		}else if(ResourceCheck(Basefile + ".bmp")){
+			Basefile = Basefile  + ".bmp";
+		}else if(ResourceCheck(Basefile)){
+			Basefile = file;
+		}else{
+			ResFlag  = false;
+		}
+		
+		var temp = void;
+		
+		var wid  = void;
+		
+		var hei  = void;
+		
+		if(ResFlag){
+			temp     = new BaseLayer(MainWnd, MainWnd.CaptureLayer, 0, 0, 0,0, Basefile);
+			
+			wid = temp.width;
+			
+			hei = temp.height;
+			
+			invalidate temp;
+		}else{
+			wid = MainWnd.width;
+			
+			hei = MainWnd.height;
+		}
+		
+		
+		temp = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+		return %["wid"=>wid, "hei"=>hei];
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ イメージオブジェクト参照取得
+	-----------------------------------------*/
+	function GetImageAdress( inx )
+	{
+		if(ImgObj[ inx ] !== void){
+			return &ImgObj[ inx ];
+		}else{
+			return void;
+		}
+		
+	}
+	
+}
+
+@endif

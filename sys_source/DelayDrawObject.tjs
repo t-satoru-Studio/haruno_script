@@ -1,0 +1,232 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2011/10/03
+// File : DelayDrawObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Delay Draw Object
+//------------------------------------------------------------------------------
+
+@if(__DELAYDRAWOBJECT_TJS__ == 0)
+@set(__DELAYDRAWOBJECT_TJS__ = 1)
+
+class _DELAYDRAW {
+	
+	
+	
+	/*-----------------------------------------
+	■ パラメータ
+	-----------------------------------------*/
+	var front;		//メイン
+	
+	var back;		//テンポラリ
+	
+	var time;		//遅延時間
+	
+	var drawtype;	//同時か時間差か
+	
+	var fadetype;	//描画タイプ(1:fade 0:単純)
+	
+	var delaystart;	//遅延関数
+	
+	var EndFlag;	//終了フラグ
+	
+	var fadeval_1;	//フェード値
+	
+	var fadeval_2;	//フェード値
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function _DELAYDRAW(f, b, t, ftype, dtype)
+	{
+		front    = f;
+		
+		back     = b;
+		
+		time     = t;
+		
+		fadetype = ftype;
+		
+		drawtype = dtype;
+		
+		back.visible = false;
+		
+		if(time != 0){
+		//タイマー開始
+			StartTimer();
+		}else{
+		//即実行
+			DrawStart();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		if(delaystart !== void)
+		{
+			delaystart.enabled = false;
+			
+			invalidate delaystart;
+		}
+		
+		delaystart = void;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ タイマー開始
+	-----------------------------------------*/
+	function StartTimer()
+	{
+		delaystart = new Timer(DrawStart,"");
+		
+		delaystart.interval = time;
+		
+		delaystart.enabled  = true;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 描画開始関数
+	-----------------------------------------*/
+	function DrawStart()
+	{
+		if(delaystart !== void)
+		{
+			delaystart.enabled = false;
+			
+			invalidate delaystart;
+		}
+		
+		delaystart = void;
+		
+		if(fadetype == true)
+		{//FADE処理
+			
+			if(drawtype == 0){
+				fadeval_1 = 0;
+				
+				fadeval_2 = nDELAY_FADE_0;
+			}else{
+				fadeval_1 = nDELAY_FADE_1;
+				
+				fadeval_2 = nDELAY_FADE_2;
+				
+			}
+			
+			back.opacity        = 0;
+			
+			back.visible        = true;
+			
+			delaystart = new Timer(LayerDraw,"");
+			
+			delaystart.interval = nDELAY_FADE_SPD;
+			
+			delaystart.enabled  = true;
+		}else{
+		 //単純転送
+		 	EndWork();
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 終了処理
+	-----------------------------------------*/
+	function EndWork()
+	{
+		if(delaystart !== void)
+		{
+			delaystart.enabled = false;
+			
+			invalidate delaystart;
+			
+			delaystart = void;
+		}
+		
+		//表と裏の画像を入れ替えておく
+		front.setSize(back.width, back.height);
+		
+		front.copyRect(0,0,back,0,0,back.width, back.height);
+		
+		front.opacity  = 255;
+		
+		front.visible  = true;
+		
+		back.visible   = false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 描画関数
+	-----------------------------------------*/
+	function LayerDraw()
+	{
+		if(0 < (front.opacity - fadeval_1)){
+			front.opacity -= fadeval_1;
+		}else{
+			front.opacity = 0;
+		}
+		
+		if ((back.opacity + fadeval_2) < 255){
+			back.opacity += fadeval_2;
+		}else{
+			back.opacity = 255;
+		}
+		
+		
+		if(
+			((drawtype == 0) && (254 < (back.opacity+fadeval_2))) ||
+			((drawtype != 0) && (((front.opacity - fadeval_1) < 5) && (254 < (back.opacity+fadeval_2))))
+		){//終了処理
+			
+			back.opacity  = 255;
+			
+			front.opacity = 0;
+			
+			delaystart.enabled = false;
+			
+			//終了関数を呼ぶ
+			EndWork();
+			
+			return;
+		}
+		
+		front.update();
+		back.update();
+	}
+	
+	
+}
+
+@endif
+

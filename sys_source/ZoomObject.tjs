@@ -1,0 +1,357 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/07/22
+// File : ZoomObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Utility Function
+//------------------------------------------------------------------------------
+@if (__ZOOMOBJECT_TJS__== 0)
+@set(__ZOOMOBJECT_TJS__ = 1)
+
+/*
+	背景/前景画像の拡大縮小効果による表示を行うプラグイン
+*/
+
+class _ZOOMOBJECT 
+{	
+	var MainWnd;//Window オブジェクト
+	var PriLayer;//プライマリレイヤ
+	var tempLayer; // テンポラリレイヤ
+	
+	var sl, st, sw, sh;
+	var dl, dt, dw, dh;
+	var startTick; // 開始ティック
+	var time; // ズームを行っている時間
+	var mode; // 前景レイヤモード
+	var accel; // 加速度的な動きを行うか ( 負 : 0 : 正 )
+	var moving = false;
+	var nextstop;
+	var moveFunc; // 移動位置計算用関数
+	var targetLayerName; // 対象レイヤ名
+	var targetLayer; // 対象レイヤ
+	var zoomtype;	//zoom type (0:stNeares 1:stFastLinear 2:stLinear)
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■コンストラクタ
+	-----------------------------------------*/
+	function _ZOOMOBJECT(main, pri)
+	{
+		MainWnd = main;
+		
+		PriLayer= pri;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		// finalize メソッド
+		// このクラスの管理するすべてのオブジェクトを明示的に破棄
+		stop();
+		
+		if (tempLayer !== null){
+			invalidate tempLayer;
+		}
+		
+		tempLayer = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		//終了処理
+		finish();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ＺＯＯＭ 開始
+	-----------------------------------------*/
+	function startZoom(layer, basestorage, sl, st, sw, sh, dl, dt, dw, dh, time, accel)
+	{
+		// layer : 対象レイヤ
+		// sl st sw sh : 初期位置
+		// dl dt dw dh : 最終位置
+		// time : ズームを行っている時間
+		// accel : 加速をつけるかどうか
+
+		// 既存の動作を停止
+		stop();
+
+		// 対象レイヤを決定
+		targetLayer = layer;
+
+		// 背景画像の読み込み
+		if(basestorage !== void){
+			targetLayer.loadImages(basestorage);
+			
+			targetLayer.setSizeToImageSize();
+		}
+		
+		// オブジェクトにパラメータをコピー
+		this.sl = sl; this.st = st; this.sw = sw; this.sh = sh;
+		this.dl = dl; this.dt = dt; this.dw = dw; this.dh = dh;
+		this.time  = time;
+		this.accel = accel;
+		this.targetLayerName = layer;
+		this.mode = mode;
+
+		// tempLayer 確保
+		if(tempLayer === void)
+		{
+			tempLayer = new Layer(MainWnd, PriLayer);
+		}
+		
+		
+		if(basestorage !== void){
+			
+			tempLayer.loadImages(basestorage);
+			
+			tempLayer.setSizeToImageSize();
+		}else{
+		//ファイル指定が無い場合は現状のレイヤをテンポラリにする
+			tempLayer.setImageSize(targetLayer.width, targetLayer.height);
+			
+			tempLayer.copyRect(0,0,targetLayer, 0,0,targetLayer.width, targetLayer.height);
+		}
+		
+		
+		
+		//対象レイヤが最終矩形より小さい場合は大きくしておく
+		if(layer.imageWidth < dw)layer.imageWidth   = dw;
+		
+		if(layer.imageHeight < dh)layer.imageHeight = dh;
+		
+		
+		tempLayer.absolute = targetLayer.absolute + 1;
+		
+		// 移動位置計算関数の設定
+		moveFunc = defaultMover;
+		
+		// 初期位置に表示
+		moveFunc(moveAt, 0);
+		
+		
+		// 開始
+		startTick = System.getTickCount();
+		
+		System.addContinuousHandler(continuousHandler);
+		
+		moving = true;
+		
+		nextstop = false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 画像移動
+	-----------------------------------------*/
+	function moveAt(l, t, w, h)
+	{
+		// l t w h 位置に移動
+
+		// レイヤ移動
+		var base = targetLayer;
+		
+		var oll = l < 0 ? 0 : l;
+		
+		var olt = t < 0 ? 0 : t;
+		
+		var olw = l + w > base.imageWidth ? base.imageWidth - oll : l + w - oll;
+		
+		var olh = t + h > base.imageHeight ? base.imageHeight - olt : t + h - olt;
+		
+		if(
+			((isvalid base) == true) &&
+			(olw > 0 && olh > 0)
+		){
+			base.visible = true;
+			
+			//base.setPos(oll, olt, olw, olh);
+			
+			var dleft = ((l - oll) < 0) ? 0 : (l - oll);
+			var dtop  = ((t - olt) < 0) ? 0 : (t - olt);
+			
+			var type = 0;
+			
+			switch(zoomtype){
+				case 0:{//0:stNeares
+					type = stNearest;
+				}break;
+				case 1:{//1:stFastLinear
+					type = stFastLinear;
+				}break;
+				case 2:{//2:stLinear
+					type = stLinear;
+				}break;
+			}
+			
+			// 拡大縮小転送
+			base.stretchCopy(dleft, dtop, w, h, tempLayer, 0, 0, tempLayer.imageWidth, tempLayer.imageHeight, type);
+			// 移動先が右や下にはみ出る場合にちょっと無駄な転送が起こるかも
+			
+			base.setPos(l, t, w, h);
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■位置計算
+	-----------------------------------------*/
+	function defaultMover(func, tm)
+	{
+		// 位置計算
+		// tm は 0.0(開始点) ～ 1.0(終了点) の間で変化する変数なので、
+		// これを元にして位置を計算する
+		var l = (int)((dl - sl) * tm + sl);
+		var t = (int)((dt - st) * tm + st);
+		var w = (int)((dw - sw) * tm + sw);
+		var h = (int)((dh - sh) * tm + sh);
+
+		// 移動
+		func(l, t, w, h);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ループハンドラ
+	-----------------------------------------*/
+	function continuousHandler(tick)
+	{
+		// ハンドラ
+		if(nextstop)
+		{
+			// 終了
+			finish();
+			return;
+		}
+
+		// 時間を得る
+		var tm = tick - startTick;
+		
+		tm /= time;
+		
+		if(tm >= 1)
+		{
+			nextstop = true;
+			tm = 1;
+		}
+		else
+		{
+			// 加速計算
+			if(accel < 0)
+			{
+				// 上弦 ( 最初が動きが早く、徐々に遅くなる )
+				tm = 1.0 - tm;
+				tm = Math.pow(tm, -accel);
+				tm = 1.0 - tm;
+			}
+			else if(accel > 0)
+			{
+				// 下弦 ( 最初は動きが遅く、徐々に早くなる )
+				tm = Math.pow(tm, accel);
+			}
+		}
+		
+		
+		// 移動
+		moveFunc(moveAt, tm);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■終了関数
+	-----------------------------------------*/
+	function finish()
+	{
+		// ズームの終了
+		moveAt(dl, dt, dw, dh);
+		
+		targetLayer.update();
+		
+		stop(); // 停止
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 終了処理
+	-----------------------------------------*/
+	function stop()
+	{
+		// 停止
+		if(moving)
+		{
+			System.removeContinuousHandler(continuousHandler);
+			
+			moving = false;
+		}
+		
+		if( tempLayer !== null){
+			invalidate tempLayer;
+		}
+		
+		tempLayer    = void;
+		
+		targetLayer  = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+	}
+}
+
+
+@endif
+

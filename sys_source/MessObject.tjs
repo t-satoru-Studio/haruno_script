@@ -1,0 +1,3346 @@
+// Note : BASE ADV SYSTEM
+// Data : 2010/04/27
+// File : MessObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Main MessageWindow Class
+//------------------------------------------------------------------------------
+
+
+@if(__MESSAGE_WINDOW_H__ == 0)
+@set(__MESSAGE_WINDOW_H__ = 1)
+
+
+/*-----------------------------------------
+□FONT COLORクラス
+
+説明：
+メッセージのFONT色の値をまとめたクラス
+-----------------------------------------*/
+class _FONTCOLOR {
+	/*-----------------------------------------
+	■パラメータ
+	-----------------------------------------*/
+	var color;		//色
+	
+	var subcolor;	//影色 or 袋文字色
+	
+	var top;		//先頭座標
+	
+	var num;		//数
+	
+	
+	/*-----------------------------------------
+	■コンストラクタ
+	-----------------------------------------*/
+	function _FONTCOLOR()
+	{
+		Format();
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■初期化処理
+	-----------------------------------------*/	
+	function Format()
+	{
+		color = scNORMALCOLOR;
+		
+		if(nSHADOW){
+			subcolor = nSHADOWCOLOR;
+		}else if(nFUKURO){
+			subcolor = nFUKUROCOLOR;
+		}
+		
+		top   = -1;
+		
+		num   = -1;
+	}
+	
+	
+	
+	/*-----------------------------------------
+	◆ コピー関数
+	-----------------------------------------*/
+	function Copy( obj )
+	{
+		color    = obj.color;
+		
+		subcolor = obj.subcolor;
+		
+		top      = obj.top;
+		
+		num      = obj.num;
+	}
+	
+}
+
+
+
+
+
+/*-----------------------------------------
+□FONT SIZEクラス
+
+説明：
+メッセージのFONT SIZEの値をまとめたクラス
+-----------------------------------------*/
+class _FONTSIZE {
+	/*-----------------------------------------
+	■パラメータ
+	-----------------------------------------*/
+	var size;	//size
+	
+	var top;	//先頭座標
+	
+	var num;	//数
+	
+	
+	
+	/*-----------------------------------------
+	■コンストラクタ
+	-----------------------------------------*/
+	function _FONTSIZE()
+	{
+		Format();
+	}
+	
+	
+	
+	/*-----------------------------------------
+	■初期化処理
+	-----------------------------------------*/	
+	function Format()
+	{
+		size = scFONTSIZE;
+		
+		top   = -1;
+		
+		num   = -1;
+		
+	}
+	
+	
+	
+	/*-----------------------------------------
+	◆ コピー処理
+	-----------------------------------------*/
+	function Copy( obj )
+	{
+		size = obj.size;	//size
+		
+		top  = obj.top;		//先頭座標
+		
+		num  = obj.num;		//数
+	}
+	
+	
+}
+
+
+
+
+
+
+/*-----------------------------------------
+□メッセージウィンドウクラス
+
+
+説明：
+メッセージウィンドウの操作を収めたクラス
+
+-----------------------------------------*/
+class MessObject extends BaseObject {
+	
+	/*-----------------------------------------
+	□メンバ　オブジェクト
+	-----------------------------------------*/
+	
+	var MessLayer;			//メッセージレイヤ
+	
+	var NameLayer;			//ネームレイヤ
+	
+	var MessFrame;			//Messフレームレイヤ
+	
+	var MessHidden;			//Messフレーム仮レイヤ
+	
+	var MessButton   = [];	//Messボタンレイヤ
+	
+	var IconBord;			//Iconボード
+	
+	var LogObject;			//LOGオブジェクト
+	
+	var ButtonResource;		//ボタンパーツ
+	
+	var FaceLayer;			//フェース用レイヤ
+	
+	var FaceTempLayer;		//テンポラリフェース用レイヤ
+	
+	var FaceMaskLayer;		//フェース用マスクレイヤ
+	
+	
+	
+	var MessArray    = [];	//テキスト格納配列
+	
+	var NameValue;			//名前格納
+	
+	var logcnt		 = 0;	//ログカウント
+	
+	var lognum		 = 0;	//ログ数
+	
+	var inx;				//描画INDEX
+	
+	var draw_cnt;			//描画カウント
+	
+	var hitret_cnt;			//Hitretカウント
+	
+	var x;					//描画X座標
+	
+	var y;					//描画Y座標
+	
+	var logtext;			//LOG TEXT
+	
+	var logvoice;			//LOG VOICE
+	
+	var MapReg;				//MAP REG
+	
+	var TempReg;			//TEMP REG
+	
+	var FontObj;			//FONT COLORオブジェクト
+	
+	var SizeObj;			//FONT SIZEオブジェクト
+	
+	var TraceFlag;			//トレースフラグ
+	
+	var AutoFlag;			//オートフラグ
+	
+	var AutoWait;			//オートウェイト
+	
+	var DrawTextTimer;		//テキスト描画タイマー
+	
+	var SetDrawSpeed;		//テキスト速度フラグ
+	
+	var lastmess;			//last message
+	
+	var QuickSave;			//QUICK SAVE
+	
+	var DylayStartWait;		//Dylayウェイト
+	
+	var AnimeLayer;			//カーソルアニメ
+	
+	var AnimeFrame;			//アニメフレーム
+	
+	var AnimeCount;			//アニメカウント
+	
+	var AnimeBefor;			//アニメ時間
+	
+	var AnimeAfter;
+	
+	var AnimeFade;			//アニメフェード
+	
+	var AutoBefor;
+	
+	var RepeatFlag;			//リピートフラグ
+	
+	var MessVoiceSkip;		//ボイススキップフラグ
+	
+	var VoicePlayFlag;		//ボイス再生フラグ
+	
+	
+	var QuickDataFlag;		//Quickデータフラグ
+	
+	var QuickDataBord;		//Quickデータボード
+	
+	var QuickThum;			//Quick Thumbnail
+	
+	var QuickText;			//Quick Text
+	
+	var QuickTime;			//Quick Time
+	
+	var QuickNum;			//QuickNumber
+	
+	
+	
+	
+	var FaceDrawFlag;		//フェイスコマンド使用フラグ
+	
+	var FaceDrawType;		//フェイスコマンド使用タイプ
+	
+	var FaceForceFlag;		//フェイス強制表示フラグ
+	
+	var FaceDrawFile;		//フェイス画像名
+	
+	var FaceDrawTempFile;	//フェイステンポラリ画像名
+	
+	var FaceHiddenFlag;		//フェイス抑制使用フラグ
+	
+	var FaceHiddenType;		//フェイス抑制使用タイプ
+	
+	var FaceDelayTime;		//フェイス遅延時間
+	
+	var FaceDelayType;		//フェイス遅延TYPE
+	
+	var FaceDelayObj;		//フェイス遅延オブジェクト
+	
+	var FaceViewFlag;		//フェイス表示フラグ
+	
+	var FaceDelayFade;		//フェイス遅延フェード
+	
+	var FaceGlayFlag;		//フェイスグレイフラグ
+	
+	var FaceRgamma;			//フェイス赤ガンマ値
+	
+	var FaceGgamma;			//フェイス緑ガンマ値
+	
+	var FaceBgamma;			//フェイス青ガンマ値
+	
+	var FaceLight;			//フェイス明度値
+	
+	var FaceContrast;		//フェイスコントラスト値
+	
+	var FaceOpacity;		//フェイス透明度
+	
+	
+	
+	
+	
+	
+	
+	
+	var MenuBord;			//メニューボード
+	
+	var MenuAnimeTimer;		//メニューアニメタイマー
+	
+	var MenuViewFlag;		//メニュー表示フラグ
+	
+	var MenuLock;			//メニューロックフラグ
+	
+	var IconAnimeTimer;		//アイコンアニメタイマー
+	
+	var IconAnimeRes;		//アイコンアニメリソース
+	
+	var IconCnt;			//アイコンカウント
+	
+	var IconType;			//アイコン
+	
+	var QuickSaveMessTimer;	//クイックセーブメッセージタイマー
+	
+	var QuickSaveMessFlag;	//クイックセーブメッセージフラグ
+	
+	var QuickSaveMessBord;	//クイックセーブメッセージボード
+	
+	
+	var HistoryFontColor;	//既読用フォントカラーオブジェクト
+	
+	var HistoryFontSize;	//既読用フォントカラーオブジェクト
+	
+	var HistoryMessArray;	//既読用メッセージ配列
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	
+	引数：
+	
+	wnd MainWnd
+	pri プライマリレイヤ
+	
+	
+	-----------------------------------------*/
+	function MessObject(wnd, pri)
+	{
+		super.BaseObject(wnd, pri);
+		
+		FontObj = new _FONTCOLOR();	//FONT COLORオブジェクト
+		
+		SizeObj = new _FONTSIZE();	//FONT SIZEオブジェクト
+		
+		HistoryFontColor = new _FONTCOLOR();	//FONT COLORオブジェクト
+		
+		HistoryFontSize  = new _FONTSIZE();	//FONT SIZEオブジェクト
+		
+		HistoryMessArray = new Array();
+		
+		
+		
+		
+		//フレームレイヤ
+		wnd.add(MessFrame = new BaseLayer(wnd, pri, 0, 553, 0,0,"frm_meswin.png"));
+		
+		MessFrame.absolute = nMESSLAYER + 1;
+		
+		//フェイスとの誤差を埋める(必要ないと良いなぁ)
+		var pading_height = 0;
+		var hidden_height = MessFrame.height+123+20;//フレーム＋QUICKボードの高さ＋余白
+		if(hidden_height < nFACE_HEIGHT)pading_height = nFACE_HEIGHT - hidden_height;
+		
+		wnd.add(MessHidden = new BaseLayer(wnd, pri, 0, 720-(pading_height+hidden_height), MessFrame.width, hidden_height + pading_height));
+		
+		MessHidden.absolute= nMESSLAYER + 2;
+		
+		
+		
+		//MAP 呼び込み
+		MessFrame.loadProvinceImage("meswin_map.png");
+		
+		//ボタンレイヤ
+		ButtonResource = new BaseLayer(wnd, pri, 0,0,0,0,"frm_mesmenu.png");
+		
+		ButtonResource.visible = false;
+		
+		//ボタンボード
+		MenuBord       = new BaseLayer(wnd, MessHidden, 1073,(MessHidden.height-167),0,0,"frm_menu_base.png");
+		
+		MenuBord.loadProvinceImage("menu_map.png");
+		
+		MenuBord.absolute= nMESSLAYER + 3;
+		
+		
+		for (var i=0; i<10; i++){
+			
+			var posx = 0, posy = 0, wid = 0, hei = 0, srcx = 0, srcy = 0;
+			
+			switch(i){
+				case 0:{//リピート音声
+					posx = 29, posy = 40, wid = 36, hei = 35, srcx = 0, srcy  = 0;
+				}break;
+				case 1:{//Q SAVE
+					posx = 95, posy = 56, wid = 32, hei = 32, srcx = 36, srcy = 0;
+				}break;
+				case 2:{//Q LOAD
+					posx = 128, posy = 56, wid = 32, hei = 32, srcx = 36+(32*1),srcy = 0;
+				}break;
+				case 3:{//LOG
+					posx = 161, posy = 56, wid = 32, hei = 32, srcx = 36+(32*2),srcy = 0;
+				}break;
+				case 4:{//SAVE
+					posx = 95, posy = 89, wid = 32, hei = 32, srcx = 36+(32*3),srcy= 0;
+				}break;
+				case 5:{//LOAD
+					posx = 128, posy = 89, wid = 32, hei = 32, srcx = 36+(32*4),srcy = 0;
+				}break;
+				case 6:{//LOCK
+					posx = 161, posy = 89, wid = 32, hei = 32, srcx = 36+(32*5),srcy = 0;
+				}break;
+				case 7:{//AUTO
+					posx = 95, posy = 122, wid = 32, hei = 32, srcx = 36+(32*6),srcy = 0;
+				}break;
+				case 8:{//SKIP
+					posx = 128, posy = 122, wid = 32, hei = 32, srcx = 36+(32*7),srcy = 0;
+				}break;
+				case 9:{//CONFIG
+					posx = 161, posy = 122, wid = 32, hei = 32, srcx = 36+(32*8),srcy = 0;
+				}break;
+			}
+			
+			//レイヤ作成
+			wnd.add(MessButton[i] = new BaseLayer(wnd, MenuBord, posx, posy, wid, hei));
+			
+			//COPY
+			MessButton[i].copyRect(0,0, ButtonResource,srcx,srcy,wid,hei);
+			
+		}
+		
+		
+		//アイコンボード
+		wnd.add( IconBord = new BaseLayer(wnd, MenuBord, 59, 0, 110, 49) );
+		
+		IconAnimeRes = new BaseLayer(wnd, pri, 0,0,0,0,"frm_iconbord.png");
+		
+		IconAnimeRes.visible = false;
+		
+		//初期は画面外
+		MenuBord.left = nWND_WIDTH;
+		
+		
+		//ネームレイヤ
+		wnd.add(NameLayer  = new BaseLayer(wnd, MessHidden, nNAME_MESS_XPOS,nNAME_MESS_YPOS+pading_height,nNAME_MESS_WIDTH,nNAME_MESS_HEIGHT));
+		
+		NameLayer.absolute = nMESSLAYER + 11;
+		
+		//メッセージレイヤ
+		wnd.add(MessLayer  = new BaseLayer(wnd, MessHidden, nMESS_XPOS,nMESS_YPOS+pading_height, nMESS_WIDTH,nMESS_HEIGHT));
+		
+		MessLayer.absolute = nMESSLAYER + 12;
+		
+		//基本FONT設定
+		NameLayer.font.face   = stFONTNAME;
+		
+		MessLayer.font.face   = stFONTNAME;
+		
+		NameLayer.font.height = scFONTSIZE;
+		
+		MessLayer.font.height = scFONTSIZE;
+		
+		NameLayer.font.bold   = nFONTBOLD;
+		
+		MessLayer.font.bold   = nFONTBOLD;
+		
+		//カーソルアニメ
+		AnimeLayer         = new BaseLayer(wnd, MessHidden, nCURSOR_XPOS,nCURSOR_YPOS+pading_height,32,32);
+		
+		AnimeFrame         = new BaseLayer(wnd, pri, 0,0,0,0,"cursor_anime.png");
+		
+		AnimeFrame.visible = false;
+		
+		AnimeLayer.copyRect(0,0,AnimeFrame,0,0,AnimeLayer.width,AnimeLayer.height);
+		
+		
+		//フェースレイヤ
+		wnd.add(FaceLayer     = new BaseLayer(wnd, MessHidden, nFACE_XPOS, MessHidden.height-nFACE_HEIGHT,nFACE_WIDTH,nFACE_HEIGHT));
+		wnd.add(FaceTempLayer = new BaseLayer(wnd, MessHidden, nFACE_XPOS, FaceLayer.top,nFACE_WIDTH,nFACE_HEIGHT));
+		
+		FaceLayer.absolute = MessLayer.absolute + 1;
+		
+		
+		//テンポラリの設定
+		FaceTempLayer.setPos(FaceLayer.left, FaceLayer.top);
+		FaceTempLayer.setSize(FaceLayer.width, FaceLayer.height);
+		
+		FaceTempLayer.absolute = FaceLayer.absolute + 1;
+		
+		//使用判定
+		if(nFACE_FLAG == false)
+		{//作成はしておいて非表示にする
+			FaceLayer.opacity = 0;
+			FaceLayer.visible = false;
+			FaceTempLayer.opacity = 0;
+			FaceTempLayer.visible = false;
+		}
+		
+		
+		//透明度設定
+		var density = 255*(s["wnddensity"]/100);
+		
+		if( density < 0){
+			density = 0;
+		}else if(255 < density){
+			density = 255;
+		}
+		
+		MessFrame.opacity = density;
+		
+		//TEXT描画タイマー
+		DrawTextTimer = new Timer(DrawMessFunc,"");
+		
+		DrawTextTimer.enabled  = false;
+		
+		//タイマー初期値設定
+		var StartTimer = (nDEF_MESS_WAIT * 100) + 1;
+		
+		DrawTextTimer.interval = (StartTimer - (s["messpeed"]*nDEF_MESS_WAIT));
+		
+		
+		//メニュータイマー
+		MenuAnimeTimer = new Timer(MenuViewAnime,"");
+		
+		MenuAnimeTimer.enabled  = false;
+		
+		MenuAnimeTimer.interval = nMENU_WAIT;
+		
+		//MENU LOCK中は常に表示
+		if(s["MenuLock"]){
+			MenuBord.left = (nWND_WIDTH-MenuBord.width);
+			MessButton[6].copyRect(0,0, ButtonResource,36+(32*5),32*2,32,32);
+		}
+		
+		
+		
+		//クイックメッセージ
+		QuickSaveMessTimer = void;
+		
+		//1280 → 880
+		QuickSaveMessBord  = new BaseLayer(wnd, MenuBord, 0,0,0,0,"frm_quickcall.png");
+		QuickSaveMessBord.opacity = 0;
+		
+		//音声再生フラグ
+		VoicePlayFlag = new Array();
+		for(var i=0; i<nVOICE_MAXNUM; i++)VoicePlayFlag[i] = false;
+		
+		MapReg = TempReg = 0;
+		
+		LogObject = void;
+		
+		RepeatFlag= void;
+		
+		logvoice = "";
+		
+		//QUICK BORD作成関数
+		QuickBordCreate();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ファイナライズ
+	
+	引数：
+	-----------------------------------------*/
+	function finalize()
+	{
+		DrawTextTimer.enabled = false;
+		
+		super.finalize();
+		
+		invalidate FontObj;
+		
+		invalidate SizeObj;
+		
+		invalidate ButtonResource;
+		
+		invalidate AnimeLayer;
+		
+		invalidate AnimeFrame;
+		
+		invalidate FaceLayer;
+		
+		invalidate FaceTempLayer;
+		
+		invalidate IconAnimeRes;
+		
+		if(LogObject !== void)invalidate LogObject;
+		
+		LogObject = void;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Idol状態に呼び出される関数
+	
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		//SKIP処理
+		if(	(MainWnd.ActiveObj == this) &&
+			(MainWnd.SkipCheck())){
+			//SKIP処理
+			SkipWork();
+			return;
+		}
+		
+		
+		
+		//AUTO MESSAGE 処理
+		if((MainWnd.ActiveObj == this) && (AutoFlag == true) && (DrawTextTimer.enabled == false))
+		{
+			//メインのみAUTO対象にする
+			if(!AutoWait && ((MainWnd.VoiceObj[0].SetState(3) == "stop") || (MainWnd.VoiceObj[0].SetState(3) == "unload"))){
+				
+				var BaseWait = (nDEF_AUTO_WAIT * 1000) + 1;
+				
+				AutoBefor    = System.getTickCount();
+				
+				AutoWait     = (BaseWait - (s["autospeed"] * (nDEF_AUTO_WAIT*10)));
+				
+			}
+			
+			if(AutoBefor != 0){
+				var NowTime = System.getTickCount();
+				
+				if((AutoBefor+AutoWait) < NowTime){
+					//TIMEがすぎたので、自動クリック
+					AutoBefor = false;
+					AutoWait  = false;
+					AutoWork();
+					return;
+				}
+			}
+		}
+		
+		
+		
+		
+		
+		//BUTTON WORK
+		for(var i=0; i<MessButton.count; i++){
+			if(MessButton[i].PaintFlag == true){
+				
+				MessButton[i].PaintFlag = false;
+				
+				Wait(nBUTTON_WAIT);
+				
+				ButtonAction(i+1);
+				
+				return;
+			}
+		}
+		
+		
+		//カーソルアニメ関数
+		CursorAnimeFunc();
+		
+		//メニューが表示されているか
+		if(MenuBord.left < nWND_WIDTH){
+			MapReg = MenuBord.GetProvincePixel();
+		}else{
+			MapReg = MessFrame.GetProvincePixel();
+		}
+		
+		
+		
+		if(MapReg != TempReg)
+		{
+			ActionFunction();
+			
+			ClearFunction();
+		}
+		
+		TempReg = MapReg;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		if(!MessFrame.visible)
+		{
+			//AUTO & MESS 消しの場合
+			if((AutoFlag == true) && (s["mess_view"] == false))
+			{	
+				//左クリックを抑制する
+				MainWnd.LeftMouseCtrl = true;
+				
+				//タイマーを止めて、関数を自前で呼び出す
+				DrawTextTimer.enabled = false;
+				
+				//描画遅延処理を終了する
+				MainWnd.ImageObj.DelayDrawEnd();
+				
+				//フェイス遅延描画を終了
+				if(FaceDelayObj !== void)FaceDelayObj.EndWork();
+				
+				while(MessArray.count)DrawMessFunc();
+				
+				//左クリックを解放する
+				MainWnd.LeftMouseCtrl = false;
+				
+				//次のテキストを取得する
+				GetNextTextWork();
+			}
+			
+			return;
+		}
+		
+		
+		
+		if(MainWnd.SkipCheck()){
+			RightMouseUpAction();
+			return;
+		}
+		
+		
+		//現在描画中なら瞬間表示
+		if(DrawTextTimer.enabled == true)
+		{	
+			//左クリックを抑制する
+			MainWnd.LeftMouseCtrl = true;
+			
+			//タイマーを止めて、関数を自前で呼び出す
+			DrawTextTimer.enabled = false;
+			
+			//描画遅延処理を終了する
+			MainWnd.ImageObj.DelayDrawEnd();
+			
+			//フェイス遅延描画を終了
+			if(FaceDelayObj !== void)FaceDelayObj.EndWork();
+			
+			while(MessArray.count)DrawMessFunc();
+			
+			//左クリックを解放する
+			MainWnd.LeftMouseCtrl = false;
+			
+			//BUTTON カーソルならボタン処理
+			if(MapReg != 0){
+				//ボタン処理関数
+				ButtonWorkFunc();
+			}
+			
+			return;
+		}
+		
+		
+		//BUTTON カーソルならボタン処理
+		if(MapReg != 0){
+			
+			//ボタン処理関数
+			ButtonWorkFunc();
+			
+			return;
+		}
+		
+		
+		
+		//次のテキストを取得する
+		GetNextTextWork();
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ NEXT TEXT WORK
+	
+	説明：
+	次のテキストを取得しにいく
+	
+	-----------------------------------------*/
+	function GetNextTextWork()
+	{
+		//左クリックを抑制する
+		MainWnd.LeftMouseCtrl = true;
+		
+		
+		//描画遅延処理を終了する
+		MainWnd.ImageObj.DelayDrawEnd();
+		
+		//フェイス遅延描画を終了
+		if(FaceDelayObj !== void)FaceDelayObj.EndWork();
+		
+		//Hitretカウントをあげる
+		++hitret_cnt;
+		
+		//音声を止める ※CONFIGの設定に応じて
+		if(s["voiceskip"] == false){
+			for(var i=0; i<nVOICE_MAXNUM; i++){
+				MainWnd.VoiceObj[i].FileStop();
+			}
+		}
+		
+		//音声ファイルを破棄
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			f["voiceplay"+i] = void;
+			f["voicepan" +i] = void;
+		}
+		
+		//AUTO 系のレジスタをクリアしておく
+		AutoWait  = 0;
+		
+		AutoBefor = 0;
+		
+		//リピートフラグを寝かせる
+		RepeatFlag     = false;
+		
+		//SE FILE名を破棄する
+		for(var i=0; i<nSE_MAXNUM; i++){
+			f["se"+i]    = void;
+			f["sepan"+i] = void;
+		}
+		
+		lastmess       = "";
+		
+		
+		//フェイス関連
+		if((FaceDrawFlag == true) && (FaceDrawType == 0)){
+			FaceDrawFlag  = false;
+			FaceForceFlag = void;
+		}
+		if((FaceHiddenFlag== true)&& (FaceHiddenType== 0))FaceHiddenFlag= false;
+		
+		
+		//左クリックを解放する
+		MainWnd.LeftMouseCtrl = false;
+		
+		//次のタグを取得しにいく
+		MainWnd.PaserObj.GetTagload();
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		//SKIP 中なら解除が優先
+		if(MainWnd.SkipFlag){
+			
+			MainWnd.SkipFlag = !MainWnd.SkipFlag;
+			
+			MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),0,32,32);
+			
+			if((MessVoiceSkip) && (f["voiceplay"+0] !== void)){
+			//音声スキップフラグがONなので再生
+				//音声再生
+				MainWnd.VoiceObj[0].FilePlay(f["voiceplay"+0]);
+			}
+			
+			//フラグを寝かす
+			MessVoiceSkip = false;
+			
+			return;
+		}
+		
+		
+		if(AutoFlag){
+		//AUTO　解除
+			AutoFlag  = false;
+			
+			AutoBefor = false;
+			
+			AutoWait  = false;
+			
+			//AUTOのボタンを戻す
+			MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),0,32,32);
+			
+			//リピート判定
+			if(RepeatFlag){
+				MessButton[0].copyRect(0,0, ButtonResource,0,0,36,35);
+			}else{
+				MessButton[0].copyRect(0,0, ButtonResource,0,35*3,36,35);
+			}
+			
+			//フレームを表示
+			MessFrame.visible = true;
+			
+			MessHidden.visible= true;
+			
+			return;
+		}
+		
+		
+		
+		MessFrame.visible  = !MessFrame.visible;
+		
+		MessHidden.visible = !MessHidden.visible;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆KeyUpAction関数
+	
+	引数：
+	key			仮想キーコード
+	
+	shift		同時キー
+	
+	process		default処理の有無
+	
+	説明：
+	Key Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		if(key != VK_RETURN)return;
+		//altキーが押されていたらここまで
+		if(shift & ssAlt)return;
+		
+		LeftMouseUpAction();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	shift	同時キー
+	
+	delta	方向：正:奥　負:手前
+	
+	x		X座標
+	
+	y		Y座標
+	
+	説明：
+	Mouse Wheelを処理するハンドラ
+	
+	-----------------------------------------*/
+	function MouseWheelAction(shift, delta, x, y)
+	{
+		super.MouseWheelAction(shift, delta, x, y);
+		
+		//通常処理
+		if(!MessFrame.visible){
+			
+			//AUTO は続行
+			if(AutoFlag == false){
+				return;
+			}
+		}
+		
+		//現在描画中なら瞬間表示
+		if(DrawTextTimer.enabled == true){
+			//タイマーを止めて、関数を自前で呼び出す
+			DrawTextTimer.enabled = false;
+			while(MessArray.count)DrawMessFunc();
+			return;
+		}
+		
+		
+		if(delta < 0){
+		//下方向
+			//次のテキストを取得する
+			GetNextTextWork();
+		}else{
+		//上方向
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			MapReg = TempReg = 4;
+			
+			//ボタン処理関数
+			ButtonAction(MapReg);
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆テキスト関数
+	
+	引数：
+	color, top, num
+	
+	説明：
+	テキスト色
+	
+	-----------------------------------------*/
+	function SetTextColor(color, subcolor = -1, top = -1, num = -1)
+	{
+		//色
+		FontObj.color = (int)color;
+		
+		if(subcolor != -1)
+		{
+			if(nSHADOW){
+				FontObj.subcolor = (int)subcolor;
+			}else if(nFUKURO){
+				FontObj.subcolor = (int)subcolor;
+			}
+		}
+		
+		if((int)top != -1){
+			FontObj.top   = ((int)top) - 1;
+		}else{
+			FontObj.top   = ((int)top);
+		}
+		
+		FontObj.num   = (int)num;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆テキスト関数
+	
+	引数：
+	color, top, num
+	
+	説明：
+	FONT SIZE
+	
+	-----------------------------------------*/
+	function SetTextSize(size, top = -1, num = -1)
+	{
+		//Size
+		SizeObj.size  = (int)size;
+		
+		if((int)top != -1){
+			SizeObj.top   = ((int)top) - 1;
+		}else{
+			SizeObj.top   = ((int)top);
+		}
+		
+		SizeObj.num   = (int)num;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆テキスト格納関数
+	
+	引数：
+	なし
+	
+	説明：
+	テキスト格納
+	
+	-----------------------------------------*/
+	function SetText(ch)
+	{
+		//半角スペースとタブを消す
+		if((ch == " ") || (ch == "	")){return;}
+		
+		//メッセージの格納
+		MessArray.add(ch);
+		
+		lastmess += ch;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ テキスト クリア処理
+	-----------------------------------------*/
+	function MessClear()
+	{
+		//テキストレイヤをクリアする
+		NameLayer.drawRect( 0 );
+		
+		MessLayer.drawRect( 0 );
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ ＮＡＭＥ描画関数
+	-----------------------------------------*/
+	function NameDraw()
+	{
+		//名前描画
+		if(NameValue != "心の声"){
+			
+			var name_color = scNORMALCOLOR, name_subcolor = void;
+			
+			TextDraw(NameLayer, nFUKURO_WIDTH, nFUKURO_WIDTH, NameValue, name_color, name_subcolor );
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆テキスト描画関数
+	
+	引数：
+	なし
+	
+	説明：
+	テキスト描画開始
+	
+	-----------------------------------------*/	
+	function DrawMessStart()
+	{
+		AutoWait  = 0;
+		
+		//テキストレイヤをクリアする
+		MessClear();
+		
+		//名前描画
+		NameDraw();
+		
+		//最後が改行文字なら消去する
+		if((MessArray.count != 0) && (MessArray[MessArray.count-1] == "／"))MessArray.pop();
+		
+		
+		//FONT COLORオブジェクト
+		HistoryFontColor.Copy( FontObj );
+		
+		//FONT SIZEオブジェクト
+		HistoryFontSize.Copy( SizeObj );
+		
+		//COPY
+		HistoryMessArray.assignStruct( MessArray );
+		
+		
+		
+		
+		
+		
+		//INDEXをクリアする
+		inx      = 0;
+		
+		//カウントをクリアする
+		draw_cnt = 0;
+		
+		x = nFUKURO_WIDTH;//X座標
+		
+		y = nFUKURO_WIDTH;//Y座標
+		
+		
+		//リピートフラグでボタンを変更する
+		if(RepeatFlag && !AutoFlag){
+			MessButton[0].copyRect(0,0, ButtonResource,0,0,36,35);
+		}else{
+			MessButton[0].copyRect(0,0, ButtonResource,0,35*3,36,35);
+		}
+		
+		//Q LOAD
+		if(QuickSave){
+			MessButton[2].copyRect(0,0, ButtonResource,36+(32*1),0);
+		}else{
+			MessButton[2].copyRect(0,0, ButtonResource,36+(32*1),32*3);
+		}
+		
+		//リプレイ実行時にボタンを閉じる
+		if(MainWnd.ReplayFlag){
+			//Q SAVE
+			MessButton[1].copyRect(0,0, ButtonResource,36,32*3,32,32);
+			//Q LOAD
+			MessButton[2].copyRect(0,0, ButtonResource, 36+(32*1),32*3,32,32 );
+			//SAVE
+			MessButton[4].copyRect(0,0, ButtonResource,36+(32*3),32*3,32,32);
+			//LOAD
+			MessButton[5].copyRect(0,0, ButtonResource,36+(32*4),32*3,32,32);
+		}
+		
+		
+		//フェースの表示判定
+		DrawFace();
+		
+		//メッセージフレームを表示
+		MessFrame.visible     = true;
+		MessHidden.visible    = true;
+		
+		
+		//ログテキストをクリア
+		logtext = "";
+		
+		//最終メッセージをクリアする
+		f["lastmess"]  = "";
+		
+		//VOICE が入っていなければフラグを寝かしておく
+		MessVoiceSkip = false;
+		
+		//通常音声の再生
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			if(VoicePlayFlag[i] == true){
+				//保持したファイルを再生する
+				VoicePlay(f["voiceplay"+i], i);
+				//再生されればフラグを立てておく
+				MessVoiceSkip  = true;
+			}
+		}
+		
+		//AUTO MESSAGE 処理
+		if((MainWnd.ActiveObj == this) && AutoFlag && !DrawTextTimer.enabled){
+			if((s["mess_view"] == false) && (MainWnd.VoiceObj[0].SetState(3) == "play")){
+				MessFrame.visible = false;
+				MessHidden.visible= false;
+			}
+		}
+		
+		
+		//瞬間表示フラグ
+		if(SetDrawSpeed == false){
+			//タイマー開始
+			DrawTextTimer.enabled = true;
+		}else{
+			//関数を自前で呼び出す
+			while(MessArray.count)DrawMessFunc();
+		}
+		
+		//フラグ寝かせる
+		SetDrawSpeed = false;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆テキスト描画関数
+	
+	引数：
+	なし
+	
+	説明：
+	テキスト描画
+	
+	-----------------------------------------*/
+	function DrawMessFunc()
+	{
+		//基本色設定
+		var color    = scNORMALCOLOR;
+		var subcolor = void;
+		
+		if(nSHADOW){
+			subcolor = nSHADOWCOLOR;
+		}else if(nFUKURO){
+			subcolor = nFUKUROCOLOR;
+		}
+		
+		//既読メッセージの色を変更する
+		if( (s["selectlog"] == true) && (TraceFlag == true) ){
+			color    = nSELECT_HISTORY_FONTCOLOR;
+			subcolor = nSELECT_HISTORY_SHADOWCOLOR;
+		}
+		
+		if(FontObj.color != scNORMALCOLOR)
+		{//色設定反映
+			if(
+				(FontObj.top == -1) || 
+				((FontObj.top <= inx) && (inx < (FontObj.top+FontObj.num)))
+			){
+				color = FontObj.color;
+			}
+		}
+		
+		//影文字 or 袋文字色
+		if( (nSHADOW) || (nFUKURO) )
+		{	
+			if(
+				(FontObj.top == -1) || 
+				((FontObj.top <= inx) && (inx < (FontObj.top+FontObj.num)))
+			){
+				if(
+					( nSHADOW && (FontObj.subcolor != nSHADOWCOLOR) ) ||
+					( nFUKURO && (FontObj.subcolor != nFUKUROCOLOR) )
+				){
+					subcolor = FontObj.subcolor;
+				}
+			}
+		}
+		
+		
+		
+		//基本SIZE設定
+		MessLayer.font.height = scFONTSIZE;
+		
+		if(SizeObj.size != scFONTSIZE)
+		{//SIZE設定反映
+			if(
+				(SizeObj.top == -1) || 
+				((SizeObj.top <= inx) && (inx < (SizeObj.top+SizeObj.num)))
+			){
+				MessLayer.font.height = SizeObj.size;
+			}
+		}
+		
+		
+		//改行文字判定
+		if(MessIgnoreCR_Work( MessArray[inx] ) == true){
+			return;
+		}
+		
+		//テキスト描画
+		TextDraw(MessLayer, x, y, MessArray[inx], color, subcolor);
+		
+		
+		//ログを格納する
+		logtext += MessArray[inx];
+		
+		//カウントをあげておく
+		if((#MessArray[inx]) <= 122){
+			draw_cnt += 0.5;
+		}else{
+			++draw_cnt;
+		}
+		
+		//X座標
+		// －－が付かないため
+		x += MessLayer.font.getEscWidthX(MessArray[inx++]) + nKERNING;
+		
+		//改行処理
+		MessIgnoreCR_Work( MessArray[inx] );
+		
+		//終了判定
+		if((MainWnd.LoadFlag == false) && (MessArray.count == inx))
+		{//初期化処理
+			//テキストと名前を格納
+			f["message"] = logtext;
+			f["lastmess"]= logtext;
+			f["name"]    = NameValue;
+			
+			//JUMP LOG
+			MainWnd.LogJumpObj.JumpCopy();
+			
+			//LOG カウント UP
+			//++logcnt;
+			
+			//ログ数をあげる
+			if( (s["logmax"] == 0) || (lognum  < s["logmax"]) ){ ++lognum; }
+			
+			
+			//初期化処理
+			MessFormat();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ TEXT　DRAW
+	-----------------------------------------*/
+	function TextDraw(drawlayer, x, y, str, color = scNORMALCOLOR, subcolor = void)
+	{
+		//描画可能判定
+		if(
+			(drawlayer.width  < (drawlayer.font.height + x)) ||
+			(drawlayer.height < (drawlayer.font.height + y))
+		){
+			//dm(str);
+		}
+		
+		
+		//袋文字処理
+		if(nFUKURO == true){
+			//袋文字のデフォルト処理
+			if(subcolor === void)subcolor = nFUKUROCOLOR;
+			
+			//袋文字テキスト描画
+			for(var i=0; i<=nFUKURO_WIDTH; i++)
+			{
+				//右
+				drawlayer.drawText(x+i, y  , str, subcolor);
+				//左
+				drawlayer.drawText(x-i, y  , str, subcolor);
+				//上
+				drawlayer.drawText(x  , y-i, str, subcolor);
+				//下
+				drawlayer.drawText(x  , y+i, str, subcolor);
+				
+				
+				if((nFUKURO_WIDTH-1) == i){
+					//右上
+					drawlayer.drawText(x+i, y-i, str, subcolor);
+					//右下
+					drawlayer.drawText(x+i, y+i, str, subcolor);
+					//左上
+					drawlayer.drawText(x-i, y-i, str, subcolor);
+					//左下
+					drawlayer.drawText(x-i, y+i, str, subcolor);
+				}
+				
+			}
+		}
+		
+		//影文字のデフォルト処理
+		if((nSHADOW) && (subcolor === void))subcolor = nSHADOWCOLOR;
+		
+		//テキスト描画
+		drawlayer.drawText(x, y, str, color, 0xff, true, nSHADOW, subcolor,0,nSHADOW_WIDTH,nSHADOW_HEIGHT);
+		
+		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ MESSAGE 改行文字 処理
+	-----------------------------------------*/
+	function MessIgnoreCR_Work( ch )
+	{
+		//Y座標
+		if((ch == "／") || (draw_cnt >= scDRAWMAX))
+		{
+			//カウントをクリア
+			draw_cnt = 0;
+			
+			x = nFUKURO_WIDTH;
+			
+			if(ch == "／")
+			{//改行コード処理
+				y += SizeObj.size + scGYOUKAN;
+				//ログを格納する
+				logtext += ch;
+				++inx;
+			}else{
+			//指定文字数行末処理
+				y += SizeObj.size + scGYOUKAN;
+			}
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ MESSAGE 初期化処理
+	-----------------------------------------*/
+	function MessFormat()
+	{
+		//タイマー停止
+		DrawTextTimer.enabled = false;
+		
+		//INDEXをクリアする
+		inx      = 0;
+		
+		//カウントをクリアする
+		draw_cnt = 0;
+		
+		x = 0;//X座標
+		
+		y = 0;//Y座標
+		
+		AutoWait  = 0;
+		
+		AutoBefor = 0;
+		
+		MessArray.clear();
+		
+		//FONT COLORを初期化
+		FontObj.Format();
+		
+		//FONT SIZEを初期化
+		SizeObj.Format();
+		
+		MessLayer.font.height = SizeObj.size;
+		
+		//LOG VOICEクリア
+		logvoice= "";
+		
+		//last message
+		lastmess= "";
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ メッセージフレーム表示・非表示
+	-----------------------------------------*/
+	function MessFrameView(type)
+	{
+		if(type){
+			//メッセージフレームを表示
+			MessFrame.visible     = true;
+			MessHidden.visible    = true;
+		}else{
+			//メッセージフレームを非表示
+			MessFrame.visible     = false;
+			MessHidden.visible    = false;
+		}
+	}
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ メッセージフレーム変更
+	----------------------------------------------------------*/
+	function SetMessFrameType( type )
+	{
+		var alpha = MessFrame.opacity;
+		
+		switch( type ){
+			case 0:{//通常
+				MessFrame.loadImages( "frm_meswin",void,void,alpha);
+			}break;
+			case 1:{//ヒロイン
+				MessFrame.loadImages( "frm_meswin2",void,void,alpha);
+			}break;
+		}
+		
+		//MAP 呼び込み
+		MessFrame.loadProvinceImage("meswin_map.png");
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SKIP 処理
+	-----------------------------------------*/
+	function SkipWork()
+	{
+		if((!MessFrame.visible) && (AutoFlag == false))return;
+		
+		//現在描画中なら瞬間表示
+		if(DrawTextTimer.enabled == true){
+			
+			//タイマーを止めて、関数を自前で呼び出す
+			DrawTextTimer.enabled = false;
+			while(MessArray.count)DrawMessFunc();
+			return;
+		}
+		
+		//次のテキストを取得する
+		GetNextTextWork();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ AUTO 処理
+	-----------------------------------------*/
+	function AutoWork()
+	{
+		//次のテキストを取得する
+		GetNextTextWork();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Action Function
+	-----------------------------------------*/
+	function ActionFunction()
+	{
+		if(!MapReg)
+		{
+			//Iconボードを消す
+			IconBord.visible = false;
+			
+			//メニューを消す
+			if(
+				(s["MenuLock"] == true)  ||
+				(MenuAnimeTimer.enabled) ||
+				(MenuBord.left >= nWND_WIDTH)
+			)return;
+			
+			MenuViewFlag = false;
+			MenuAnimeTimer.enabled = true;
+			
+			return;
+		}
+		
+		
+		switch(MapReg){
+			case 1:{//リピート音声
+				if(RepeatFlag && !AutoFlag){
+					
+					//ICON表示
+					IconType = MapReg;
+					//IconViewAnime();
+					
+					MessButton[0].copyRect(0,0, ButtonResource,0,35,36,35);
+				}else{
+					//Iconボードを消す
+					IconBord.visible = false;
+					IconCnt = 0;
+					
+					MessButton[0].copyRect(0,0, ButtonResource,0,35*3,36,35);
+				}
+			}break;
+			case 2:{//Q SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[1].copyRect(0,0, ButtonResource,36,32,32,32);
+			}break;
+			case 3:{//Q LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				if(QuickSave){
+					
+					if(QuickDataBord === void){
+						QuickSave = false;
+						return;
+					}
+					
+					//ICON表示
+					IconType = MapReg;
+					IconViewAnime();
+					
+					//QUICK BORDを表示する
+					QuickDataBord.visible = true;
+					
+					MessButton[2].copyRect(0,0, ButtonResource, 36+(32*1),32,32,32 );
+					
+					
+				}else{
+					//Iconボードを消す
+					IconBord.visible = false;
+					IconCnt = 0;
+					MessButton[2].copyRect(0,0, ButtonResource, 36+(32*1),32*3,32,32 );
+				}
+			}break;
+			case 4:{//LOG
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[3].copyRect(0,0, ButtonResource,36+(32*2),32,32,32);
+			}break;
+			
+			case 5:{//SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[4].copyRect(0,0, ButtonResource,36+(32*3),32,32,32);
+			}break;
+			case 6:{//LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[5].copyRect(0,0, ButtonResource,36+(32*4),32,32,32);
+			}break;
+			
+			case 7:{//LOCK
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[6].copyRect(0,0, ButtonResource,36+(32*5),32,32,32);
+			}break;
+			
+			case 8:{//AUTO
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),32,32,32);
+			}break;
+			case 9:{//SKIP
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),32,32,32);
+				
+			}break;
+			case 10:{//CONFIG
+				//ICON表示
+				IconType = MapReg;
+				IconViewAnime();
+				
+				MessButton[9].copyRect(0,0, ButtonResource,36+(32*8),32,32,32);
+			}break;
+			case 11:{//MENU
+				//Iconボードを消す
+				//アイコンボードを消去
+				IconClearWork();
+				
+				//メニューロック中
+				//動いている間は動かない
+				//既に表示済みは動かない
+				if(
+					(s["MenuLock"] == true)    ||
+					((MenuAnimeTimer.enabled)) ||
+					(MenuBord.left <= (nWND_WIDTH-MenuBord.width))
+				)return;
+				MenuViewFlag = true;
+				MenuAnimeTimer.enabled  = true;
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Clear Function
+	-----------------------------------------*/
+	function ClearFunction()
+	{
+		if(!TempReg)return;
+		
+		switch(TempReg){
+			case 1:{//リピート音声
+				if(RepeatFlag && !AutoFlag){
+					MessButton[0].copyRect(0,0, ButtonResource,0,0,36,35);
+				}else{
+					MessButton[0].copyRect(0,0, ButtonResource,0,35*3,36,35);
+				}
+			}break;
+			case 2:{//Q SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				MessButton[1].copyRect(0,0, ButtonResource,36,0,32,32);
+			}break;
+			case 3:{//Q LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				if(QuickSave){
+					//QUICK BORDを非表示する
+					QuickDataBord.visible = false;
+					
+					MessButton[2].copyRect(0,0, ButtonResource, 36+(32*1),0,32,32 );
+				}else{
+					MessButton[2].copyRect(0,0, ButtonResource, 36+(32*1),32*3,32,32 );
+				}
+			}break;
+			case 4:{//LOG
+				MessButton[3].copyRect(0,0, ButtonResource,36+(32*2),0,32,32);
+			}break;
+			
+			case 5:{//SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				MessButton[4].copyRect(0,0, ButtonResource,36+(32*3),0,32,32);
+			}break;
+			case 6:{//LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				MessButton[5].copyRect(0,0, ButtonResource,36+(32*4),0,32,32);
+			}break;
+			
+			case 7:{//LOCK
+				if(s["MenuLock"] == false){
+					MessButton[6].copyRect(0,0, ButtonResource,36+(32*5),0,32,32);
+				}else{
+					MessButton[6].copyRect(0,0, ButtonResource,36+(32*5),32*2,32,32);
+				}
+			}break;
+			
+			case 8:{//AUTO
+				if(!AutoFlag){
+					MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),0,32,32);
+				}else{
+					MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),32*2,32,32);
+				}
+			}break;
+			case 9:{//SKIP
+			
+			if(!MainWnd.SkipFlag){
+				MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),0,32,32);
+			}else{
+				MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),32*2,32,32);
+			}
+			
+			}break;
+			case 10:{//CONFIG
+				MessButton[9].copyRect(0,0, ButtonResource,36+(32*8),0,32,32);
+			}break;
+			
+			case 11:{//MENU
+				//Debug.message("MENU res");
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ボタン描画処理関数
+	-----------------------------------------*/
+	function ButtonWorkFunc()
+	{
+		switch(MapReg)
+		{
+			case 1:{//リピート音声
+				if(!RepeatFlag || AutoFlag)return;
+				
+				MessButton[0].copyRect(0,0, ButtonResource,0,35*2,36,35);
+			}break;
+			case 2:{//Q SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				MessButton[1].copyRect(0,0, ButtonResource,36,32*2,32,32);
+			}break;
+			case 3:{//Q LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				if(QuickSave){
+					MessButton[2].copyRect(0,0, ButtonResource,36+(32*1),32*2,32,32);
+				}
+			}break;
+			
+			case 4:{//LOG
+				MessButton[3].copyRect(0,0, ButtonResource,36+(32*2),32*2,32,32);
+			}break;
+			
+			case 5:{//SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				MessButton[4].copyRect(0,0, ButtonResource,36+(32*3),32*2,32,32);
+			}break;
+			case 6:{//LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag)return;
+				
+				MessButton[5].copyRect(0,0, ButtonResource,36+(32*4),32*2,32,32);
+			}break;
+			
+			case 7:{//LOCK
+				MessButton[6].copyRect(0,0, ButtonResource,36+(32*5),32*2,32,32);
+			}break;
+			
+			case 8:{//AUTO
+				AutoFlag = !AutoFlag;
+				AutoWait = false;
+				AutoBefor= false;
+				
+				MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),32*2,32,32);
+				
+				//SKIPは強制解除
+				if(MainWnd.SkipFlag){
+					MainWnd.SkipFlag = false;
+					MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),0,32,32);
+				}
+			}break;
+			case 9:{//SKIP
+				//SKIP フラグ
+				MainWnd.SkipFlag = !MainWnd.SkipFlag;
+				MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),32*2,32,32);
+				
+				//AUTOは強制解除
+				if(AutoFlag){
+					AutoFlag = false;
+					AutoBefor= false;
+					AutoWait = false;
+					MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),0,32,32);
+				}
+				
+			}break;
+			case 10:{//CONFIG
+				MessButton[9].copyRect(0,0, ButtonResource,36+(32*8),32*2,32,32);
+			}break;
+			default:
+			//メニューアニメエリアはここまで
+				return;
+			break;
+		}
+		
+		//矩形更新
+		MessButton[MapReg-1].update();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ボタン処理関数
+	-----------------------------------------*/
+	function ButtonAction(inx)
+	{
+		switch(inx)
+		{
+			case 1:{//リピート音声
+				for(var i=0; i<nVOICE_MAXNUM; i++){
+					if(f["voiceplay"+i] === void)continue;
+					//保持したファイルを再生する
+					VoicePlay(f["voiceplay"+i], i, true);
+				}
+			}break;
+			case 2:{//Q SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				QuickSave = true;
+				
+				//QUICK LOADを点灯させる
+				MessButton[2].copyRect(0,0, ButtonResource,36+(32*1),0,32,32);
+				MessButton[1].copyRect(0,0, ButtonResource,36,0,32,32);
+				
+				//QUICK SAVE ファイルはリングタイプにする
+				MainWnd.SaveAction( nQ_SAVENUM + s["quick_number"] );
+				
+				++s["quick_number"];
+				
+				s["quick_number"] %= nSAVE_PAGE_NUM;
+				
+				
+				
+				if(QuickSaveMessTimer !== void){
+					QuickSaveMessTimer.stopMove();
+					invalidate QuickSaveMessTimer;
+					QuickSaveMessTimer = void;
+				}
+				
+				//メッセージ表示
+				QuickSaveMessTimer = new LinearMover(	QuickSaveMessBord,
+														[ nQUICKMESS_START_XPOS,nQUICKMESS_START_YPOS,0,
+														  nQUICKMESS_END_XPOS,nQUICKMESS_END_YPOS,255
+														], nQUICKMESS_VIEW_TIME,1, QuickMessAnime
+													);
+				
+				QuickSaveMessFlag  = true;
+				
+				QuickSaveMessTimer.startMove();
+				
+				//QUICK DATAがあるか
+				if(QuickDataFlag == false){
+				//BORD作成
+					QuickBordCreate();
+				}else{
+					//タイムスタンプ更新
+					QuickBordText();
+				}
+				
+				TempReg = -1;
+				
+			}break;
+			case 3:{//Q LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				//QUICKの最新はひとつ前
+				var new_quick = ((s["quick_number"] - 1) < 0) ? (nSAVE_PAGE_NUM-1) : (s["quick_number"]-1);
+				
+				if(QuickSave && (ResourceCheck("savedata%03d.bmp".sprintf(nQ_SAVENUM+new_quick))))
+				{
+					//アイコンボードを消去
+					IconBord.visible = false;
+					IconCnt          = 0;
+					
+					MapReg           = 0;
+					TempReg          = 0;
+					
+					//BORDを消しておく
+					QuickDataBord.visible = false;
+					
+					MainWnd.DataLoadAction(nQ_SAVENUM+new_quick);
+					
+					//LOAD処理
+					MainObj.LoadAction();
+					
+					return;
+				}
+			}break;
+			case 4:{//LOG
+			
+			//SKIP & AUTO
+			SkipAutoRelease();
+			
+			//選択肢も表示されていたら消去
+			/*if(MainWnd.SelObj.SelectMess.count){
+				MainWnd.SelObj.RightMouseUpAction();
+			}else{
+				//フレーム消去
+				MessFrame.visible = false;
+				MessHidden.visible= false;
+			}*/
+			
+			
+			//ログを作成する
+			LogObject = new _LOGOBJECT(MainWnd, MainWnd.PrimaryLayer, this);
+			
+			//現在のアクティブオブジェクトを保存しておく
+			LogObject.TempActive = MainWnd.ActiveObj;
+			
+			//アクティブオブジェクトをログに変更
+			MainWnd.ActiveObj    = LogObject;
+			
+			//アイコンボードを消去
+			IconBord.visible = false;
+			IconCnt          = 0;
+			if(!s["MenuLock"])MenuBord.left = nWND_WIDTH;
+			
+			return;
+			
+			}break;
+			
+			case 5:{//SAVE
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				//タイマー停止
+				MainWnd.DefaultTimer.enabled = false;
+				
+				//SKIP & AUTO
+				SkipAutoRelease();
+				
+				//SAVE画面を作成する
+				MainWnd.SaveLoadObj = new _SAVELOADOBJECT(MainWnd, MainWnd.PrimaryLayer, nSAVE_SC);
+				
+				//アクティブオブジェクトをSAVEに変更
+				MainWnd.ActiveObj = MainWnd.SaveLoadObj;
+				
+				//アイコンボードを消去
+				IconBord.visible = false;
+				IconCnt          = 0;
+				if(!s["MenuLock"])MenuBord.left = nWND_WIDTH;
+				
+				//タイマー再開
+				MainWnd.DefaultTimer.enabled = true;
+				
+			}break;
+			case 6:{//LOAD
+				//リプレイ中はここまで
+				if(MainWnd.ReplayFlag){
+					//アイコンボードを消去
+					IconClearWork();
+					return;
+				}
+				
+				//タイマー停止
+				MainWnd.DefaultTimer.enabled = false;
+				
+				//SKIP & AUTO
+				SkipAutoRelease();
+				
+				//LOAD画面を作成する
+				MainWnd.SaveLoadObj = new _SAVELOADOBJECT(MainWnd, MainWnd.PrimaryLayer, nLOAD_SC);
+				
+				//アイコンボードを消去
+				IconBord.visible = false;
+				IconCnt          = 0;
+				if(!s["MenuLock"])MenuBord.left = nWND_WIDTH;
+				
+				//アクティブオブジェクトをLOADに変更
+				MainWnd.ActiveObj = MainWnd.SaveLoadObj;
+				
+				//タイマー再開
+				MainWnd.DefaultTimer.enabled = true;
+			
+			}break;
+			
+			case 7:{//LOCK
+				s["MenuLock"] = !s["MenuLock"];
+				
+				if(!s["MenuLock"]){
+					MessButton[6].copyRect(0,0, ButtonResource,36+(32*5),32,32,32);
+				}
+				
+			}break;
+			
+			case 8:{//AUTO
+				if(!AutoFlag){
+					MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),32,32,32);
+				}
+			}break;
+			case 9:{//SKIP
+				if(!MainWnd.SkipFlag){
+					MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),32,32,32);
+				}
+			}break;
+			case 10:{//CONFIG
+			
+			//SKIP & AUTO
+			SkipAutoRelease();
+			
+			//CONFIG画面を作成する
+			MainWnd.ConfigObj = new _CONFIGOBJECT(MainWnd, MainWnd.PrimaryLayer, false, MainWnd.ReplayFlag, MainWnd.ExtraFlag);
+			
+			//アクティブオブジェクトをCONFIGに変更
+			MainWnd.ActiveObj = MainWnd.ConfigObj;
+			
+			//アイコンボードを消去
+			IconBord.visible = false;
+			IconCnt          = 0;
+			if(!s["MenuLock"])MenuBord.left = nWND_WIDTH;
+			
+			return;
+			
+			}break;
+			default:{
+			//念のための例外処理
+				return;
+			}break;
+		}
+		
+		
+		//メニューが表示されているか
+		if(MenuBord.left < nWND_WIDTH){
+			MapReg = MenuBord.GetProvincePixel();
+		}else{
+			MapReg = MessFrame.GetProvincePixel();
+		}
+		
+		if(MapReg != TempReg){
+			//ONカーソルにしておく
+			ActionFunction();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SKIP & AUTO強制解除
+	-----------------------------------------*/
+	function SkipAutoRelease()
+	{
+		//SKIP解除
+		MainWnd.SkipFlag = false;
+		//AUTO解除
+		AutoFlag         = false;
+		
+		AutoWait         = 0;
+		
+		AutoBefor        = false;
+		
+		
+		//リピートフラグを寝かせる
+		if(RepeatFlag && !AutoFlag){
+			//リピートボタンをONにしておく
+			MessButton[0].copyRect(0,0, ButtonResource,0,0,36,35);
+		}else{
+			//リピートボタンをOFFにしておく
+			MessButton[0].copyRect(0,0, ButtonResource,0,35*3,36,35);
+		}
+		
+		//リプレイ中は無視
+		if((!MainWnd.ReplayFlag))
+		{
+			//QUICK LOADを点灯させる
+			if(QuickSave){
+				MessButton[2].copyRect(0,0, ButtonResource,36+(32*1),0,32,32);
+			}else{
+				MessButton[2].copyRect(0,0, ButtonResource,36+(32*1),32*3,32,32);
+			}
+			
+			//SAVE
+			MessButton[4].copyRect(0,0, ButtonResource,36+(32*3),0,32,32);
+			//LOAD
+			MessButton[5].copyRect(0,0, ButtonResource,36+(32*4),0,32,32);
+		}
+		
+		//LOG
+		MessButton[3].copyRect(0,0, ButtonResource,36+(32*2),0,32,32);
+		//AUTO
+		MessButton[7].copyRect(0,0, ButtonResource,36+(32*6),0,32,32);
+		//SKIP
+		MessButton[8].copyRect(0,0, ButtonResource,36+(32*7),0,32,32);
+		//CONFIG
+		MessButton[9].copyRect(0,0, ButtonResource,36+(32*8),0,32,32);
+		
+		
+		//音声を止める
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			MainWnd.VoiceObj[i].FileStop();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 音声再生処理
+	-----------------------------------------*/
+	function VoicePlay(file, id = 0, flag = false)
+	{
+		//個別判定
+		var filename = (file.substring((file.indexOf("_") + 1), 1)).toLowerCase();
+		
+		//音声ファイルを保持している
+		f["voiceplay"+id] = file;
+		
+		//リピートフラグ
+		RepeatFlag     = true;
+		
+		//リピートボタンをONにしておく
+		if(!AutoFlag){
+			MessButton[0].copyRect(0,0, ButtonResource,0,0,36,35);
+		}else{
+			MessButton[0].copyRect(0,0, ButtonResource,0,35*3,36,35);
+		}
+		
+		//再生フラグを寝かしておく
+		VoicePlayFlag[id]  = false;
+		
+		//音声ON・OFF
+		if((flag == false) && (s["voice"] == false))return;
+		
+		
+		//基準値を入れておく
+		var char_vol = s["voice_vol"];
+		
+		//音量取得
+		char_vol = GetCharVolume( filename, flag );
+		
+		//音量０の際はここで終了
+		if(!char_vol)return;
+		
+		
+		/*
+		//個別音声
+		if(filename == "a"){
+			if((flag == false) && (s["char_1"] == false))return;
+			//「菜乃花」
+			char_vol = (s["voice_vol"] * s["char_1_vol"]) \ 100;
+			
+		}else if(filename == "b"){
+			if((flag == false) && (s["char_2"] == false))return;
+			//「このみ」
+			char_vol = (s["voice_vol"] * s["char_2_vol"]) \ 100;
+			
+		}else if(filename == "c"){
+			if((flag == false) && (s["char_3"] == false))return;
+			//「花梨」
+			char_vol = (s["voice_vol"] * s["char_3_vol"]) \ 100;
+			
+		}else if(filename == "d"){
+			if((flag == false) && (s["char_4"] == false))return;
+			//「雨音」
+			char_vol = (s["voice_vol"] * s["char_4_vol"]) \ 100;
+			
+		}else if(filename == "e"){
+			if((flag == false) && (s["char_8"] == false))return;
+			//if(s["CHAR_E_OPEN"] == false)return;
+			//「彩菜」
+			if(s["CHAR_E_OPEN"] == false){
+				char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			}else{
+				char_vol = (s["voice_vol"] * s["char_8_vol"]) \ 100;
+			}
+			
+		}else if(filename == "f"){
+			if((flag == false) && (s["char_5"] == false))return;
+			//「玲於奈」
+			char_vol = (s["voice_vol"] * s["char_5_vol"]) \ 100;
+			
+		}else if(filename == "g"){
+			if((flag == false) && (s["char_6"] == false))return;
+			//「時雨」
+			char_vol = (s["voice_vol"] * s["char_6_vol"]) \ 100;
+			
+		}else if(filename == "h"){
+			if((flag == false) && (s["char_11"] == false))return;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}else if(filename == "i"){
+			if((flag == false) && (s["char_11"] == false))return;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}else if(filename == "j"){
+			if((flag == false) && (s["char_11"] == false))return;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}else if(filename == "k"){
+			if((flag == false) && (s["char_7"] == false))return;
+			//「あんず」
+			char_vol = (s["voice_vol"] * s["char_7_vol"]) \ 100;
+			
+		}else if(filename == "l"){
+			if((flag == false) && (s["char_9"] == false))return;
+			//if(s["CHAR_L_OPEN"] == false)return;
+			//「晴乃」
+			if(s["CHAR_L_OPEN"] == false){
+				char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			}else{
+				char_vol = (s["voice_vol"] * s["char_9_vol"]) \ 100;
+			}
+			
+		}else if(filename == "m"){
+			if((flag == false) && (s["char_10"] == false))return;
+			//if(s["CHAR_M_OPEN"] == false)return;
+			//「氷雨」
+			if(s["CHAR_M_OPEN"] == false){
+				char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			}else{
+				char_vol = (s["voice_vol"] * s["char_10_vol"]) \ 100;
+			}
+			
+		}else{
+			if((flag == false) && (s["char_11"] == false))return;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}
+		*/
+		
+		
+		
+		//個別音量設定
+		MainWnd.VoiceObj[id].SetState(5, char_vol);
+		
+		//SKIP中は再生しない
+		if(
+			!MainWnd.SkipCheck() ||
+			System.getKeyState(VK_CONTROL)
+		){
+			//音声再生
+			MainWnd.VoiceObj[id].FilePlay(file);
+		}else{
+		//VOICE SKIP
+			MessVoiceSkip = true;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 個別キャラクターボリューム取得関数
+	-----------------------------------------*/
+	function GetCharVolume( filename, flag )
+	{
+		var char_vol;
+		
+		//個別音声
+		if(filename == "a"){
+			if((flag == false) && (s["char_1"] == false))return false;
+			//「菜乃花」
+			char_vol = (s["voice_vol"] * s["char_1_vol"]) \ 100;
+			
+		}else if(filename == "b"){
+			if((flag == false) && (s["char_2"] == false))return false;
+			//「このみ」
+			char_vol = (s["voice_vol"] * s["char_2_vol"]) \ 100;
+			
+		}else if(filename == "c"){
+			if((flag == false) && (s["char_3"] == false))return false;
+			//「花梨」
+			char_vol = (s["voice_vol"] * s["char_3_vol"]) \ 100;
+			
+		}else if(filename == "d"){
+			if((flag == false) && (s["char_4"] == false))return false;
+			//「雨音」
+			char_vol = (s["voice_vol"] * s["char_4_vol"]) \ 100;
+			
+		}else if(filename == "e"){
+			if((flag == false) && (s["char_8"] == false))return false;
+			//if(s["CHAR_E_OPEN"] == false)return;
+			//「彩菜」
+			if(s["CHAR_E_OPEN"] == false){
+				char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			}else{
+				char_vol = (s["voice_vol"] * s["char_8_vol"]) \ 100;
+			}
+			
+		}else if(filename == "f"){
+			if((flag == false) && (s["char_5"] == false))return false;
+			//「玲於奈」
+			char_vol = (s["voice_vol"] * s["char_5_vol"]) \ 100;
+			
+		}else if(filename == "g"){
+			if((flag == false) && (s["char_6"] == false))return false;
+			//「時雨」
+			char_vol = (s["voice_vol"] * s["char_6_vol"]) \ 100;
+			
+		}else if(filename == "h"){
+			if((flag == false) && (s["char_11"] == false))return false;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}else if(filename == "i"){
+			if((flag == false) && (s["char_11"] == false))return false;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}else if(filename == "j"){
+			if((flag == false) && (s["char_11"] == false))return false;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}else if(filename == "k"){
+			if((flag == false) && (s["char_7"] == false))return false;
+			//「あんず」
+			char_vol = (s["voice_vol"] * s["char_7_vol"]) \ 100;
+			
+		}else if(filename == "l"){
+			if((flag == false) && (s["char_9"] == false))return false;
+			//if(s["CHAR_L_OPEN"] == false)return;
+			//「晴乃」
+			if(s["CHAR_L_OPEN"] == false){
+				char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			}else{
+				char_vol = (s["voice_vol"] * s["char_9_vol"]) \ 100;
+			}
+			
+		}else if(filename == "m"){
+			if((flag == false) && (s["char_10"] == false))return false;
+			//if(s["CHAR_M_OPEN"] == false)return;
+			//「氷雨」
+			if(s["CHAR_M_OPEN"] == false){
+				char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			}else{
+				char_vol = (s["voice_vol"] * s["char_10_vol"]) \ 100;
+			}
+			
+		}else{
+			if((flag == false) && (s["char_11"] == false))return false;
+			//「その他」
+			char_vol = (s["voice_vol"] * s["char_11_vol"]) \ 100;
+			
+		}
+		
+		return char_vol;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ アニメカーソル関数
+	-----------------------------------------*/
+	function CursorAnimeFunc()
+	{
+		if(!AnimeBefor)AnimeBefor = System.getTickCount();
+		
+		AnimeAfter                = System.getTickCount();
+		
+		if((AnimeBefor+nCURSOR_WAIT) < AnimeAfter)
+		{
+			AnimeBefor = AnimeAfter;
+			
+			++AnimeCount;
+			
+			AnimeLayer.copyRect(0,0,AnimeFrame,0,(AnimeCount*AnimeLayer.height),AnimeLayer.width,AnimeLayer.height);
+			
+			if(AnimeCount == nCURSOR_MAXCNT)AnimeCount = -1;
+			
+			if(!AnimeFade){
+				if(AnimeLayer.opacity < 10)AnimeFade = !AnimeFade;
+			}else{
+				if(250 < AnimeLayer.opacity)AnimeFade = !AnimeFade;
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ QUICK BORD 作成関数
+	-----------------------------------------*/
+	function QuickBordCreate()
+	{
+		//QUICKの最新はひとつ前
+		var new_quick = ((s["quick_number"] - 1) < 0) ? (nSAVE_PAGE_NUM-1) : (s["quick_number"]-1);
+		
+		//QuickData チェック
+		if(!ResourceCheck("savedata%03d.bmp".sprintf(nQ_SAVENUM+new_quick))){
+			QuickDataFlag = false;
+		}else{
+			
+			QuickDataFlag = true;
+			
+			if(nQUICK_BORD_TYPE == 0){
+				QuickDataBord = new BaseLayer(MainWnd, MessHidden, 673,0,0,0, "frm_quickbord.png");
+			}else{
+				QuickDataBord = new BaseLayer(MainWnd, MessHidden, 950,0,0,0, "frm_quickbord2.png");
+			}
+			
+			var Quickfile = "savedata%03d.bmp".sprintf(nQ_SAVENUM+new_quick);
+			QuickThum = new BaseLayer(MainWnd, QuickDataBord,135,12,nTHUMBNAIL_W,nTHUMBNAIL_H);
+			QuickThum.loadImages(Quickfile);
+			
+			//コメント有りのみ
+			if(nQUICK_BORD_TYPE == 0){
+				QuickText = new BaseLayer(MainWnd, QuickDataBord,327+nSAVE_XPOS,11+nSAVE_YPOS,225,nSAVETEXT_FONTSIZE*4);
+				QuickText.font.face   = nSAVETEXT_FONTNAME;
+				QuickText.font.height = nSAVETEXT_FONTSIZE;
+			}
+			
+			QuickTime = new BaseLayer(MainWnd, QuickDataBord,34,73 ,75,(nTIMESTAMP_FONTSIZE+nTIMESTAMP_GYOUKAN)*2);
+			QuickTime.font.height = nTIMESTAMP_FONTSIZE;
+			
+			//Quickネームとナンバー
+			QuickNum  = new BaseLayer(MainWnd, QuickDataBord,31,29 ,75,25);
+			
+			//タイムスタンプ更新
+			QuickBordText();
+			
+			QuickDataBord.visible = false;
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ QUICK BORD時間更新
+	-----------------------------------------*/
+	function QuickBordText()
+	{
+		//QUICKの最新はひとつ前
+		var new_quick = ((s["quick_number"] - 1) < 0) ? (nSAVE_PAGE_NUM-1) : (s["quick_number"]-1);
+		
+		//画像更新
+		var Quickfile = "savedata%03d.bmp".sprintf(nQ_SAVENUM + new_quick);
+		QuickThum.loadImages(Quickfile);
+		
+		//Quickネームとナンバー
+		QuickNum.fileCopyRect(0, 0, new FileLayer(MainWnd, PriLayer, "frm_quickname.png"), 0, 0, 75, 25);
+		
+		QuickNum.fileCopyRect(42, 3, new FileLayer(MainWnd, PriLayer, "frm_qnumber.png"), 0, 20*new_quick, 30, 20);
+		
+		//TEXT
+		var text = s[Quickfile];
+		
+		//ボードに取得したデータを書き込む
+		MainWnd.DataBordWirte( QuickText, QuickTime, text );
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ FACE 表示処理
+	-----------------------------------------*/
+	function DrawFace()
+	{
+		//使用可能フラグを見る
+		if(nFACE_FLAG == false)return;
+		
+		if(FaceDelayObj !== void)invalidate FaceDelayObj;
+		
+		FaceDelayObj = void;
+		
+		//強制非表示判定
+		if(FaceForceFlag == false)
+		{
+			for(var i=0; i<nFACE_DISABLE_NAME.count; i++){
+				if(nFACE_DISABLE_NAME[i] == NameValue)
+				{//強制非表示
+					FaceLayer.visible     = false;
+					FaceTempLayer.visible = false;
+					
+					//FACEの最終的な描画状態を取得
+					FaceViewFlag = FaceLayer.visible;
+					
+					//CONFIGフラグの設定
+					if(s["face"] == false){
+						//非表示
+						FaceLayer.visible     = false;
+						FaceTempLayer.visible = false;
+					}
+					
+					//フェイスファイル名を空にする
+					f["facename"] = void;
+					
+					return;
+				}
+			}
+		}
+		
+		
+		if(FaceDrawFlag == true)
+		{//強制描画フラグ
+			
+			var filename = FaceDrawFile.toLowerCase();
+			//フェイス専用ファイルか、立ち絵の指定以外はここまで
+			if(
+				(filename.indexOf(nSPECIAL_FACE_NAME.toLowerCase()) != 0) &&
+				(filename.indexOf("ch_") != 0)
+			){
+				//レイヤを非表示にする
+				FaceLayer.visible     = false;
+				FaceTempLayer.visible = false;
+				//フェイスファイル名を空にする
+				f["facename"] = void;
+				return;
+			}
+			
+			FaceCopy(FaceLayer, FaceDrawFile.toLowerCase());
+			
+			//遅延描画処理
+			if(FaceDrawTempFile !== void)
+			{//遅延画像セット
+				
+				FaceCopy(FaceTempLayer, FaceDrawTempFile.toLowerCase());
+				
+				FaceTempLayer.visible = false;
+				
+				FaceDelayObj = new _DELAYDRAW(FaceLayer, FaceTempLayer, FaceDelayTime, FaceDelayFade, FaceDelayType);
+				
+				//SKIP処理
+				if(	MainWnd.LoadFlag || ((MainWnd.ActiveObj == this) && (MainWnd.SkipCheck())) )
+				{
+					//SKIP処理
+					FaceDelayObj.EndWork();
+				}
+			}
+			
+		}
+		else if(FaceHiddenFlag == true)
+		{//描画抑制フラグ
+			FaceLayer.visible     = false;
+			FaceTempLayer.visible = false;
+			//フェイスファイル名を空にする
+			f["facename"] = void;
+		}
+		else
+		{//通常
+			
+			//台詞キャラの立ち絵＆表情に該当するフェイスを表示する
+			//通常音声を再生する場合は音声ファイル名から取得
+			//VOICE ID が 0 のファイルのみ使用
+			if(VoicePlayFlag[0] == true)
+			{
+				//個別判定
+				var name_id = "ch_" + (f["voiceplay"+0].substring((f["voiceplay"+0].indexOf("_") + 1), 1)).toLowerCase();
+				
+				//現在表示している画像レイヤから該当のIDを探す
+				for(var i=0; i<nIMAGEMAX; i++)
+				{
+					//ファイル名が入っているか
+					if(f["imagefile%d".sprintf(i)] === void)continue;
+					
+					//表示ファイル名
+					var img_name = f["imagefile%d".sprintf(i)].toLowerCase();
+					
+					if(img_name.indexOf(name_id) != -1)
+					{//発見
+						
+						FaceCopy(FaceLayer, img_name, i);
+						
+						//FACEの最終的な描画状態を取得
+						FaceViewFlag = FaceLayer.visible;
+						
+						//CONFIGフラグの設定
+						//描画だけして非表示
+						if(s["face"] == false){
+							//非表示
+							FaceLayer.visible     = false;
+							FaceTempLayer.visible = false;
+						}
+						
+						return;
+					}
+				}
+			}
+			else if((MainWnd.LoadFlag) && (f["facename"] !== void))
+			{//音声無し LOAD時ならFACEファイル名があるか確認
+				FaceCopy(FaceLayer, f["facename"]);
+				return;
+			}
+			else
+			{//音声無し
+				
+			}
+			
+			//非表示
+			FaceLayer.visible     = false;
+			FaceTempLayer.visible = false;
+			//フェイスファイル名を空にする
+			f["facename"] = void;
+		}
+		
+		
+		//FACEの最終的な描画状態を取得
+		FaceViewFlag = FaceLayer.visible;
+		
+		//CONFIGフラグの設定
+		//描画だけして非表示
+		if(s["face"] == false){
+			//非表示
+			FaceLayer.visible     = false;
+			FaceTempLayer.visible = false;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ フェイス転送処理
+	-----------------------------------------*/
+	function FaceCopy(targetlayer, filename, inx = void)
+	{
+		
+		//使用可能フラグを見る
+		if(nFACE_FLAG == false)return;
+		
+		//CHRACTER ID文字を取得
+		var ch_id  = void;
+		
+		//POSING ID文字を取得
+		var pos_id = void;
+		
+		//配列参照変数
+		var face_array=void;
+		
+		var ch_array  = void;
+		
+		var MaskUseFlag=false;
+		
+		//専用ファイル名判定
+		if(filename.indexOf(nSPECIAL_FACE_NAME.toLowerCase()) == 0)
+		{//先頭文字が専用ファイル名なら強制的に使用
+			ch_array = void;
+		}
+		else
+		{//通常ファイル指定
+		
+			//ファイル名をSサイズに変更する
+			var file1 = (filename.substr(0,nCH_SIZE_ID_POS[0]));
+			var file2 = (filename.substr(nCH_SIZE_ID_POS[0]+nCH_SIZE_ID_POS[1]));
+			
+			filename  = file1+"s"+file2;
+			
+			//APEND処理
+			if(s["ApendUse"] == true)
+			{//共通追加パッチ処理
+				filename = MainWnd.ImageObj.CommonApend( filename );
+			}
+			
+			
+			//CHRACTER ID文字を取得
+			ch_id  = (filename.charAt(nCH_FACE_ID)).toLowerCase();
+			
+			//POSING ID文字を取得
+			pos_id = (filename.charAt(nCH_FACE_ID_POS)).toLowerCase();
+			
+			switch(ch_id){
+				case "a":{ ch_array = nCH_A_SQUARE; }break;
+				case "b":{ ch_array = nCH_B_SQUARE; }break;
+				case "c":{ ch_array = nCH_C_SQUARE; }break;
+				case "d":{ ch_array = nCH_D_SQUARE; }break;
+				case "e":{ ch_array = nCH_E_SQUARE; }break;
+				case "f":{ ch_array = nCH_F_SQUARE; }break;
+				case "g":{ ch_array = nCH_G_SQUARE; }break;
+				case "h":{ ch_array = nCH_H_SQUARE; }break;
+				case "i":{ ch_array = nCH_I_SQUARE; }break;
+				case "j":{ ch_array = nCH_J_SQUARE; }break;
+				case "k":{ ch_array = nCH_K_SQUARE; }break;
+				case "l":{ ch_array = nCH_L_SQUARE; }break;
+				case "m":{ ch_array = nCH_M_SQUARE; }break;
+			}
+			
+			
+			//フェイスマスクの判定
+			var maskfile = "FA_" + file1.substr(3,4) + "@.png";
+			if( ResourceCheck( maskfile ) ){
+				//フラグを立たせる
+				MaskUseFlag = true;
+				
+				if(
+					( FaceMaskLayer === void ) || 
+					((FaceMaskLayer !== void)  && (FaceMaskLayer.ResFile != maskfile))
+				){
+					if( FaceMaskLayer === void ){
+						FaceMaskLayer = new BaseLayer(MainWnd, PriLayer, 0,0,0,0, maskfile);
+					}else{
+						FaceMaskLayer.loadImages( maskfile );
+					}
+					
+					FaceMaskLayer.visible = false;
+				}
+			}
+		}
+		
+		
+		
+		
+		//終了判定
+		if(ch_array === void)
+		{//対応する配列が無い
+			
+			//強制描画ならファイルを直接使用する
+			if(FaceDrawFlag == true){
+				targetlayer.loadImages( filename );
+			}else{
+			//強制描画でもないので終了
+				return;
+			}
+		}
+		else
+		{//配列から情報を取得
+			
+			//pos id でどちらの配列の参照を得るか判定
+			for(var i=0; i<ch_array.count; i++){
+				//ID と同じ文字列があったらその配列の参照を使用
+				if(ch_array[i][0] == pos_id){
+					face_array = ch_array[i];
+					break;
+				}
+			}
+			
+			//終了判定
+			if(face_array === void)return;
+			
+			//レイヤをクリアしておく
+			targetlayer.fillRect(0,0,targetlayer.width, targetlayer.height,0 );
+			
+			//矩形コピー
+			targetlayer.fileCopyRect(0, 0, new FileLayer(MainWnd,PriLayer,filename), face_array[1], face_array[2], targetlayer.width, targetlayer.height);
+			
+			
+			//MASK設定
+			if(MaskUseFlag)
+			{
+				for(var i=0; i<FaceMaskLayer.height; i++){
+					for(var t=0; t<FaceMaskLayer.width; t++){
+						
+						if( (!targetlayer.getMaskPixel(t,i)) )continue;
+						targetlayer.setMaskPixel(t,i,FaceMaskLayer.getMaskPixel(t,i));
+						
+					}
+				}
+			
+			}
+		}
+		
+		
+		
+		//ガンマ処理
+		if(	(f["BuTimeSelect"] == 1) || (f["BuTimeSelect"] == 2) || 
+			(f["BuTimeSelect"] == 3) || (f["BuTimeSelect"] == 4)
+		){
+			//共通ガンマ処理
+			MainWnd.ImageObj.CommonGammaColor( targetlayer );
+		}
+		
+		
+		
+		//ファイル指定の際の処理
+		if(FaceDrawFlag == true)
+		{
+			//グレイフラグ
+			if(FaceGlayFlag !== void)targetlayer.doGrayScale();
+			
+			//ガンマ処理
+			if( (FaceRgamma !== void) || (FaceGgamma !== void) || (FaceBgamma !== void) )
+			{
+				if(FaceRgamma === void)FaceRgamma = 0;
+				if(FaceGgamma === void)FaceGgamma = 0;
+				if(FaceBgamma === void)FaceBgamma = 0;
+				
+				//ガンマ値変更
+				targetlayer.adjustGamma(FaceRgamma, 0, 255, FaceGgamma, 0, 255, FaceBgamma, 0, 255);
+			}
+			
+			//明度・コントラスト
+			if( (FaceLight !== void) || (FaceContrast !== void) )
+			{
+				if(FaceLight === void)FaceLight = 0;
+				if(FaceContrast === void)FaceContrast = 0;
+				
+				//明度・コントラスト
+				targetlayer.light(FaceLight, FaceContrast);
+			}
+			
+			
+			//透明度
+			if(FaceOpacity === void)FaceOpacity = 0xff;
+			
+			//透明度の処理
+			targetlayer.opacity = FaceOpacity;
+			
+		}
+		
+		
+		
+		
+		//各レイヤの描画加工値を取得する
+		if( inx !== void )
+		{
+			var Index = "imagefile%d".sprintf(inx);
+			
+			if( (f[Index + "_gray"]) || (f[Index + "_gamma"]) ){
+				//グレイスケール & ガンマ補正処理
+				
+					if( f[Index + "_gray"] == true ){
+					//グレイスケールに変換する
+						targetlayer.doGrayScale();
+					}
+					
+					//ガンマ値変更
+					targetlayer.adjustGamma(f[Index + "_rgamma"], 0, 255, f[Index + "_ggamma"], 0, 255, f[Index + "_bgamma"], 0, 255);
+				
+			}
+			
+			
+			//明度・コントラスト補正処理
+			if(f[Index + "_light_flag"]){
+				targetlayer.light(f[Index + "_light"], f[Index + "_contrast"]);
+			}
+			
+			//透明度の処理
+			targetlayer.opacity = f[Index + "_opacity"];
+			
+		}
+		
+		
+		//フェイスファイル名を格納
+		if(MainWnd.LoadFlag == false){
+		//LOAD中は格納しない
+			f["facename"] = targetlayer.ResFile;
+		}
+		
+		//フェイス表示
+		targetlayer.visible = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ メニューアニメ関数
+	-----------------------------------------*/
+	function MenuViewAnime( tick )
+	{
+		if(MenuViewFlag)
+		{//表示
+			MenuBord.left -= nMENU_STEP;
+			
+			if(MenuBord.left <= (nWND_WIDTH-MenuBord.width)){
+			//停止
+				MenuBord.left = (nWND_WIDTH-MenuBord.width);
+				
+				MenuAnimeTimer.enabled  = false;
+			}
+			
+			//表示最中に画面外にカーソルがでたら非表示にする
+			if(
+				(nWND_WIDTH  < MainWnd.PrimaryLayer.cursorX) ||
+				(nWND_HEIGHT < MainWnd.PrimaryLayer.cursorY)
+			){
+				MenuViewFlag = false;
+			}
+		}
+		else
+		{//非表示
+			MenuBord.left += nMENU_STEP;
+			
+			if(MenuBord.left >= nWND_WIDTH){
+			//停止
+				MenuBord.left = nWND_WIDTH;
+				
+				MenuAnimeTimer.enabled  = false;
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ アイコンアニメ関数
+	-----------------------------------------*/
+	function IconViewAnime()
+	{
+		if(!MenuBord.GetProvincePixel()){
+			IconClearWork();
+			return;
+		}
+		
+		//アニメ部分
+		IconBord.copyRect(0,0,IconAnimeRes,0,(IconBord.height*(IconType-2)),IconBord.width, IconBord.height);
+		IconBord.visible = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ アイコンアニメクリア処理
+	----------------------------------------------------------*/
+	function IconClearWork()
+	{
+		IconBord.visible = false;
+		//停止
+		IconCnt = 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ クイックメッセージタイマー関数
+	----------------------------------------------------------*/
+	function QuickMessAnime()
+	{
+		invalidate QuickSaveMessTimer;
+		QuickSaveMessTimer = void;
+		
+		if(QuickSaveMessFlag)
+		{
+			QuickSaveMessTimer = new LinearMover(	QuickSaveMessBord,
+													[ QuickSaveMessBord.left, QuickSaveMessBord.top, 255,
+													  nQUICKMESS_ERASE_XPOS, nQUICKMESS_ERASE_YPOS,0
+													], nQUICKMESS_ERASE_TIME, 1, QuickMessAnime
+												);
+			QuickSaveMessTimer.startMove( nQUICKMESS_VIEW_WAIT );
+			QuickSaveMessFlag  = false;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ テキスト再描画処理
+	-----------------------------------------*/
+	function ReDrawText()
+	{
+		//ネームレイヤをクリア
+		NameLayer.drawRect( 0 );
+		NameDraw();
+		
+		//テキストレイヤをクリア
+		MessLayer.drawRect( 0 );
+		
+		var xpos = nFUKURO_WIDTH, ypos = nFUKURO_WIDTH, text_cnt = 0;
+		
+		for(var i=0; i<HistoryMessArray.count; i++)
+		{
+			//基本色設定
+			var color    = scNORMALCOLOR;
+			var subcolor = void;
+			
+			if(nSHADOW){
+				subcolor = nSHADOWCOLOR;
+			}else if(nFUKURO){
+				subcolor = nFUKUROCOLOR;
+			}
+			
+			//既読メッセージの色を変更する
+			if( (s["selectlog"] == true) && (TraceFlag == true) ){
+				color    = nSELECT_HISTORY_FONTCOLOR;
+				subcolor = nSELECT_HISTORY_SHADOWCOLOR;
+			}
+			
+			
+			if(HistoryFontColor.color != scNORMALCOLOR)
+			{//色設定反映
+				if(
+					(HistoryFontColor.top == -1) || 
+					((HistoryFontColor.top <= i) && (i < (HistoryFontColor.top+HistoryFontColor.num)))
+				){
+					color = HistoryFontColor.color;
+				}
+			}
+			
+			
+			//影文字 or 袋文字色
+			if( (nSHADOW) || (nFUKURO) )
+			{	
+				if(
+					(HistoryFontColor.top == -1) || 
+					((HistoryFontColor.top <= i) && (i < (HistoryFontColor.top+HistoryFontColor.num)))
+				){
+					if(
+						( nSHADOW && (HistoryFontColor.subcolor != nSHADOWCOLOR) ) ||
+						( nFUKURO && (HistoryFontColor.subcolor != nFUKUROCOLOR) )
+					){
+						subcolor = HistoryFontColor.subcolor;
+					}
+				}
+			}
+			
+			
+			//基本SIZE設定
+			MessLayer.font.height = scFONTSIZE;
+			
+			if(HistoryFontSize.size != scFONTSIZE)
+			{//SIZE設定反映
+				if(
+					(HistoryFontSize.top == -1) || 
+					((HistoryFontSize.top <= i ) && (i < (HistoryFontSize.top+HistoryFontSize.num)))
+				){
+					MessLayer.font.height = HistoryFontSize.size;
+				}
+			}
+			
+			//テキスト描画
+			TextDraw(MessLayer, xpos, ypos, HistoryMessArray[i], color, subcolor);
+			
+			//カウントをあげておく
+			if((#HistoryMessArray[i]) <= 122){
+				text_cnt += 0.5;
+			}else{
+				++text_cnt;
+			}
+			
+			//X座標
+			// －－が付かないため
+			xpos += MessLayer.font.getEscWidthX(HistoryMessArray[i]) + nKERNING;
+			
+			
+			//Y座標
+			if((HistoryMessArray[i+1] == "／") || (text_cnt >= scDRAWMAX))
+			{
+				//カウントをクリア
+				text_cnt = 0;
+				
+				xpos = nFUKURO_WIDTH;
+				
+				if(HistoryMessArray[i+1] == "／")
+				{//改行コード処理
+					while(HistoryMessArray[i+1] == "／")
+					{
+						ypos += HistoryFontSize.size + scGYOUKAN;
+						
+						//改行コードなら１つ進める
+						if(HistoryMessArray[i+1] == "／")
+						{
+							++i;
+						}
+					}
+				}else{
+				//指定文字数行末処理
+					ypos += HistoryFontSize.size + scGYOUKAN;
+				}
+			}
+			
+			
+		}
+	}
+	
+	
+	
+}
+
+
+
+@endif

@@ -1,0 +1,1275 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2008/04/04
+// File : EffectObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Effect Control
+//------------------------------------------------------------------------------
+
+@if(__EFFECTOBJECT_TJS__ == 0)
+@set(__EFFECTOBJECT_TJS__ = 1)
+
+
+class _SHAKE {
+	var x;
+	var y;
+	var layer;
+	var wait;
+	var startTime;
+	var flag;
+	
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	-----------------------------------------*/
+	function _SHAKE(elm){
+		this.x         = elm.layer.left;
+		this.y         = elm.layer.top;
+		this.layer     = elm.layer;
+		this.wait      = +elm.wait;
+		this.flag      = false;
+		this.startTime = System.getTickCount();
+		System.addContinuousHandler(doSetShaqeLoop);
+	}
+	
+	
+	
+	/*-----------------------------------------
+	◆ファイナライズ
+	-----------------------------------------*/
+	function finalize(){
+		layer.left = x;
+		layer.top  = y;
+		System.removeContinuousHandler(doSetShaqeLoop);
+	}
+	
+	
+	
+	/*-----------------------------------------
+	◇ Shake loop実行関数
+	-----------------------------------------*/
+	function doSetShaqeLoop(tick)
+	{
+		if((startTime+wait) < tick)
+		{//移動処理
+			if(!flag){
+				layer.left = x + Math.floor(Math.random()+3);
+				layer.top  = y + -Math.floor(Math.random()+1);
+			}else{
+				layer.left = x + -Math.floor(Math.random()+3);
+				layer.top  = y +  Math.floor(Math.random()+1);
+			}
+			
+			flag = !flag;
+			
+			startTime = tick;
+		}
+		
+	}
+	
+	
+}
+
+
+
+/*-----------------------------------------
+□演出クラス
+
+
+説明：
+演出処理各種
+-----------------------------------------*/
+class _EFFECTOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	□メンバ　オブジェクト
+	-----------------------------------------*/
+	var CaptureLayer;
+	
+	var ClearLayer;
+	
+	var TransitionTimer;
+	
+	var EndFunction;
+	
+	var LoadTrans;
+	
+	var FlashTime;
+	
+	var FlashNum;
+	
+	var FlTime;
+	
+	// quake 用タイマ
+	var	quakeTimer;
+	
+	var quaking      = false; // 揺れているか
+	
+	var quakeEndTick = 0; // 揺れを終了させる tick
+	
+	var quakeHorzMax = 0; // 横振幅
+	
+	var quakeVertMax = 0; // 縦振幅
+	
+	var quakePhase   = 0;
+	
+	var quakeLayer   = [];
+	
+	var quakeBaseXpos= [];
+	
+	var quakeBaseYpos= [];
+	
+	var WaitTimmer;
+	
+	var WaitTime;
+	
+	var BeforWaitTime;
+	
+	var AfterWaitTime;
+	
+	var EffectTransLayer;
+	
+	var cancelskip;
+	
+	var EffectType;
+	
+	var AnimeObject = [];
+	
+	var ShakeObject = [];
+	
+	var SetTransFlag;				//スクリプト側で[SetTrans]を呼ばれたか
+	
+	var LeftMouseClickControl;		//左クリック抑制
+	
+	var EffectCancelFlag;			//エフェクトをCANCEL可能かどうか？
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	
+	引数：
+	
+	
+	-----------------------------------------*/
+	function _EFFECTOBJECT(wnd, pri)
+	{
+		super.BaseObject(wnd, pri);
+		
+		
+		wnd.add(CaptureLayer     = new BaseLayer(wnd, pri, 0,0, nWND_WIDTH, nWND_HEIGHT));
+		
+		wnd.add(ClearLayer       = new BaseLayer(wnd, pri, 0,0, nWND_WIDTH, nWND_HEIGHT));
+		
+		wnd.add(EffectTransLayer = new BaseLayer(wnd, pri, 0,0, nWND_WIDTH, nWND_HEIGHT));
+		
+		//CAPTURE LAYERを塗りつぶしておく
+		CaptureLayer.fillRect(0,0,nWND_WIDTH, nWND_HEIGHT, 0xff000000);
+		
+		
+		
+		CaptureLayer.visible     = false;
+		
+		ClearLayer.visible       = false;
+		
+		EffectTransLayer.visible = false;
+		
+		
+		
+		TransitionTimer = new Timer(TransCheck, "");
+		
+		TransitionTimer.interval = 16;
+		
+		TransitionTimer.enabled  = false;
+		
+		
+		// quake 用タイマの作成
+		quakeTimer = new Timer(onQuakeTimerInterval, '');
+		
+		wnd.add(quakeTimer);
+		
+		quakeTimer.interval   = 50;
+		
+		LoadTrans             = false;
+		
+		LeftMouseClickControl = false;
+		
+		EffectCancelFlag      = false;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ファイナライズ
+	
+	引数：
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+		
+		if(ShakeObject.count){
+			StopShake();
+		}
+		
+		//ハンドラから切り離す
+		removeEffectHandler();
+		
+		invalidate CaptureLayer;
+		
+		invalidate ClearLayer;
+		
+		invalidate EffectTransLayer;
+		
+		invalidate TransitionTimer;
+		
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◇ System Handler解除関数
+	-----------------------------------------*/
+	function removeEffectHandler()
+	{
+		//ここでまとめて解除する
+		System.removeContinuousHandler(WaitLoop);
+		
+		System.removeContinuousHandler(FlashFunc);
+		
+		System.removeContinuousHandler(ZoomCheck);
+		
+		System.removeContinuousHandler(MoveCheck);
+		
+		System.removeContinuousHandler(AnimeCheck);
+		
+		//MoveStop
+		AllMoveStop();
+		
+		//Shakeを停止する
+		if(ShakeObject.count){
+			StopShake();
+		}
+		
+		//アニメ強制終了
+		AnimeStop();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		
+		//CANCEL フラグがONの場合はここまで
+		if(EffectCancelFlag == true)return;
+		
+		if(EffectType == 1){
+		//トランジション
+			if(TransitionTimer.enabled == false)return;
+			
+			EffectType = 0;
+			
+			//トランジション終了フラグ
+			CaptureLayer.TransitionEnd = true;
+			
+			TransCheck();
+			
+		}else if(EffectType == 2 && cancelskip){
+		//WAIT
+			
+			EffectType = 0;
+			
+			BeforWaitTime = 1;
+			
+			WaitTime      = 0;
+			
+			WaitLoop();
+			
+		}else if(EffectType == 3){
+		//FLASH
+			EffectType = 0;
+			
+			FlashNum   = 0;
+			
+			FlashTime  = 0;
+			
+			FlashFunc();
+			
+		}else if(EffectType == 4){
+		//ZOOM
+			EffectType = 0;
+			
+			//画像拡縮全終了
+			AllZoomStop();
+			
+		}else if(EffectType == 5){
+		//Quake
+			EffectType = 0;
+			
+			stopQuake();
+			
+		}else if(EffectType == 6){
+		//MOVE CANCEL
+			EffectType = 0;
+			
+			AllMoveStop();
+			
+		}
+		else if(EffectType == 7)
+		{
+			EffectType = 0;
+			
+			AnimeStop();
+			
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◇ デフォルト関数
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		//LOAD時はさせない
+		if(LoadTrans || MainWnd.LoadFlag)return;
+		
+		//CTRLキーは左クリックと同等処理
+		if(System.getKeyState(VK_CONTROL)){
+			cancelskip = true;
+			LeftMouseUpAction();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆画面Capture関数
+	
+	引数：
+	なし
+	
+	説明：
+	画面取得関数
+	
+	-----------------------------------------*/
+	function TransSetFunc()
+	{
+		//念のためにトランジション終了関数をいれておく
+		CaptureLayer.stopTransition();
+		
+		if(MainWnd.CaptureLayer.children.count){
+			//画面をキャプチャーする
+			CaptureLayer.piledCopy(0, 0, MainWnd.CaptureLayer, 0, 0, MainWnd.WndScreenX, MainWnd.WndScreenY);
+		}else{
+		//一枚もレイヤが無い場合は黒で塗りつぶす
+			CaptureLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY, 0xff000000);
+		}
+		
+		//透過度を255に戻す
+		CaptureLayer.opacity = 255;
+		
+		//キャプチャーレイヤだけ表示する
+		CaptureLayer.visible = true;
+		
+		ClearLayer.visible   = false;
+		
+		//クリア用は0で初期化しておく
+		ClearLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY,0);
+		
+		//トランジションフラグを寝かしておく
+		CaptureLayer.TransitionEnd = false;
+		
+		ClearLayer.TransitionEnd   = false;
+		
+		
+		//最前面に移動
+		ClearLayer.absolute   = nEFFECTLAYER + 1;
+		
+		CaptureLayer.absolute = nEFFECTLAYER;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆トランジション関数
+	
+	引数：
+	なし
+	
+	説明：
+	トランジション関数
+	
+	-----------------------------------------*/
+	function ActTransition(value, func = null, flag = false)
+	{
+		var Type = (int)value.type;
+		
+		var method;
+		
+		var Option = new Dictionary();
+		
+		var retfunction = func;
+		
+		switch(Type){
+		case 0:{//0:crossfade
+			
+			method = "crossfade";
+			
+			Option['time'] = +value.time;
+			
+			
+		}break;
+		case 1:{//1:universal
+			
+			method = "universal";
+			
+			Option['time']  = (int)value.time;
+			
+			if(ResourceCheck(value.file + ".png")){
+				Option['rule']  = value.file + ".png";
+			}else if(ResourceCheck(value.file + ".bmp")){
+				Option['rule']  = value.file + ".bmp";
+			}else{
+				//全てないのでFadeに変更
+				DebugMess("指定ファイル：" + value.file + " が存在しません");
+				
+				method = "crossfade";
+				
+				Option['time'] = 1000;
+				
+			}
+			
+			Option['vague'] = ((int)value.vague != false ? (int)value.vague : 64);
+			
+		}break;
+		case 2:{//2:wave
+			
+			method = "wave";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['wavetype'] = ((int)value.type != false ? (int)value.type : 0);
+			
+			Option['maxh'] = ((int)value.width != false ? (int)value.width : 50);
+			
+			Option['maxomega'] = ((int)value.rad != false ? (int)value.rad : 0.2);
+			
+			Option['bgcolor1'] = ((int)value.color != false ? (int)value.color : 0);
+			
+			Option['bgcolor2'] = ((int)value.color2 != false ? (int)value.color2 : 0);
+			
+		}break;
+		case 3:{//3:mosaic
+			
+			method = "mosaic";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['maxsize'] = (int)value.size ? (int)value.size : 30;
+			
+			//現在の画面をCOPYしておく
+			EffectTransLayer.piledCopy(0, 0, MainWnd.CaptureLayer, MainWnd.WndScreenX, MainWnd.WndScreenY);
+			
+			ClearLayer.copyRect(0,0, EffectTransLayer,0,0,EffectTransLayer.width,EffectTransLayer.height);
+			
+		}break;
+		case 4:{//4:turn
+			
+			method = "turn";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['bgcolor'] = ((int)value.color != false ? (int)value.color : 0);
+			
+		}break;
+		case 5:{//5:rotatezoom
+			
+			method = "rotatezoom";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['factor'] = value.factor !== void ? (int)value.factor : 1;
+			
+			Option['accel'] = (int)value.accel ? (int)value.accel : 0;
+			
+			Option['twist'] = (int)value.twist ? (int)value.twist : 2;
+			
+			Option['twistaccel'] = (int)value.twistaccel ? (int)value.twistaccel : -2;
+			
+		}break;
+		case 6:{//6:rotatevanish
+			
+			method = "rotatevanish";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['accel'] = (int)value.accel ? (int)value.accel : 2;
+			
+			Option['twist'] = (int)value.twist ? (int)value.twist : 2;
+			
+			Option['twistaccel'] = (int)value.twistaccel ? (int)value.twistaccel : 2;
+			
+		}break;
+		case 7:{//7:rotateswap
+			
+			method = "rotateswap";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['twist'] = (int)value.twist ? (int)value.twist : 1;
+			
+			Option['bgcolor'] = ((int)value.color != false ? (int)value.color : 0);
+			
+		}break;
+		case 8:{//8:ripple
+			
+			method = "ripple";
+			
+			Option['time'] = (int)value.time;
+			
+			if(value.centerx){ Option['centerx'] = (int)value.centerx; }
+			
+			if(value.centery){ Option['centery'] = (int)value.centery; }
+			
+			Option['rwidth'] = (int)value.width ? (int)value.width : 128;
+			
+			Option['roundness'] = (int)value.round ? (int)value.round : 1.0;
+			
+			Option['speed'] = (int)value.speed ? (int)value.speed : 6;
+			
+			Option['maxdrift'] = (int)value.drift ? (int)value.drift : 24;
+			
+		}break;
+		}
+		
+		
+		
+		//トランジションの停止
+		CaptureLayer.stopTransition();
+		
+		//DebugMess("cap_wid:"+CaptureLayer.width);
+		//DebugMess("cap_hei:"+CaptureLayer.height);
+		//DebugMess("cle_wid:"+ClearLayer.width);
+		//DebugMess("cle_hei:"+ClearLayer.height);
+		
+		
+		if(CaptureLayer.width != ClearLayer.width){
+			CaptureLayer.width = ClearLayer.width;
+		}
+		
+		if(CaptureLayer.height != ClearLayer.height){
+			CaptureLayer.height = ClearLayer.height;
+		}
+		
+		//トランジションの開始
+		CaptureLayer.beginTransition(method, true, ClearLayer, Option);
+		
+		//TimerStart
+		TransitionTimer.enabled = true;
+		
+		
+		//Option破棄
+		invalidate Option;
+		
+		//EFFECT TYPE
+		EffectType = 1;
+		
+		
+		if((retfunction === null) && (flag == false)){
+		//終了後の関数ポインタを格納しておく
+			EndFunction = MainWnd.PaserObj.GetTagload;
+		}else if(flag == true){
+			
+			EndFunction = void;
+			
+			return;
+		}else{
+			EndFunction = func;
+		}
+		
+		//SKIP & EFFECT CHECK
+		if(MainWnd.SkipCheck() || MainWnd.EffectCheck()){
+			TransCheck();
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆トランジションチェック関数
+	
+	引数：
+	なし
+	
+	説明：
+	トランジションチェック関数
+	
+	-----------------------------------------*/	
+	function TransCheck()
+	{
+		//SKIP中は即終了
+		if(
+			CaptureLayer.TransitionEnd     ||
+			MainWnd.SkipCheck()            ||
+			MainWnd.EffectCheck()
+		){
+			//念のためにトランジション終了関数をいれておく
+			CaptureLayer.stopTransition();
+			
+			//各レイヤーを非表示にする
+			CaptureLayer.visible = false;
+			
+			ClearLayer.visible   = false;
+			
+			//LOAD時の復帰処理の場合は画面更新を行う
+			if(LoadTrans){
+				CaptureLayer.update();
+			}
+			
+			LoadTrans = false;
+			
+			//タイマー停止
+			TransitionTimer.enabled = false;
+			
+			CaptureLayer.TransitionEnd = false;
+			
+			//ガベージを強制的に動かす
+			System.doCompact();
+			
+			//終了後の関数を実行する
+			if(EndFunction !== void)EndFunction();
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ＷＡＩＴ関数
+	
+	引数：
+	time
+	
+	説明：
+	wait関数
+	
+	-----------------------------------------*/
+	function WaitFunc(value)
+	{
+		WaitTime            = +value.time;
+		
+		cancelskip          = +value.skip;
+		
+		//ハンドラに追加
+		System.addContinuousHandler(WaitLoop);
+		
+		BeforWaitTime       = 0;
+		
+		AfterWaitTime       = 0;
+		
+		//EFFECT TYPE
+		EffectType = 2;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ＷＡＩＴ ＬＯＯＰ関数
+	
+	引数：
+	time
+	
+	説明：
+	wait関数
+	
+	-----------------------------------------*/
+	function WaitLoop()
+	{
+		if(!BeforWaitTime)BeforWaitTime = System.getTickCount();
+		
+		AfterWaitTime = System.getTickCount();
+		
+		if(((BeforWaitTime+WaitTime) < AfterWaitTime))
+		{//次のタグを取りに行く
+			
+			cancelskip = false;
+			
+			//ハンドラから切り離す
+			System.removeContinuousHandler(WaitLoop);
+			
+			//次のタグを取得しにいく
+			MainWnd.PaserObj.GetTagload();
+			
+			return;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ＦＬＡＳＨ
+	-----------------------------------------*/
+	function SetFlash(value)
+	{
+		EffectType = 3;
+		
+		//レイヤーを塗りつぶす
+		ClearLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY, 0xff000000 | (int)value.color);
+		
+		ClearLayer.visible = false;
+		
+		FlashNum  = (int)value.num;
+		
+		FlTime    = (int)value.time;
+		
+		FlashTime = System.getTickCount();
+		
+		//ハンドラの追加
+		System.addContinuousHandler(FlashFunc);
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ＦＬＡＳＨ 関数
+	-----------------------------------------*/
+	function FlashFunc()
+	{
+		var AfterTime = System.getTickCount();
+		
+		if(
+			(MainWnd.SkipCheck())   ||
+			(MainWnd.EffectCheck()) ||
+			(!FlashNum && ((FlashTime + FlTime) < AfterTime))
+		){
+			//各レイヤーを非表示にする
+			CaptureLayer.visible = false;
+			
+			ClearLayer.visible = false;
+			
+			System.removeContinuousHandler(FlashFunc);
+			
+			//次のタグを取得しにいく
+			MainWnd.PaserObj.GetTagload();
+			
+			return;
+		}
+		
+		if((FlashTime + FlTime) < AfterTime){
+		
+			if(!ClearLayer.visible){
+				
+				ClearLayer.visible = true;
+				
+				--FlashNum;
+				
+			}else{
+				
+				ClearLayer.visible = false;
+			}
+			
+			FlashTime = AfterTime;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	//------------------------------------------------------------ quake関連 --
+	
+	
+	/*-----------------------------------------
+	□ Quake 実行関数
+	-----------------------------------------*/
+	function doQuake(elm)
+	{
+		EffectType = 5;
+		
+		//配列を初期化
+		quakeLayer.clear();
+		
+		quakeBaseXpos.clear();
+		
+		quakeBaseYpos.clear();
+		
+		
+		
+		
+		if((elm.mode === void) || (+elm.mode == 0)){
+			//画像レイヤを格納
+			for(var i=0; i<nIMAGEMAX; i++){
+				if((MainWnd.ImageObj.ImgObj[i] === void) || (MainWnd.ImageObj.ImgObj[i].visible == false))continue;
+				quakeLayer.add(MainWnd.ImageObj.ImgObj[i]);
+				quakeBaseXpos.add(MainWnd.ImageObj.ImgObj[i].left);
+				quakeBaseYpos.add(MainWnd.ImageObj.ImgObj[i].top);
+			}
+		}else{
+			var mesviewflag = false;
+			//現在の状態を保持
+			if(MainWnd.MessObj.MessFrame.visible){
+				mesviewflag = true;
+			}
+			
+			//フレームをキャプチャーさせないために一旦非表示にする
+			MainWnd.MessObj.MessFrame.visible = false;
+			MainWnd.MessObj.MessHidden.visible= false;
+			
+			//クライアント画面のみ
+			TransSetFunc();
+			//クリア用はcolorで塗りつぶしておく
+			ClearLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY,(0xff000000 | +elm.color));
+			//今回は表示
+			ClearLayer.visible = true;
+			
+			//メッセージウィンドウの後に移動
+			CaptureLayer.absolute = nTITLELAYER + 1;
+			
+			ClearLayer.absolute   = nTITLELAYER;
+			
+			CaptureLayer.left = 0;
+			CaptureLayer.top  = 0;
+			ClearLayer.left   = 0;
+			ClearLayer.top    = 0;
+			
+			CaptureLayer.opacity = 255;
+			ClearLayer.opacity   = 255;
+			
+			
+			//配列に格納
+			quakeLayer.add(CaptureLayer);
+			quakeBaseXpos.add(0);
+			quakeBaseYpos.add(0);
+			
+			if(mesviewflag){
+				//フレームをキャプチャーさせないために一旦非表示にしたのを戻す
+				MainWnd.MessObj.MessFrame.visible = true;
+				MainWnd.MessObj.MessHidden.visible= true;
+			}
+		}
+		
+		
+		
+		// elm に従って quake を開始
+		if(elm.time !== void)
+		{
+			quakeEndTick = System.getTickCount() + +elm.time;
+		}
+		else
+		{
+			quakeEndTick = -1;
+		}
+		
+		if(elm.hmax !== void){
+			quakeHorzMax = +elm.hmax;
+		}else{
+			 quakeHorzMax = 10;
+		}
+		
+		if(elm.vmax !== void){
+			quakeVertMax = +elm.vmax;
+		} else{
+			quakeVertMax = 10;
+		}
+		
+		quakeTimer.enabled = true;
+		
+		quaking = true;
+		
+		quakePhase = true;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ Quake 実行関数
+	-----------------------------------------*/
+	function onQuakeTimerInterval()
+	{
+		// quakeTimer により呼ばれる
+		if(
+			(MainWnd.SkipCheck())   ||
+			(MainWnd.EffectCheck()) ||
+			(quakeEndTick != -1 && System.getTickCount() > quakeEndTick)
+		){
+			stopQuake();
+			
+			return;
+		}
+		
+		
+		
+		
+		var x, y;
+		
+		if(quakeHorzMax == quakeVertMax)
+		{
+			// だいたい同じ
+			x = int(((Math.random()) * quakeHorzMax) - quakeHorzMax);
+			y = int(((Math.random()) * quakeVertMax) - quakeVertMax);
+			
+			if(!quakePhase){
+				x = 0 - x;
+				y = 0 - y;
+			}
+		}
+		else if(quakeHorzMax < quakeVertMax)
+		{
+			// 縦揺れ
+			x = int(Math.random() * quakeHorzMax - quakeHorzMax);
+			y = int((quakePhase ? (Math.random()) : -(Math.random())) * quakeVertMax);
+		}
+		else
+		{
+			// 横揺れ
+			x = int((quakePhase ? Math.random() : -(Math.random())) * quakeHorzMax);
+			y = int(Math.random() * quakeVertMax - quakeVertMax);
+		}
+		
+		quakePhase = !quakePhase;
+		
+		
+		//レイヤの移動
+		for(var i=0; i<quakeLayer.count; i++){
+			quakeLayer[i].left = quakeBaseXpos[i] + x;
+			quakeLayer[i].top  = quakeBaseYpos[i] + y;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ QUAKE 停止
+	-----------------------------------------*/
+	function stopQuake()
+	{
+		// 揺れを停止
+		
+		//レイヤを元に戻す
+		for(var i=0; i<quakeLayer.count; i++){
+			quakeLayer[i].left = quakeBaseXpos[i];
+			quakeLayer[i].top  = quakeBaseYpos[i];
+		}
+		
+		quakeLayer.clear();
+		
+		quakeBaseXpos.clear();
+		
+		quakeBaseYpos.clear();
+		
+		quakeTimer.enabled = false;
+		
+		quaking = false;
+		
+		//MODE 1 用に非表示にしておく
+		CaptureLayer.visible = false;
+		
+		ClearLayer.visible   = false;
+		
+		//次のタグを取得しにいく
+		MainWnd.PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◇ Shake loop
+	-----------------------------------------*/
+	function SetShakeLoop(elm)
+	{
+		//SKIP 中はすぐ終了
+		if(MainWnd.SkipCheck() || MainWnd.EffectCheck())return;
+		
+		var layer = +elm.layer;
+		
+		//画像レイヤ
+		elm.layer = MainWnd.ImageObj.ImgObj[layer];
+		
+		if(elm.layer === void)return;
+		
+		var inx = "imagefile%d".sprintf(layer);
+		f[inx+"shake"]     = true;
+		f[inx+"shakewait"] = +elm.wait;
+		
+		ShakeObject.add(new _SHAKE(elm));
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◇ Shake loop
+	-----------------------------------------*/
+	function StopShake()
+	{
+		var cnt = ShakeObject.count;
+		
+		for(var i=0; i<cnt; i++){
+			
+			//ロード中は解除しない
+			if((MainWnd.LoadFlag == false)){
+				//フラグを解除
+				var inx = "imagefile%d".sprintf(i);
+				f[inx+"shake"]     = void;
+				f[inx+"shakewait"] = void;
+			}
+			
+			invalidate ShakeObject[i];
+			
+			ShakeObject[i] = void;
+		}
+		
+		ShakeObject.clear();
+		
+		System.doCompact();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ MOVE 移動確認
+	-----------------------------------------*/
+	function MoveCheck()
+	{
+		EffectType = 6;
+		
+		if(
+			(MainWnd.MoveCount == 0) ||
+			(MainWnd.SkipCheck())    ||
+			(MainWnd.EffectCheck())
+		){//全レイヤ移動終了
+			System.removeContinuousHandler(this.MoveCheck);
+			
+			//画像移動全終了
+			AllMoveStop();
+			
+			//次のタグを取得しにいく
+			MainWnd.PaserObj.GetTagload();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ ZOOM 確認
+	-----------------------------------------*/
+	function ZoomCheck()
+	{
+		EffectType = 4;
+		
+		//ZOOM
+		var cnt          = nIMAGEMAX;
+		
+		var ZoomEndFlag  = true;
+		
+		for(var i=0; i<cnt; i++){
+			
+			if(MainWnd.ImageObj.ZoomObj[i] === void)continue;
+			
+			if(MainWnd.ImageObj.ZoomObj[i].moving)
+			{//１つでも動いていればfalseにする
+				ZoomEndFlag = false;
+				
+				break;
+			}
+		}
+		
+		
+		
+		if(
+			(ZoomEndFlag  == true)   ||
+			(MainWnd.SkipCheck())    ||
+			(MainWnd.EffectCheck())
+		){//全レイヤ移動終了
+			System.removeContinuousHandler(this.ZoomCheck);
+			
+			//画像拡縮全終了
+			AllZoomStop();
+			
+			//次のタグを取得しにいく
+			MainWnd.PaserObj.GetTagload();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ Anime 動作確認
+	-----------------------------------------*/
+	function AnimeCheck()
+	{
+		EffectType = 7;
+		
+		if(MainWnd.AnimeCount == 0)
+		{//全レイヤ移動終了
+			System.removeContinuousHandler(this.AnimeCheck);
+			
+			var i = 0;
+			
+			//立ち絵移動設定
+			while(AnimeObject.count != i){
+				
+				if(!AnimeObject[i].anime){
+					AnimeObject.erase(i);
+					i = 0;
+					continue;
+				}
+				
+				++i;
+			}
+			
+			//次のタグを取得しにいく
+			MainWnd.PaserObj.GetTagload();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ Anime 強制終了
+	-----------------------------------------*/
+	function AnimeStop()
+	{
+		var cnt = AnimeObject.count;
+		
+		for (var i=0; i<cnt; i++){
+			AnimeObject[i].loop = false;
+			AnimeObject[i].AnimeStop();
+		}
+		
+		AnimeObject.clear();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ALL MOVE STOP
+	-----------------------------------------*/
+	function AllMoveStop()
+	{
+		EffectType = 0;
+		
+		//MOVE
+		if((isvalid MainWnd.ImageObj) && (MainWnd.ImageObj.moveObject !== void)){
+			var cnt = MainWnd.ImageObj.moveObject.count;
+			
+			for(var i=0; i<cnt; i++){
+				if(MainWnd.ImageObj.moveObject[i] !== void){
+					MainWnd.ImageObj.moveObject[i].stopMove();
+				}
+			}
+			
+			//立ち絵移動配列をクリアする
+			MainWnd.ImageObj.moveObject.clear();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ALL ZOOM STOP
+	画像拡縮全終了
+	-----------------------------------------*/
+	function AllZoomStop()
+	{
+		//ZOOM
+		var cnt = nIMAGEMAX;
+		
+		for(var i=0; i<cnt; i++){
+			if(
+				(MainWnd.ImageObj.ZoomObj[i] === void) ||
+				(!MainWnd.ImageObj.ZoomObj[i].moving)
+			){
+				continue;
+			}
+			
+			MainWnd.ImageObj.ZoomObj[i].finish();
+		}
+	}
+	
+}
+
+
+@endif

@@ -1,0 +1,493 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2012/11/17
+// File : EndingObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Ending class
+//------------------------------------------------------------------------------
+@if(__ENDING_TJS__ == 0)
+@set(__ENDING_TJS__ = 1)
+
+class _ENDINGOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	■ パラメータ定数
+	-----------------------------------------*/
+	var nSCREEN_HEIGHT = 720;
+	
+	var nSCROLL_HEIGHT = 8280 + ((nSCREEN_HEIGHT*1)\3)+100;
+	
+	var nDRAW_XPOS     = 4;
+	
+	var nDRAW_YPOS     = 141;
+	
+	var nDRAWTIME      = 2000;
+	
+	var nMAXCOUNT      = 11;
+	
+	var nTIMEBLANCE    = 0000;
+	
+	var nERASE_TIME    = 2000;
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ パラメータ
+	-----------------------------------------*/
+	var EndingCharId;	//キャラクターＩＤ
+	
+	var EndingId;		//エンディングＩＤ
+	
+	var DrawCount;		//描画カウント
+	
+	var forelayer;		//描画レイヤ１
+	
+	var backlayer;		//描画レイヤ２
+	
+	var TempActive;		//変更する前のアクティブオブジェクト
+	
+	var EraseFlag;		//消去動作のフラグ
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function _ENDINGOBJECT(win, pri, id)
+	{
+		super.BaseObject(win, pri);
+		
+		//アクティブオブジェクトを退避しておく
+		TempActive = win.ActiveObj;
+		
+		//制御を変えておく
+		win.ChangeActive(this);
+		
+		EndingId = id;
+		
+		forelayer= 0;
+		
+		backlayer= 0;
+		
+		//SKIPとAUTOを解除
+		//SKIP & AUTO
+		win.MessObj.SkipAutoRelease();
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+		
+		//エンディングの途中か
+		if(f.ending_start){
+			//マウスカーソルを変更
+			MainWnd.mouseCursorState = mcsVisible;
+			
+			//エンディング終了
+			f.ending_start = false;
+			
+			//監視関数を削除
+			System.removeContinuousHandler(this.BgmlabelCheck);
+			
+		}
+		
+		
+		
+	}
+	
+	
+	
+	/*-----------------------------------------
+	■ デフォルト関数
+	-----------------------------------------*/
+	
+	/*-----------------------------------------
+	■ Default Func
+	-----------------------------------------*/
+	function BgmlabelCheck()
+	{
+		if(this.MainWnd === void){
+		//グローバルオブジェクトからCOPYしておく
+			MainWnd = MainObj;
+		}
+		
+		//マウスカーソルを変更
+		if(MainWnd.CheckBoxObj === void){
+			MainWnd.mouseCursorState = mcsHidden;
+		}
+		
+		//ラベルを通過した
+		if(MainWnd.BgmObj.labelFlag != false)
+		{
+			//フラグを寝かせる
+			MainWnd.BgmObj.labelFlag = false;
+			
+			if(DrawCount == 1){
+				EndingDraw(DrawCount, 1, -1);
+			}else{
+			
+				var templayer = forelayer;
+				
+				forelayer = backlayer;
+				
+				backlayer = templayer;
+				
+				//一旦消去する動作が入る
+				//黒画像と差し替えで表現する
+				//画像を描画
+				
+				//消去フラグが立っていた場合は黒画面と差し替え
+				EndingDraw( ((EraseFlag == true) ? 0 : DrawCount), forelayer, backlayer);
+			}
+			
+			//エンディング終了
+			if(nMAXCOUNT < DrawCount){
+				EndingEnd();
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		//CANCEL処理
+		CancelWork();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		//CANCEL処理
+		CancelWork();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ メンバ関数
+	-----------------------------------------*/
+	
+	/*-----------------------------------------
+	■ エンディング初期化関数
+	-----------------------------------------*/
+	function EndingStart()
+	{
+		//BGM FILEを停止する
+		MainWnd.BgmObj.FileStop();
+		
+		//エンディングスキップフラグ
+		f["ENDING_SKIP"] = false;
+		
+		var BgmFile = "";
+		var BgmTime = 0;//(ms)
+		
+		switch(EndingId){
+		case 0:{
+			EndingCharId = "A";
+			BgmFile = "BGM991C.ogg";
+			BgmTime = 151000;//(ms)
+		}break;
+		case 1:{
+			EndingCharId = "B";
+			BgmFile = "BGM992C.ogg";
+			BgmTime = 154000;//(ms)
+		}break;
+		case 2:{
+			EndingCharId = "C";
+			BgmFile = "BGM993C.ogg";
+			BgmTime = 156000;//(ms)
+		}break;
+		case 3:{
+			EndingCharId = "D";
+			BgmFile = "BGM994C.ogg";
+			//BgmTime = 154000;//(ms)
+			BgmTime = 150000;//(ms)
+		}break;
+		case 4:{
+			EndingCharId = "E";
+			BgmFile = "BGM995C.ogg";
+			//BgmTime = 154000;//(ms)
+			BgmTime = 151000;//(ms)
+		}break;
+		case 5:{
+			EndingCharId = "F";
+		}break;
+		case 5:{
+			EndingCharId = "G";
+		}break;
+		}
+		
+		//BGM FILEを停止する
+		MainWnd.BgmObj.FileStop();
+		
+		//DEBUG情報の為
+		@if(_DEBUG == 1)
+		f["bgm"] = BgmFile;
+		@endif
+		
+		//BGM 再生 (単発再生)
+		MainWnd.BgmObj.FilePlay(BgmFile);
+		
+		//エンディング開始
+		f.ending_start = true;
+		
+		//スタッフスクロール開始
+		MainWnd.ImageObj.ImageDraw(%["file"=>"ED_" + EndingCharId + "000", "layer"=>3, "x"=>640, "y"=>nSCREEN_HEIGHT]);
+		
+		//スクロール開始
+		MainWnd.ImageObj.ImageMove(%["layer"=>3, "y"=>(0-nSCROLL_HEIGHT), "time"=>(BgmTime-6000), "opacity"=>255,"delay"=>2000]);
+		
+		DrawCount = 1;
+		
+		EraseFlag = false;
+		
+		//最初の描画
+		//EndingDraw(DrawCount, 1, -1);
+		
+		//BGMのラベル通過を監視
+		System.addContinuousHandler(this.BgmlabelCheck);
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ エンディング描画関数
+	-----------------------------------------*/
+	function EndingDraw(cnt, drawlayer, eraselayer)
+	{
+		//DEBUG情報の為
+		@if(_DEBUG == 1)
+		dm("cnt:"+cnt+"  bgm:"+MainWnd.BgmObj.SetState(4));
+		@endif
+		
+		//エンディング終了ならここまで
+		if(f.ending_start == false)return;
+		
+		//最後の処理は白フェードなのでスクリプト側で行う
+		if(nMAXCOUNT == cnt){
+			//カウントをあげておく
+			++DrawCount;
+			return;
+		}
+		
+		
+		//★画像表示
+		MainWnd.ImageObj.ImageDraw(%["file"=>"ED_"+EndingCharId+"%02d".sprintf(cnt)+"_01", "layer"=>drawlayer, "opacity"=>0, "x"=>nDRAW_XPOS,"y"=>nDRAW_YPOS]);
+		//★画像透過度設定
+		MainWnd.ImageObj.ImageMove(%["layer"=>drawlayer, "x"=>0, "y"=>0, "opacity"=>255, "time"=>((EraseFlag == false) ? nDRAWTIME : nERASE_TIME), "delay"=>0, "accel"=>0]);
+		
+		//表示レイヤ番号を格納
+		forelayer = drawlayer;
+		
+		
+		//非表示レイヤ
+		if( (eraselayer != -1) && (cnt != 11) ){
+			//★画像透過度設定
+			MainWnd.ImageObj.ImageMove(%["layer"=>eraselayer, "x"=>0, "y"=>0, "opacity"=>0, "time"=>nDRAWTIME, "delay"=>0, "accel"=>0]);
+		}
+		
+		//カウントをあげておく
+		//表示動作のときだけ
+		if(!EraseFlag){
+			//DrawCount が 0(最初)は消去動作を行わない
+			if(DrawCount != 0)EraseFlag = true;
+			if(DrawCount == (nMAXCOUNT-1))EraseFlag = false;
+			
+			++DrawCount;
+		}else{
+			//消去動作フラグをねかす
+			EraseFlag = false;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ エンディング終了関数
+	-----------------------------------------*/
+	function EndingEnd()
+	{
+		//マウスカーソルを変更
+		MainWnd.mouseCursorState = mcsVisible;
+		
+		//エンディング終了
+		f.ending_start = false;
+		
+		//監視関数を削除
+		System.removeContinuousHandler(this.BgmlabelCheck);
+		
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		//エンディング通過フラグを立てる
+		s["ENDING_" + EndingCharId] = true;
+		
+		
+		//削除処理
+		DeleteWork( EndingDeleteFunc );
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ CANCEL 処理
+	----------------------------------------------------------*/
+	function CancelWork()
+	{
+		//１度見たのはスキップ可能
+		/*
+		if(
+			(s["game_clear"] == 1)                   ||
+			((EndingId == 0) && (s["CLEAR_A"] == 1)) ||
+			((EndingId == 1) && (s["CLEAR_B"] == 1)) ||
+			((EndingId == 2) && (s["CLEAR_C"] == 1)) ||
+			((EndingId == 3) && (s["CLEAR_D"] == 1)) ||
+			((EndingId == 4) && (s["CLEAR_E"] == 1)) ||
+			((EndingId == 5) && (s["CLEAR_F"] == 1)) ||
+			((EndingId == 6) && (s["CLEAR_G"] == 1))
+		){
+		*/
+		if(
+			((EndingId == 0) && (s["ENDING_A"] == 1)) ||
+			((EndingId == 1) && (s["ENDING_B"] == 1)) ||
+			((EndingId == 2) && (s["ENDING_C"] == 1)) ||
+			((EndingId == 3) && (s["ENDING_D"] == 1)) ||
+			((EndingId == 4) && (s["ENDING_E"] == 1)) ||
+			((EndingId == 5) && (s["ENDING_F"] == 1)) ||
+			((EndingId == 6) && (s["ENDING_G"] == 1))
+		){
+			//エンディング終了
+			f.ending_start = false;
+			
+			//即終了
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			MainWnd.EffectObj.EffectType = 6;
+			
+			MainWnd.EffectObj.LeftMouseUpAction();
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//再度元に戻す
+			MainWnd.ChangeActive(this);
+			
+			//レイヤ全部削除
+			MainWnd.ImageObj.ImageClear(%["layer"=>-1]);
+			
+			//★最後の画像表示
+			//MainWnd.ImageObj.ImageDraw(%["file"=>"ED_"+EndingCharId+"11_01", "layer"=>1, "opacity"=>255, "x"=>0, "y"=>0]);
+			
+			//BGM FILEを停止する
+			MainWnd.BgmObj.FileStop();
+			
+			//更新する
+			//MainWnd.ImageObj.ImgObj[1].update();
+			
+			//エンディングスキップフラグ
+			f["ENDING_SKIP"] = true;
+			
+			//即終了
+			EndingEnd();
+		}
+	}
+	
+	
+}
+
+
+
+
+
+/*-----------------------------------------
+■ENDING オブジェクト削除関数
+-----------------------------------------*/
+function EndingDeleteFunc()
+{
+	//アクティブオブジェクトを変更する
+	MainObj.ActiveObj = MainObj.EndingObj.TempActive;
+	
+	//オブジェクトを削除する
+	invalidate MainObj.EndingObj;
+	
+	MainObj.EndingObj = void;
+	
+	//ガベージを強制的に動かす
+	System.doCompact();
+	
+	//次のタグを取得しにいく
+	MainObj.PaserObj.GetTagload();
+}
+
+
+
+
+@endif
+

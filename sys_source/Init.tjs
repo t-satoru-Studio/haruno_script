@@ -1,0 +1,414 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2008/04/03
+// File : Init.tjs - システムの初期化
+// Creator : Kazuyuki Uchino
+// Memo : Init File
+//------------------------------------------------------------------------------
+
+
+//DEBUG Versionかどうか
+@set(_DEBUG = 0)
+
+//体験版かどうか[0:製品版 1:体験版]
+@set(_GAMEMODE = 0)
+
+
+
+
+/*-----------------------------------------
+□SAVE DATAの設定
+-----------------------------------------*/
+// SAVEPATHの作成
+var Savefolder = System.exePath + "savedata/";
+
+// CNF FILE名の作成
+@if(_GAMEMODE == 0)
+var CnfName    = "haruno.cf";
+@endif
+@if(_GAMEMODE == 1)
+var CnfName    = "haruno_tr.cf";
+@endif
+
+
+
+// AutoPathの設定
+Storages.addAutoPath(Savefolder);
+
+// SAVE MODEの設定
+var scSaveMode = "z"; //z:圧縮 c:簡易暗号化
+
+var f            =%[];	//USER SAVE格納配列
+
+var s            =%[];	//SYSTEM SAVE格納配列
+
+//■SAVE DATA ID
+// http://kikyou.info/uuidgen/uuidgen.php で取得
+// 体験版 2c26352d-61b7-494f-b252-b20dfd2a5caf
+// 製品版 a293c327-5c1a-4767-909e-693bde4d7342
+
+var scSaveDataId = "a293c327-5c1a-4767-909e-693bde4d7342";
+
+var dm           = Debug.message;//デバッグコンソール出力用
+
+@if(_DEBUG == 1)
+scSaveMode   = "";
+scSaveDataId = "";
+var debug_f  =%[];	//DEBUG 演出指定用
+var debug_para;		//DEBUG パラメータ
+@endif
+
+
+/*◆パスの設定
+	後に指定した物が、より優先されて使用される
+	
+	デバッグ用の各フォルダと、Release用のxp3ファイルのパス
+	設定。
+*/
+
+
+//XP3用アーカイブ設定関数
+function useArchiveIfExists(name)
+{
+	// name が存在していたらそのアーカイブを使う
+	var arcname = "";
+	
+	if(Storages.isExistentStorage(arcname = System.exePath + name))
+	{
+		Storages.addAutoPath(arcname + ">");
+		
+		return true;
+	}
+	
+	return false;
+}
+
+
+
+
+//ストレージパスの設定
+Storages.addAutoPath(System.exePath + "/");                 // exePath の data
+Storages.addAutoPath(System.exePath + "data/");             // exePath の data
+Storages.addAutoPath("sys_source/");                        // sys_source フォルダ
+Storages.addAutoPath("macro/");                             // macro      フォルダ
+
+
+
+
+
+//SYSTEM SOURCEの読み込み
+
+/* ◆FixNum.tjs 読み込み */
+Scripts.execStorage("FixNum.tjs");
+
+/* ◆Utility.tjs 読み込み */
+Scripts.execStorage("Utility.tjs");
+
+// ◆ユーザー定義ファイルの実行
+Scripts.execStorage("userFix.ks");
+
+/* ◆Parser.tjs 読み込み */
+Scripts.execStorage("Parser.tjs");
+
+/* ◆MainWindow.tjs 読み込み */
+Scripts.execStorage("MainWindow.tjs");
+
+/* ◆BaseObject.tjs 読み込み */
+Scripts.execStorage("BaseObject.tjs");
+
+/* ◆BaseLayer.tjs 読み込み */
+Scripts.execStorage("BaseLayer.tjs");
+
+/* ◆ImageObject.tjs 読み込み */
+Scripts.execStorage("ImageObject.tjs");
+
+/* ◆ImageObject.tjs 読み込み */
+Scripts.execStorage("MessObject.tjs");
+
+/* ◆SoundCtrlObject.tjs 読み込み */
+Scripts.execStorage("SoundCtrlObject.tjs");
+
+/* ◆SoundObject.tjs 読み込み */
+Scripts.execStorage("SoundObject.tjs");
+
+/* ◆MovieObject.tjs 読み込み */
+Scripts.execStorage("MovieObject.tjs");
+
+/* ◆SelectObject.tjs 読み込み */
+Scripts.execStorage("SelectObject.tjs");
+
+/* ◆LogObject.tjs 読み込み */
+Scripts.execStorage("LogObject.tjs");
+
+/* ◆ConfigObject.tjs 読み込み */
+Scripts.execStorage("ConfigObject.tjs");
+
+/* ◆CheckDialog.tjs 読み込み */
+Scripts.execStorage("CheckDialog.tjs");
+
+/* ◆SaveLoadObject.tjs 読み込み */
+Scripts.execStorage("SaveLoadObject.tjs");
+
+/* ◆TitleObject.tjs 読み込み */
+Scripts.execStorage("TitleObject.tjs");
+
+/* ◆ZoomObject.tjs 読み込み */
+Scripts.execStorage("ZoomObject.tjs");
+
+/* ◆EffectObject.tjs 読み込み */
+Scripts.execStorage("EffectObject.tjs");
+
+//CG MODEは正規版のみ
+//EXTRA MODEは正規版のみ
+if(nGAMEMODE == 0){
+/* ◆CgmodeReplay.tjs 読み込み */
+Scripts.execStorage("CgmodeReplay.tjs");
+/* ◆ExtraObject.tjs 読み込み */
+Scripts.execStorage("ExtraObject.tjs");
+}
+
+
+/* ◆DefaultMover.tjs 読み込み */
+Scripts.execStorage("DefaultMover.tjs");
+
+/* ◆AnimationObject.tjs */
+Scripts.execStorage("AnimationObject.tjs");
+
+/* ◆Affine.tjs */
+Scripts.execStorage("Affine.tjs");
+
+/* ◆DelayDrawObject.tjs */
+Scripts.execStorage("DelayDrawObject.tjs");
+
+/* ◆LogThumbObject.tjs */
+Scripts.execStorage("LogThumbObject.tjs");
+
+/* ◆EndingObject.tjs */
+Scripts.execStorage("EndingObject.tjs");
+
+/* ◆DayBordObject.tjs */
+Scripts.execStorage("DayBordObject.tjs");
+
+
+
+
+//デバッグ用処理
+@if(_DEBUG == 1)
+Storages.addAutoPath("sys_source/debug/");// debug フォルダ
+/* ◆DebugInfo.tjs 読み込み */
+Scripts.execStorage("DebugInfo.tjs");
+@endif
+
+
+
+
+
+
+
+
+// パッチアーカイブの検索と使用
+// もしこれらの名前を持ったアーカイブが実行可能ファイルと
+// 同じ場所にあった場合、それを優先して使う
+var ArchiveStruct = 
+[
+	"data.xp3"	//0
+];
+
+
+
+
+//var name = System.exePath + "data.xp3>";
+var name = System.exePath + "data/";
+
+Storages.addAutoPath(name+"scenario/@_共通/");            // @_共通     フォルダ
+Storages.addAutoPath(name+"scenario/A_菜乃花/");          // A_菜乃花   フォルダ
+Storages.addAutoPath(name+"scenario/B_このみ/");          // B_このみ   フォルダ
+Storages.addAutoPath(name+"scenario/C_花梨/");            // C_花梨     フォルダ
+Storages.addAutoPath(name+"scenario/D_雨音/");            // D_雨音     フォルダ
+Storages.addAutoPath(name+"scenario/E_彩菜/");            // E_彩菜     フォルダ
+Storages.addAutoPath(name+"scenario/Replay/");            // Replay     フォルダ
+Storages.addAutoPath(name+"scenario/エクストラ/");        // エクストラ フォルダ
+Storages.addAutoPath(name+"image00/");
+Storages.addAutoPath(name+"image00/map/");
+Storages.addAutoPath(name+"image01/L/");               // bg/l       フォルダ
+Storages.addAutoPath(name+"image02/L/");               // ev/l       フォルダ
+Storages.addAutoPath(name+"image02/thm/");             // ev/thm     フォルダ
+Storages.addAutoPath(name+"image02_2/L/");               // ev/l       フォルダ
+Storages.addAutoPath(name+"image02_2/thm/");             // ev/thm     フォルダ
+Storages.addAutoPath(name+"image03/trans/");           // trans      フォルダ
+Storages.addAutoPath(name+"image03/effect/");          // effect     フォルダ
+Storages.addAutoPath(name+"image03/effect/A/");        // ending     フォルダ
+Storages.addAutoPath(name+"image03/effect/B/");        // ending     フォルダ
+Storages.addAutoPath(name+"image03/effect/C/");        // ending     フォルダ
+Storages.addAutoPath(name+"image03/effect/D/");        // ending     フォルダ
+Storages.addAutoPath(name+"image03/effect/E/");        // ending     フォルダ
+Storages.addAutoPath(name+"image03/effect/F/");        // ending     フォルダ
+Storages.addAutoPath(name+"image04/face/");            // フェイスフォルダ
+Storages.addAutoPath(name+"image04/L/");               // bu/l       フォルダ
+Storages.addAutoPath(name+"image04/M/");               // bu/m       フォルダ
+Storages.addAutoPath(name+"image04/S/");               // bu/s       フォルダ
+Storages.addAutoPath(name+"image04/L/裸/");            // bu/l/裸    フォルダ
+Storages.addAutoPath(name+"image04/M/裸/");            // bu/m/裸    フォルダ
+Storages.addAutoPath(name+"image04/S/裸/");            // bu/s/裸    フォルダ
+Storages.addAutoPath(name+"image04_2/face/");            // フェイスフォルダ
+Storages.addAutoPath(name+"image04_2/L/");               // bu/l       フォルダ
+Storages.addAutoPath(name+"image04_2/M/");               // bu/m       フォルダ
+Storages.addAutoPath(name+"image04_2/S/");               // bu/s       フォルダ
+Storages.addAutoPath(name+"image04_2/L/裸/");            // bu/l/裸    フォルダ
+Storages.addAutoPath(name+"image04_2/M/裸/");            // bu/m/裸    フォルダ
+Storages.addAutoPath(name+"image04_2/S/裸/");            // bu/s/裸    フォルダ
+Storages.addAutoPath(name+"image05/face/");            // フェイスフォルダ
+Storages.addAutoPath(name+"image05/L/");               // bu/l       フォルダ
+Storages.addAutoPath(name+"image05/M/");               // bu/m       フォルダ
+Storages.addAutoPath(name+"image05/S/");               // bu/s       フォルダ
+Storages.addAutoPath(name+"image05/L/裸/");            // bu/l/裸    フォルダ
+Storages.addAutoPath(name+"image05/M/裸/");            // bu/m/裸    フォルダ
+Storages.addAutoPath(name+"image05/S/裸/");            // bu/s/裸    フォルダ
+Storages.addAutoPath(name+"media/bgm/");             // bgm        フォルダ
+Storages.addAutoPath(name+"media/se/");              // se         フォルダ
+Storages.addAutoPath(name+"movie/");
+Storages.addAutoPath(name+"voice01/");
+Storages.addAutoPath(name+"voice02/A/");       // voice/a     フォルダ
+Storages.addAutoPath(name+"voice02/B/");       // voice/b     フォルダ
+Storages.addAutoPath(name+"voice02/C/");       // voice/c     フォルダ
+Storages.addAutoPath(name+"voice02/D/");       // voice/d     フォルダ
+Storages.addAutoPath(name+"voice02/E/");       // voice/e     フォルダ
+Storages.addAutoPath(name+"voice02/F/");       // voice/f     フォルダ
+Storages.addAutoPath(name+"voice02/G/");       // voice/g     フォルダ
+Storages.addAutoPath(name+"voice02/H/");       // voice/h     フォルダ
+Storages.addAutoPath(name+"voice02/I/");       // voice/i     フォルダ
+Storages.addAutoPath(name+"voice02/J/");       // voice/J     フォルダ
+Storages.addAutoPath(name+"voice02/K/");       // voice/k     フォルダ
+Storages.addAutoPath(name+"voice02/L/");       // voice/l     フォルダ
+Storages.addAutoPath(name+"voice02/M/");       // voice/m     フォルダ
+Storages.addAutoPath(name+"voice02/PRE/");     // voice/pre   フォルダ
+Storages.addAutoPath(name+"voice02/Y/");       // voice/y     フォルダ
+Storages.addAutoPath(name+"voice02/Z/");       // voice/z     フォルダ
+Storages.addAutoPath(name+"voice02_2/A/");       // voice/a     フォルダ
+Storages.addAutoPath(name+"voice02_2/B/");       // voice/b     フォルダ
+Storages.addAutoPath(name+"voice02_2/C/");       // voice/c     フォルダ
+Storages.addAutoPath(name+"voice02_2/D/");       // voice/d     フォルダ
+Storages.addAutoPath(name+"voice02_2/E/");       // voice/e     フォルダ
+Storages.addAutoPath(name+"voice02_2/F/");       // voice/f     フォルダ
+Storages.addAutoPath(name+"voice02_2/G/");       // voice/g     フォルダ
+Storages.addAutoPath(name+"voice02_2/H/");       // voice/h     フォルダ
+Storages.addAutoPath(name+"voice02_2/I/");       // voice/i     フォルダ
+Storages.addAutoPath(name+"voice02_2/J/");       // voice/J     フォルダ
+Storages.addAutoPath(name+"voice02_2/K/");       // voice/k     フォルダ
+Storages.addAutoPath(name+"voice02_2/L/");       // voice/l     フォルダ
+Storages.addAutoPath(name+"voice02_2/M/");       // voice/m     フォルダ
+Storages.addAutoPath(name+"voice02_2/PRE/");     // voice/pre   フォルダ
+Storages.addAutoPath(name+"voice02_2/Y/");       // voice/y     フォルダ
+Storages.addAutoPath(name+"voice02_2/Z/");       // voice/z     フォルダ
+Storages.addAutoPath(name+"image00/map/");          // map    フォルダ
+Storages.addAutoPath(name+"image00/csv/");          // csv    フォルダ
+Storages.addAutoPath(name+"image06/csv/");          // csv    フォルダ
+
+
+var ApendFlag   = false;	//アペンデンドフラグ
+var ApendUseFlag= false;	//追加ファイル使用フラグ
+var ExScenarioFlag=[];		//EXTRA SCENARIO使用フラグ
+var ExScenarioNum = 9;		//EXTRA 使用最大数
+for (var i=0; i<ExScenarioNum; i++)ExScenarioFlag[i] = false;
+
+// アペンデンド用パッチ検索
+if(nAPENDFLAG){
+	//ファイルが存在するか？
+	if(Storages.isExistentStorage(System.exePath + nAPENDFILE)){
+		//パスとフラグを立てる
+		ApendFlag = true;
+		Storages.addAutoPath(System.exePath + nAPENDFILE+">");
+		Storages.addAutoPath(System.exePath + nAPENDFILE+">L/");
+		Storages.addAutoPath(System.exePath + nAPENDFILE+">M/");
+		Storages.addAutoPath(System.exePath + nAPENDFILE+">S/");
+	}else{
+	//存在しない場合は寝かす
+		nAPENDFLAG    = false;
+		s["ApendUse"] = false;
+	}
+	
+	//エクストラシナリオの確認
+	for (var i=0; i<ExScenarioNum; i++){
+		var file = "";
+		switch(i){
+		case 0:{ file = nEXTRAFILE01; }break;
+		case 1:{ file = nEXTRAFILE02; }break;
+		case 2:{ file = nEXTRAFILE03; }break;
+		case 3:{ file = nEXTRAFILE04; }break;
+		case 4:{ file = nEXTRAFILE05; }break;
+		case 5:{ file = nEXTRAFILE06; }break;
+		case 6:{ file = nEXTRAFILE07; }break;
+		case 7:{ file = nEXTRAFILE08; }break;
+		case 8:{ file = nEXTRAFILE09; }break;
+		}
+		//ファイルが存在するか？
+		if(Storages.isExistentStorage(System.exePath + file)){
+			ExScenarioFlag[i] = true;
+			Storages.addAutoPath(System.exePath + file +">");
+			Storages.addAutoPath(System.exePath + file +">ev/");
+			Storages.addAutoPath(System.exePath + file +">voice/");
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 追加のパッチ用アーカイブの検索
+for(var i = 1; ; i++)
+{
+	// パッチ用アーカイブ patch2.xp3, patch3.xp3 ... がある場合はそちらを
+	// 優先して読み込むように
+	if(Storages.isExistentStorage(System.exePath + "patch" + i + ".xp3")){
+		
+		Storages.addAutoPath(System.exePath + "patch" + i + ".xp3>");
+		
+	}else{
+		//無い場合は終了
+		break;
+	}
+}
+
+
+//*
+//	二重起動のチェック
+
+
+// 実行可能ファイルのパスをキーにしてロックを行う
+if(!System.createAppLock(System.exePath.replace(/[^A-Za-z]/g, '_')))
+{
+	// すでに起動している
+	System.inform(System.title + "はすでに起動しています");
+	System.exit();
+}
+
+//*/
+
+
+//基本オブジェクトの作成
+var MainObj = void;
+	MainObj = new MainWindow(nWND_WIDTH, nWND_HEIGHT);
+	
+//ウィンドウサイズの確認
+if((MainObj.width < nMIN_WIDTH) || (MainObj.height < nMIN_HEIGHT)){
+	//最小サイズでも表示できなかったので、強制フルスクリーン
+	MainObj.fullScreen     = 1;
+	MainObj.ScreenSizeType = 5;
+}
+
+//拡張イベントを有効にする
+MainObj.SetExEvent();
+
+//JUMP用のCOPYはしない
+MainObj.PaserObj.ChageFile("startup.soc");
+
+

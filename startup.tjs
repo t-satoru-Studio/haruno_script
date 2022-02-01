@@ -1,0 +1,11 @@
+System.setArgument("TextEncoding", "utf8");
+Plugins.link("layerExImage.dll");
+Plugins.link("csvParser.dll");
+Plugins.link("extrans.dll");
+Plugins.link("fstat.dll");
+Plugins.link("krmovie.dll");
+Plugins.link("wumsadp.dll");
+Plugins.link("wuvorbis.dll");
+Plugins.link("KAGParserEx.dll");
+Plugins.link("windowEx.dll");
+Scripts.execStorage("sys_source/Init_fix.tjs");

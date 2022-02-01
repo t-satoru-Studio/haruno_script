@@ -1,0 +1,649 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/05/17
+// File : MovieObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Movie Object
+// ※ media は mpg, wmv が使用可能
+//　　ただし、wmvはOverlay Modeだとフルスクリーン時に問題がでるので、
+//　　wmvはLayerModeで使用する必要がある。
+//　　LayerModeを使用する際は、拡縮補完がされないため画面サイズの
+//　　mediaが必要になる。(mpgでも同様)
+//　　レイヤーモードではないとカーソルが消えない
+//------------------------------------------------------------------------------
+
+@if (__MOVIEOBJECT_TJS__== 0)
+@set(__MOVIEOBJECT_TJS__ = 1)
+
+class _MOVIEOBJECT extends VideoOverlay {
+	
+	/*-----------------------------------------
+	■ パラメータ オブジェクト
+	-----------------------------------------*/
+	var MainWnd;			//メインオブジェクト
+	
+	var MovieLayer;			//MOVIE レイヤー
+	
+	var MovieFileName;		//MOVIE FILE
+	
+	var MovieState = "";	//MOVIE STATE
+	
+	var SWFflag;			//SWF FLAG;
+	
+	var CursorFlag;			//CURSOR FLAG
+	
+	var cancel_char_id;		//cancel id
+	
+	var MovieSound;			//MOVIE サウンドオブジェクト
+	
+	var PlayMode;			//再生モード
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function _MOVIEOBJECT(wnd)
+	{
+		super.VideoOverlay(wnd);
+		
+		MovieSound = new _SOUNDOBJECT("movie", wnd);
+		
+		MainWnd = wnd;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆デストラクタ
+	
+	
+	
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize(...);
+		
+		if(MovieLayer !== void)invalidate MovieLayer;
+		
+		if(MovieSound !== void)invalidate MovieSound;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆メディア読み込み関数
+	
+	引数：
+	file	MOVIE FILE
+	
+	説明：
+	
+	MOVIE FILEをLOADしておく
+	
+	-----------------------------------------*/
+	function LoadFile(file, playmode, layer)
+	{
+		
+		//File名を保持する
+		MovieFileName = file;
+		
+		//OBJECTを初期化しておく
+		MovieLayer = void;
+		
+		//プレイモード保存
+		PlayMode   = playmode;
+		
+		if((playmode == nMIXER_MODE) || (playmode == nLAYER_MODE))
+		{//LAYER MODE
+			
+			if(layer == -1){
+			//専用レイヤ
+				MainWnd.add(MovieLayer = new BaseLayer(MainWnd, MainWnd.CaptureLayer,0,0,MainWnd.CaptureLayer.width,MainWnd.CaptureLayer.height));
+			}else{
+			//既存の描画レイヤ
+				//指定レイヤをクリアしておく
+				MainWnd.ImageObj.ImageClear( %["layer"=>layer] );
+				
+				MainWnd.add(MovieLayer = new BaseLayer(MainWnd, MainWnd.CaptureLayer,0,0,MainWnd.CaptureLayer.width,MainWnd.CaptureLayer.height));
+				//オーダーを設定する
+				MovieLayer.absolute    = ( nIMAGELAYER + (layer*5) );
+			}
+			
+			//非表示
+			MovieLayer.visible = false;
+			
+			//描画MODEの設定
+			if(playmode == nLAYER_MODE){
+				mode = vomLayer;
+			}else{
+				mode = vomMixer;
+			}
+		}
+		
+		
+		
+		if(playmode == nMIXER_MODE)
+		{
+			setMixingLayer(MovieLayer);
+			
+			setBounds(0, 0, MovieLayer.width, MovieLayer.height);
+			
+			mixingMovieAlpha = 1.0;
+			
+		}else if(playmode == nLAYER_MODE){
+		//LAYER MODE
+			layer1 = MovieLayer;
+			
+		}else if(playmode == nOVERLAY_MODE){
+		//OVER LAY
+			mode = vomOverlay;
+			
+			setSize(MainWnd.WndScreenX, MainWnd.WndScreenY);
+			
+		}
+		
+		
+		//File名を展開する
+		open(file);
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆メディア再生関数
+	
+	引数：
+	無し
+	
+	
+	説明：
+	
+	MOVIE FILEを再生する
+	
+	-----------------------------------------*/
+	function PlayFile(file, loopflag = false, mode = vomOverlay, cursor = true, cancel_id = false, layer = -1)
+	{
+		//小文字
+		var file1 = file.toLowerCase();
+		
+		var file2 = file.toUpperCase();
+		
+		//Resource Check
+		if((!ResourceCheck(file1)) && (!ResourceCheck(file2)))
+		{
+			if (InforFlag == true) {
+				DebugMess("MOVIE FILE：" + file + "が見つかりません");
+			}
+			return;
+		}
+		
+		//ファイル名をクリアしておく
+		f["moviefile"] = void;
+		
+		//レイヤ番号を保存しておく
+		f["movielayer"]= void;
+		
+		//loopフラグを設定
+		f["movieloop"] = void;
+		
+		//CONTINUE用ＳＡＶＥを閉じる
+		MainWnd.ContinueFlag = false;
+		
+		//LOAD FILE
+		LoadFile(file, mode, layer);
+		
+		if(layer != -1)
+		{//ファイル名を保存しておく
+			f["moviefile"] = file;
+			
+			//レイヤ番号を保存しておく
+			f["movielayer"]= layer;
+			
+			//loopフラグを設定
+			f["movieloop"] = loopflag;
+			
+			//CONTINUE用ＳＡＶＥをさせる
+			MainWnd.ContinueFlag = true;
+		}
+		
+		//SWF FLAG
+		SWFflag = false;
+		
+		if(MovieFileName.indexOf(".swf") == -1)
+		{//SWFはボリューム調整ができない
+			//ON/OFF はボリュームのON・OFF
+			if(s["movie"] == true){
+				audioVolume = (MainWnd.SoundObj.MovieVolume * 1000);
+			}else{
+				audioVolume = (MainWnd.SoundObj.MovieVolume * 0);
+			}
+		}else{
+		//SWF フラグを立てる
+			SWFflag = true;
+		}
+		
+		
+		
+		if(cursor){
+			cursor     = mcsVisible;
+			CursorFlag = mcsVisible;
+		}else{
+			cursor     = mcsHidden;
+			CursorFlag = mcsHidden;
+		}
+		
+		
+		//マウスカーソルを変更
+		MainWnd.mouseCursorState = cursor;
+		
+		
+		//キャンセルキャラＩＤを立てる
+		cancel_char_id = cancel_id;
+		
+		
+		if((mode == vomMixer) || (mode == vomLayer))
+		{//動画再生
+			
+			//レイヤーモードを不透明にする
+			MovieLayer.type = ltOpaque;
+			
+			//表示する
+			MovieLayer.visible = true;
+			
+			//再生
+			play();
+			
+		}else{
+		 //Overlay
+			play();
+		}
+		
+		visible = true;
+		
+		//再生TYPE
+		loop = loopflag;
+		
+		
+		//タイマー開始
+		MainWnd.DefaultTimer.enabled = true;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Idol状態に呼び出される関数
+	
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		//マウスカーソルを変更
+		MainWnd.mouseCursorState = CursorFlag;
+		
+		//ステータスを取得する
+		if(MovieState == "stop")
+		{//終了した
+			EndMovie();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆終了関数
+	
+	引数：
+	なし
+	
+	説明：
+	終了時に呼び出される関数
+	
+	-----------------------------------------*/
+	function EndMovie()
+	{
+		//フラグで判定する場合はここで判定処理を行う
+		
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		stop();
+		
+		//マウスカーソルを表示
+		MainWnd.mouseCursorState = mcsVisible;
+		
+		CursorFlag               = mcsVisible;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+		//CONTINUE用ＳＡＶＥを開く
+		MainWnd.ContinueFlag = true;
+		
+		//次のタグを取得しにいく
+		MainWnd.PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆キャンセル関数
+	
+	引数：
+	なし
+	
+	説明：
+	MOVIE CANCELのフラグチェック
+	
+	-----------------------------------------*/
+	function CancelCheck()
+	{
+		if(
+			(cancel_char_id  == 0) ||
+			((cancel_char_id == 1) && (s["CLEAR_A"] == true)) ||
+			((cancel_char_id == 2) && (s["CLEAR_B"] == true)) ||
+			((cancel_char_id == 3) && (s["CLEAR_C"] == true)) ||
+			((cancel_char_id == 4) && (s["CLEAR_D"] == true)) ||
+			((cancel_char_id == 5) && (s["CLEAR_E"] == true)) ||
+			((cancel_char_id == 6) && (s["CLEAR_F"] == true)) ||
+			((cancel_char_id == 7) && (s["CLEAR_G"] == true))
+		){
+			//MOVIEを停止
+			EndMovie();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆終了関数
+	
+	引数：
+	なし
+	
+	説明：
+	MOVIE破棄時に呼び出される関数
+	
+	-----------------------------------------*/
+	function CloseMovie()
+	{
+		if(MovieLayer !== void)invalidate MovieLayer;
+		
+		MovieLayer = void;
+		
+		//マウスカーソルを消去
+		MainWnd.mouseCursorState = mcsVisible;
+		
+		//ファイル名を破棄
+		f["moviefile"] = void;
+		
+		//レイヤ番号を保存しておく
+		f["movielayer"]= void;
+		
+		//loopフラグをクリア
+		f["movieloop"] = void;
+		
+		close();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		CancelCheck();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆RightMouseUpAction関数
+	
+	引数：
+	無し
+	
+	説明：
+	このクラスオブジェクトのRightMouseUpAction
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		CancelCheck();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆MiddleMouseUpAction関数
+	
+	引数：
+	無し
+	
+	説明：
+	このクラスオブジェクトのRightMouseUpAction
+	
+	-----------------------------------------*/
+	function MiddleMouseUpAction()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆LeftMouseDownAction関数
+	
+	引数：
+	無し
+	
+	説明：
+	このクラスオブジェクトのLeftMouseDownAction
+	
+	-----------------------------------------*/	
+	function LeftMouseDownAction()
+	{
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆RightMouseDownAction関数
+	
+	引数：
+	無し
+	
+	説明：
+	このクラスオブジェクトのRightMouseDownAction
+	
+	-----------------------------------------*/	
+	function RightMouseDownAction()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆MiddleMouseDownAction関数
+	
+	引数：
+	無し
+	
+	説明：
+	このクラスオブジェクトのRightMouseDownAction
+	
+	-----------------------------------------*/
+	function MiddleMouseDownAction(){ }
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	shift	同時キー
+	
+	delta	方向：正:奥　負:手前
+	
+	x		X座標
+	
+	y		Y座標
+	
+	説明：
+	Mouse Wheelを処理するハンドラ
+	
+	-----------------------------------------*/
+	function MouseWheelAction(shift, delta, x, y){ }
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ KEY UP
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		switch(key){
+			case VK_RETURN:{
+			//return
+			//altキーが押されていたらここまで
+			if(shift & ssAlt)return;
+				LeftMouseUpAction();
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ イベント関数
+	
+	引数：type
+	
+	説明：
+	準備完了関数
+	
+	-----------------------------------------*/
+	function onPeriod(type)
+	{
+		if(type == "perLoop")
+		{//(通常の)ループの終端に達した
+			
+		}else if(type == "perSegLoop"){
+		 //セグメントループの終端に達した
+		
+		}else if(type == "perPeriod "){
+		 //setPeriodEvent メソッドで指定されたフレームに達した
+			
+		}else if(type == "perPrepare"){
+		 //prepare メソッドによる再生準備が完了した
+		 	
+		 	play();
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント関数
+	-----------------------------------------*/
+	function onStatusChanged(status)
+	{
+		MovieState = status;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ステート設定関数
+	-----------------------------------------*/
+	function SetState(id, value )
+	{
+		MovieSound.SetState(id, value );
+	}
+	
+}
+
+
+
+
+
+
+
+
+@endif
+
+

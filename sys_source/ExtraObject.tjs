@@ -1,0 +1,467 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/06/04
+// File : ExtraObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo :Extra Object
+//------------------------------------------------------------------------------
+
+@if (__EXTRAOBJECT_TJS__== 0)
+@set(__EXTRAOBJECT_TJS__ = 1)
+
+class _EXTRAOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	◆ パラメータ
+	-----------------------------------------*/
+	var PartsFrame = [];	//フレーム配列
+	
+	var ButtonFrame= [];	//ボタンフレーム
+	
+	var BgLayer;			//背景レイヤー
+	
+	var MapRes;				//MAP REG
+	
+	var TempRes;			//MAP TEMPREG
+	
+	var ExtraFile;			//EXTRA JUMPオブジェクト
+	
+	var TitleBg;
+	
+	var DebugFlag;			//DEBUG FLAG
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ コンストラクタ
+	-----------------------------------------*/
+	function _EXTRAOBJECT(win, pri, recreate = false)
+	{
+		//タイマー停止
+		win.DefaultTimer.enabled = false;
+		
+		super.BaseObject(win, pri);
+		
+		win.ChangeActive(this);
+		
+		//背景
+		TitleBg = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_config00.png");
+		
+		//台紙
+		BgLayer = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_extra11.png");
+		BgLayer.loadProvinceImage("extra_map.png");
+		
+		
+		@if(_DEBUG == 1)
+		if(System.getKeyState(VK_TAB)){
+			DebugFlag = true;
+		}
+		@endif
+		
+		
+		//パーツフレーム
+		for(var i=1; i<6; i++){
+			PartsFrame[i-1] = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_extra0"+i+".png");
+			PartsFrame[i-1].visible = false;
+			
+			
+			//エクストラのボタン
+			var x=0, y=0;
+			var file = "";
+			switch(i){
+				case 1:{
+					x=0;
+					y=64;
+					file = nEXTRAFILE01;
+				}break;
+				case 2:{
+					x=672;
+					y=64;
+					file = nEXTRAFILE02;
+				}break;
+				case 3:{
+					x=0;
+					y=400;
+					file = nEXTRAFILE03;
+				}break;
+				case 4:{
+					x=672;
+					y=400;
+					file = nEXTRAFILE04;
+				}break;
+				case 5:{
+					x=1112;
+					y=4;
+				}break;
+				
+			}
+			
+			//ボタンの作成
+			ButtonFrame[i-1] = new BaseLayer(win, BgLayer, x, y, PartsFrame[i-1].width\4, PartsFrame[i-1].height);
+			
+			//ボタンを閉じておく
+			if( (!DebugFlag) && ( (i<5) && ((!ExScenarioFlag[i-1]) || (!ResourceCheck(file)))) ){
+				ButtonFrame[i-1].copyRect(0,0,PartsFrame[i-1], (PartsFrame[i-1].width\4)*3, 0, (PartsFrame[i-1].width/4), PartsFrame[i-1].height);
+				//フラグを閉じておく
+				ExScenarioFlag[i-1] = false;
+			}else{
+				ButtonFrame[i-1].copyRect(0,0,PartsFrame[i-1], 0, 0, (PartsFrame[i-1].width\4), PartsFrame[i-1].height);
+			}
+		}
+		
+		
+		
+		
+		
+		
+		
+		//EXTRA描画時の音声再生
+		if(s["system"] == true) {
+			var file = "";
+			if(recreate == false){
+			//画面復帰時は再生しないよ
+				file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_EXTRAMODE + ".ogg";
+			}
+			
+			//SYSTEM音声を再生する
+			if(file != "")win.SystemVoicePlay(file);
+		}
+		
+		
+		//タイマー再開
+		win.DefaultTimer.enabled = true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		//パーツフレーム
+		for(var i=1; i<PartsFrame.count; i++){
+			invalidate PartsFrame[i-1];
+			invalidate ButtonFrame[i-1];
+			PartsFrame[i-1] = void;
+			ButtonFrame[i-1]= void;
+		}
+		
+		invalidate TitleBg;
+		
+		//台紙
+		invalidate BgLayer;
+		
+		BgLayer = void;
+		
+		//SYSTEM音声を停止しておく
+		MainWnd.SystemObj.FileStop();
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Default Func
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		for(var i=0; i<ButtonFrame.count; i++){
+			if(ButtonFrame[i].PaintFlag){
+				ButtonFrame[i].PaintFlag = false;
+				Wait(nBUTTON_WAIT);
+				ButtonWork();
+				return;
+			}
+		}
+		
+		//MAPを取得する
+		MapRes = BgLayer.GetProvincePixel();
+		
+		if(MapRes != TempRes)
+		{
+			CursorFunc();
+			
+			ClearFunc();
+		}
+		
+		TempRes = MapRes;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		if(MapRes)ClickWork();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function RightMouseUpAction(forceend = false)
+	{
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		//削除処理
+		DeleteWork( ExtraDelete );
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	on cousorを処理するハンドラ
+	
+	-----------------------------------------*/
+	function CursorFunc()
+	{
+		if(!MapRes)return;
+		
+		//フラグを確認する
+		if( (!DebugFlag) && ( (MapRes<5) && (!ExScenarioFlag[MapRes-1]) ))return;
+		
+		//ボタンを点灯する
+		ButtonFrame[MapRes-1].copyRect(0,0,PartsFrame[MapRes-1], (PartsFrame[MapRes-1].width\4), 0, (PartsFrame[MapRes-1].width\4), PartsFrame[MapRes-1].height);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	off cousorを処理するハンドラ
+	
+	-----------------------------------------*/
+	function ClearFunc()
+	{
+		if( !TempRes )return;
+		
+		if( (!DebugFlag) && ( (TempRes<5) && (!ExScenarioFlag[TempRes-1]) ) )return;
+		
+		//ボタンを点灯する
+		ButtonFrame[TempRes-1].copyRect(0,0,PartsFrame[TempRes-1], 0, 0, (PartsFrame[TempRes-1].width\4), PartsFrame[TempRes-1].height);
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	click cousorを処理するハンドラ
+	
+	-----------------------------------------*/
+	function ClickWork()
+	{
+		if(!MapRes)return;
+		
+		if( (!DebugFlag) && ( (MapRes<5) && (!ExScenarioFlag[MapRes-1]) ))return;
+		
+		//ボタンを点灯する
+		ButtonFrame[MapRes-1].copyRect(0,0,PartsFrame[MapRes-1], (PartsFrame[MapRes-1].width\4)*2, 0, (PartsFrame[MapRes-1].width\4), PartsFrame[MapRes-1].height);
+		
+		ButtonFrame[MapRes-1].update();
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	actionを処理するハンドラ
+	
+	-----------------------------------------*/
+	function ButtonWork()
+	{
+		if(!MapRes)return;
+		
+		switch(MapRes){
+		case 1:{//extra01
+			ExtraFile = nEXTRAFILE01_START;
+		}break;
+		case 2:{//extra02
+			ExtraFile = nEXTRAFILE02_START;
+		}break;
+		case 3:{//extra03
+			ExtraFile = nEXTRAFILE03_START;
+		}break;
+		case 4:{//extra04
+			ExtraFile = nEXTRAFILE04_START;
+		}break;
+		/*
+		case 5:{//extra05
+			ExtraFile = nEXTRAFILE05_START;
+		}break;
+		case 6:{//extra06
+			ExtraFile = nEXTRAFILE06_START;
+		}break;
+		case 7:{//extra07
+			ExtraFile = nEXTRAFILE07_START;
+		}break;
+		case 8:{//extra08
+			ExtraFile = nEXTRAFILE08_START;
+		}break;
+		case 9:{//extra09
+			ExtraFile = nEXTRAFILE09_START;
+		}break;
+		*/
+		}
+		
+		//右クリックと同じ処理
+		RightMouseUpAction();
+	}
+	
+}
+
+
+
+
+
+
+
+
+/*-----------------------------------------
+■EXTRA オブジェクト削除関数
+-----------------------------------------*/
+/*-----------------------------------------
+■ 削除関数
+-----------------------------------------*/
+function ExtraDelete()
+{
+	//リプレイファイルを代入
+	var ExtraFile = MainObj.ExtraObj.ExtraFile;
+	
+	if(ExtraFile  == "" || ExtraFile  === void){
+	//通常終了
+		//オブジェクトを削除
+		invalidate MainObj.ExtraObj;
+		
+		MainObj.ExtraObj = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+		//タイトルに戻る or リプレイファイルに飛ぶ
+		MainObj.ChangeActive(MainObj.TitleObj);
+		
+		//ファイル名を戻しておく
+		f["bgm"] = f["titlebgm"];
+		
+		//BGM OFFならファイル名だけ移動
+		if(s["bgm"] == true){
+			//タイトルBGMを再度流す
+			MainObj.BgmObj.FilePlay(f["bgm"], true);
+		}
+		//タイマー再開
+		MainObj.DefaultTimer.enabled = true;
+		
+	}else{
+	//EXTRA MODE START
+		
+		//画面キャプチャーをしておく
+		//MainObj.EffectObj.TransSetFunc();
+		
+		//オブジェクトを削除
+		invalidate MainObj.ExtraObj;
+		
+		MainObj.ExtraObj = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+		//画面を初期化
+		MainObj.ScreenFormat();
+		
+		//EXTRA用にフラグを立てる
+		//MainObj.ReplayFlag = true;
+		
+		MainObj.ExtraFlag  = true;
+		
+		//エクストラフラグを保持しておく
+		f["extra"] = MainObj.ExtraFlag;
+		
+		//コンティニューフラグを立てる
+		MainObj.ContinueFlag   = true;
+		
+		//JUMPの為にフラグを立てる
+		MainObj.PaserObj.LogTopSave = true;
+		
+		//シナリオをロードする
+		MainObj.PaserObj.ChageFile(ExtraFile);
+		
+	}
+}
+
+
+
+@endif
+
+

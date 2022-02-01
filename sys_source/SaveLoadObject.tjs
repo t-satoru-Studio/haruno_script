@@ -1,0 +1,2393 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/07/12
+// File : SaveLoadObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : SaveLoadObjec
+//------------------------------------------------------------------------------
+@if (__SAVELOADOBJECT_TJS__== 0)
+@set(__SAVELOADOBJECT_TJS__ = 1)
+
+class _SAVELOADOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	□メンバ　オブジェクト
+	-----------------------------------------*/
+	var Type;					//種別
+	
+	var TitleBg;				//タイトル背景
+	
+	var BaseFrame;				//背景
+	
+	var PartsBord;				//パーツ
+	
+	var PageParts;				//ページパーツ
+	
+	var PanelParts;				//パネルパーツ
+	
+	var SlBaseParts;			//SAVE・LOADベースパーツ
+	
+	var NumberParts;			//PAGE番号パーツ
+	
+	var PageNumberParts;		//PAGEナンバーパーツ
+	
+	var CommonParts;			//共通ボタンパーツ
+	
+	var NumberBord;				//番号
+	
+	var ScrollBar;				//スクロールバー
+	
+	var SaveLoadBar;			//ボタンレイヤー
+	
+	var SlBaseLayer     = [];	//SAVE・LOADベースレイヤー
+	
+	var PageLayer       = [];	//ページレイヤ
+	
+	var NumberLayer     = [];	//番号レイヤ
+	
+	var PictureLayer    = [];	//画像レイヤー
+	
+	var SaveTextLayer   = [];	//テキストレイヤー
+	
+	var TimeStampLayer  = [];	//タイムスタンプレイヤー
+	
+	var PageButton      = [];	//ページボタン
+	
+	var PanelButton     = [];	//パネルボタン
+	
+	var ReturnButton;			//戻るボタン
+	
+	var ContinueButton;			//Continueボタン
+	
+	var SaveLoadButton;			//SAVE・LOADボタン
+	
+	var QuickLoadButton;		//QUICK LOADボタン
+	
+	var NewLayer;				//NEW レイヤ
+	
+	var ClickFlag;				//CLICKフラグ
+	
+	var WheelFlag;				//WHEELフラグ
+	
+	var Wheel_X;				//wheel x
+	
+	var Wheel_Y;				//wheel y
+	
+	var CursorLayer;			//カーソルレイヤ
+	
+	var QuickNum;				//QUICKナンバー
+	
+	var QuickBase;				//QUICK ベース
+	
+	var QuickThum;				//QUICK サムネイル
+	
+	var QuickText;				//QUICK テキスト
+	
+	var QuickTime;				//QUICK タイムスタンプ
+	
+	var ContinueBase;			//Continue ベース
+	
+	var ContinueThum;			//Continue サムネイル
+	
+	var ContinueText;			//Continue テキスト
+	
+	var ContinueTime;			//Continue タイムスタンプ
+	
+	var nUpdateValue = 21.8;	//更新数値
+	
+	var MapRes;
+	
+	var TempRes;
+	
+	var TempActive;
+	
+	var ScrollFlag;				//スクロールフラグ
+	
+	var NowPage;				//現在のPAGE数
+	
+	var datafile;				//選択したデータファイル名
+	
+	var DataWorkSlot;			//選択したデータボードのCOPY
+	
+	var DataCopyFlag;			//データコピー中フラグ
+	
+	var CopyBaseFileName;		//データコピーファイル名
+	
+	var CopyPageNum;			//データコピーPAGE番号
+	
+	var DataCopyNum;			//データコピー番号
+	
+	var DataDelNum;				//データ削除番号
+	
+	var DeleteFlag;				//データ削除フラグ
+	
+	var DataMoveFlag;			//データ移動フラグ
+	
+	var DataMoveNum;			//データ移動番号
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	
+	引数：
+	
+	wnd MainWnd
+	
+	pri PrimaryLayer
+	
+	type save:load
+	
+	-----------------------------------------*/
+	function _SAVELOADOBJECT(win, pri, type)
+	{
+		super.BaseObject(win, pri);
+		
+		@if(_DEBUG == 1)
+		if(MainObj.ActiveObj === void){
+			DebugMess("saveload error ActiveObjがvoidです");
+		}
+		@endif
+		
+		TempActive = MainObj.ActiveObj;
+		
+		Type = type;
+		
+		
+		if(win.TitleObj !== void){
+			TitleBg = new BaseLayer(win, pri, 0,0,0,0,"frm_config00.png");
+		}
+		
+		//パーツ
+		
+		if(Type == nSAVE_SC){
+		//SAVE
+			BaseFrame      = new BaseLayer(win, pri, 0,0,0,0,"frm_save01.png");
+			
+			PartsBord       = new BaseLayer(win, pri, 0,0,0,0,"frm_save11.png");
+			
+			PageParts      = new BaseLayer(win, pri, 0,0,0,0,"frm_save04.png");
+			
+			PanelParts     = new BaseLayer(win, pri, 0,0,0,0,"frm_save06.png");
+			
+			SlBaseParts    = new BaseLayer(win, pri, 0,0,0,0,"frm_save08.png");
+			
+			PageNumberParts= new BaseLayer(win, pri, 0,0,0,0,"frm_save11.png");
+			
+			CommonParts    = new BaseLayer(win, pri, 0,0,0,0,"frm_save13.png");
+			
+		}else{
+		//LOAD
+			BaseFrame      = new BaseLayer(win, pri, 0,0,0,0,"frm_save02.png");
+			
+			PartsBord       = new BaseLayer(win, pri, 0,0,0,0,"frm_save10.png");
+			
+			PageParts      = new BaseLayer(win, pri, 0,0,0,0,"frm_save03.png");
+			
+			PanelParts     = new BaseLayer(win, pri, 0,0,0,0,"frm_save05.png");
+			
+			SlBaseParts    = new BaseLayer(win, pri, 0,0,0,0,"frm_save07.png");
+			
+			PageNumberParts= new BaseLayer(win, pri, 0,0,0,0,"frm_save10.png");
+			
+			CommonParts    = new BaseLayer(win, pri, 0,0,0,0,"frm_save12.png");
+		}
+		
+		PartsBord.visible   = false;
+		
+		PageParts.visible   = false;
+		
+		PanelParts.visible  = false;
+		
+		SlBaseParts.visible = false;
+		
+		PageNumberParts.visible = false;
+		
+		CommonParts.visible = false;
+		
+		
+		
+		
+		
+		//セーブ・ロード画面
+		SaveLoadButton  = new BaseLayer(win, BaseFrame, 1024,4,124,48);
+		
+		//タイトル画面ならボタンを非表示にする
+		if(win.TitleObj !== void)SaveLoadButton.visible = false;
+		
+		
+		//Continueボタン
+		ContinueButton    = new BaseLayer(win, BaseFrame,896,4,124,48);
+		
+		if(!s["continue"] || !DataCheck(nC_SAVENUM)){
+		//非表示
+			ContinueButton.copyRect(0,0,CommonParts,0,ContinueButton.height*3);
+			
+		}else{
+		//表示
+			ContinueButton.copyRect(0,0,CommonParts,0,ContinueButton.height*0);
+			
+			if(nQUICK_BORD_TYPE == 0){
+				ContinueBase = new BaseLayer(win, BaseFrame, 296, 4,0, 0,"frm_quickbord.png");
+			}else{
+				ContinueBase = new BaseLayer(win, BaseFrame, 396, 4,0, 0,"frm_quickbord2.png");
+			}
+			
+			var Continuefile = "savedata%03d.bmp".sprintf(nC_SAVENUM);
+			ContinueThum  = new BaseLayer(win, ContinueBase,135,12,nTHUMBNAIL_W,nTHUMBNAIL_H);
+			ContinueThum.loadImages(Continuefile);
+			
+			if(nQUICK_BORD_TYPE == 0){
+				ContinueText = new BaseLayer(win, ContinueBase,327+nSAVE_XPOS,11+nSAVE_YPOS,225,nSAVETEXT_FONTSIZE*4);
+				ContinueText.font.face   = nSAVETEXT_FONTNAME;
+				ContinueText.font.height = nSAVETEXT_FONTSIZE;
+			}
+			
+			
+			ContinueTime = new BaseLayer(win, ContinueBase,34,73,75,(nTIMESTAMP_FONTSIZE+nTIMESTAMP_GYOUKAN)*2);
+			ContinueTime.font.height = nTIMESTAMP_FONTSIZE;
+			
+			//Quickネームとナンバー
+			QuickNum  = new BaseLayer(win, ContinueBase,31,29 ,75,25);
+			
+			//Quickネームとナンバー
+			QuickNum.fileCopyRect(0, 0, new FileLayer(win, BaseFrame, "frm_continuename.png"), 0, 0, 75, 25);
+			
+			//TEXT
+			var text = s[Continuefile];
+			
+			//ボードに取得したデータを書き込む
+			MainWnd.DataBordWirte( ContinueText, ContinueTime, text );
+			
+			ContinueBase.visible = false;
+		}
+		
+		NumberParts  = new BaseLayer(win, pri, 0,0,0,0,"frm_save09.png");
+		NumberParts.visible = false;
+		
+		//リターンボタン
+		ReturnButton = new BaseLayer(win, BaseFrame, 1152,4,124,48);
+		
+		if(Type == nSAVE_SC){
+		//SAVE
+			SaveLoadButton.copyRect(0,0,CommonParts,0,0);
+			
+			ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width,0);
+			
+			ContinueButton.visible  = false;
+			
+		}else{
+		//LOAD
+			SaveLoadButton.copyRect(0,0,CommonParts,SaveLoadButton.width,0);
+			
+			ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width*2,0);
+		}
+		
+		
+		BaseFrame.absolute = nLOADSAVELAYER;
+		
+		if(win.TitleObj !== void){
+			TitleBg.absolute   = BaseFrame.absolute;
+		}
+		
+		var number = 1;
+		
+		if(s["newdata"] !== void)
+		{//PAGE 番号
+			number = (s["newdata"] \ 10);
+		}
+		
+		
+		//番号レイヤの作成
+		for(var i=0; i<10; i++)
+		{
+			var base_x , base_y;
+			var text_x, text_y;
+			var time_x, time_y;
+			var thum_x, thum_y;
+			
+			base_x   = 19 + (591 * (i \ 5));
+			base_y   = 71 + (130 * (i % 5));
+			
+			//ベースレイヤ
+			SlBaseLayer[i] = new BaseLayer(win, BaseFrame, base_x, base_y,585,123);
+			
+			SlBaseLayer[i].copyRect(0,0,SlBaseParts,0,0);
+			
+			
+			//ページレイヤ
+			PageLayer[i]   = new BaseLayer(win, SlBaseLayer[i],34,36,30,15);
+			
+			//パネルボタン
+			var t=i*4;
+			//COPY
+			PanelButton[t] = new BaseLayer(win, SlBaseLayer[i],316,96,59,25);
+			PanelButton[t].copyRect(0,0,PanelParts,0,0);
+			//MOVE
+			PanelButton[t+1] = new BaseLayer(win, SlBaseLayer[i],376,96,59,25);
+			PanelButton[t+1].copyRect(0,0,PanelParts,PanelButton[t+1].width,0);
+			//ERASE
+			PanelButton[t+2] = new BaseLayer(win, SlBaseLayer[i],436,96,59,25);
+			PanelButton[t+2].copyRect(0,0,PanelParts,PanelButton[t+2].width*2,0);
+			//COMMENT
+			PanelButton[t+3] = new BaseLayer(win, SlBaseLayer[i],496,96,59,25);
+			PanelButton[t+3].copyRect(0,0,PanelParts,PanelButton[t+3].width*3,0);
+			
+			
+			//番号レイヤ
+			NumberLayer[i] = new BaseLayer(win, SlBaseLayer[i],72,33,33,18);
+			
+			NumberLayer[i].copyRect(0,0,NumberParts,0,NumberLayer[i].height*i);
+			
+			
+			//テキストレイヤの作成
+			SaveTextLayer[i] = new BaseLayer(win, SlBaseLayer[i],330+nSAVE_XPOS,9+nSAVE_YPOS,220,85);
+			
+			//FONT NAME
+			SaveTextLayer[i].font.face   = nSAVETEXT_FONTNAME;
+			
+			//FONT SIZE
+			SaveTextLayer[i].font.height = nSAVETEXT_FONTSIZE;
+			
+			//タイムスタンプレイヤの作成
+			TimeStampLayer[i]= new BaseLayer(win, SlBaseLayer[i],32,73,80,40);
+			
+			TimeStampLayer[i].font.height = nTIMESTAMP_FONTSIZE;
+			
+			//画像レイヤの作成
+			PictureLayer[i]  = new BaseLayer(win, SlBaseLayer[i],135,12,nTHUMBNAIL_W,nTHUMBNAIL_H);
+		}
+		
+		
+		
+		var pos_y = 73;
+		
+		//PAGEボタンレイヤ
+		for(var i=0; i<21; i++){
+			
+			PageButton[i] = new BaseLayer(win, BaseFrame,1212,pos_y,59,25);
+			
+			PageButton[i].copyRect(0,0,PageParts,PageButton[i].width*i,0 );
+			
+			pos_y += 30;
+			
+			if( (Type == nSAVE_SC) && (i == 0) ){
+				PageButton[i].visible = false;
+			}
+		}
+		
+		
+		//NEW レイヤ
+		NewLayer  = new BaseLayer(win, BaseFrame, 0,0,0,0,"frm_save14.png");
+		NewLayer.visible = false;
+		
+		//レイヤ位置
+		if(ContinueBase !== void)ContinueBase.absolute = PageButton[PageButton.count-1].absolute + 2;
+		
+		
+		BaseFrame.loadProvinceImage("clm_saveload.png");
+		
+		NowPage            = number;
+		
+		//ページ作成関数
+		PageCreateFunc( number );
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ファイナライズ
+	
+	引数：
+	
+	なし
+	
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+		
+		invalidate BaseFrame;
+		
+		invalidate NumberBord;
+		
+		invalidate PageNumberParts;
+		
+		invalidate PartsBord;
+		
+		invalidate PageParts;
+		
+		invalidate PanelParts;
+		
+		invalidate SlBaseParts;
+		
+		invalidate NumberParts;
+		
+		invalidate CommonParts;
+		
+		invalidate ScrollBar;
+		
+		invalidate SaveLoadBar;
+		
+		invalidate QuickLoadButton;
+		
+		invalidate SaveLoadButton;
+		
+		invalidate ContinueButton;
+		
+		invalidate ReturnButton;
+		
+		invalidate NewLayer;
+		
+		invalidate CursorLayer;
+		
+		if(TitleBg !== void)invalidate TitleBg;
+		
+		//番号レイヤ&画像レイヤ
+		for(var i=0; i<12; i++){
+			
+			invalidate NumberLayer[i];
+			
+			invalidate PictureLayer[i];
+			
+			invalidate SaveTextLayer[i];
+			
+			invalidate TimeStampLayer[i];
+			
+		}
+		
+		for(var i=0; i<PanelButton.count; i++){
+			invalidate PanelButton[i];
+		}
+		
+		if(QuickBase !== void){
+			invalidate QuickBase;
+			invalidate QuickThum;
+			invalidate QuickText;
+			invalidate QuickTime;
+		}
+		
+		
+		if(ContinueBase !== void){
+			invalidate QuickNum;
+			invalidate ContinueBase;
+			invalidate ContinueThum;
+			invalidate ContinueText;
+			invalidate ContinueTime;
+		}
+		
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 画面設定
+	-----------------------------------------*/
+	function ScreenSet()
+	{
+		if(Type == nSAVE_SC){
+		//SAVE
+			BaseFrame.loadImages("frm_save01.png");
+			
+			PartsBord.loadImages("frm_save11.png");
+			
+			PageParts.loadImages("frm_save04.png");
+			
+			PanelParts.loadImages("frm_save06.png");
+			
+			SlBaseParts.loadImages("frm_save08.png");
+			
+			PageNumberParts.loadImages("frm_save11.png");
+			
+			CommonParts.loadImages("frm_save13.png");
+			
+			
+			SaveLoadButton.copyRect(0,0,CommonParts,0,0);
+			
+			ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width,0);
+			
+			ContinueButton.visible  = false;
+			
+			if(ContinueBase !== void)ContinueBase.visible = false;
+			
+			
+		}else{
+		//LOAD
+			BaseFrame.loadImages("frm_save02.png");
+			
+			PartsBord.loadImages("frm_save10.png");
+			
+			PageParts.loadImages("frm_save03.png");
+			
+			PanelParts.loadImages("frm_save05.png");
+			
+			SlBaseParts.loadImages("frm_save07.png");
+			
+			PageNumberParts.loadImages("frm_save10.png");
+			
+			CommonParts.loadImages("frm_save12.png");
+			
+			SaveLoadButton.copyRect(0,0,CommonParts,SaveLoadButton.width,0);
+			
+			ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width*2,0);
+			
+			
+			
+			if((!s["continue"]) || !DataCheck(nC_SAVENUM)){
+				ContinueButton.copyRect(0,0,CommonParts,0,ContinueButton.height*3);
+			}else{
+				ContinueButton.copyRect(0,0,CommonParts,0,ContinueButton.height*0);
+			}
+			
+			ContinueButton.visible = true;
+			
+			
+		}
+		
+		
+		
+		
+		//番号レイヤの作成
+		for(var i=0; i<10; i++)
+		{
+			var base_x , base_y;
+			var text_x, text_y;
+			var time_x, time_y;
+			var thum_x, thum_y;
+			
+			base_x   = 19 + (591 * (i \ 5));
+			base_y   = 71 + (130 * (i % 5));
+			
+			//ベースレイヤ
+			SlBaseLayer[i].copyRect(0,0,SlBaseParts,0,0);
+			
+			//ページレイヤ
+			if(Type == nSAVE_SC){
+			//SAVE
+				PageLayer[i].copyRect(0,0,PageNumberParts, 0, PageLayer[i].height*NowPage );
+			}else{
+			//LOAD
+				PageLayer[i].copyRect(0,0,PageNumberParts, 0, PageLayer[i].height+(PageLayer[i].height*NowPage) );
+			}
+			
+			//パネルボタン
+			var t=i*4;
+			//COPY
+			PanelButton[t].copyRect(0,0,PanelParts,0,0);
+			//MOVE
+			PanelButton[t+1].copyRect(0,0,PanelParts,PanelButton[t+1].width,0);
+			//ERASE
+			PanelButton[t+2].copyRect(0,0,PanelParts,PanelButton[t+2].width*2,0);
+			//COMMENT
+			PanelButton[t+3].copyRect(0,0,PanelParts,PanelButton[t+3].width*3,0);
+			
+			
+			//番号レイヤ
+			NumberLayer[i].copyRect(0,0,NumberParts,0,NumberLayer[i].height*i);
+			
+			//テキストレイヤの作成
+			SaveTextLayer[i].fillRect(0,0,SaveTextLayer[i].width,SaveTextLayer[i].height,0);
+			
+			//タイムスタンプレイヤの作成
+			TimeStampLayer[i].fillRect(0,0,TimeStampLayer[i].width,TimeStampLayer[i].height,0);
+			
+			//画像レイヤの作成
+			PictureLayer[i].fillRect(0,0,PictureLayer[i].width,PictureLayer[i].height,0);
+		}
+		
+		
+		var pos_y = 73;
+		//PAGEボタンレイヤ
+		for(var i=0; i<21; i++){
+			
+			PageButton[i].top = pos_y;
+			
+			PageButton[i].copyRect( 0,0,PageParts,PageButton[i].width*i,0 );
+			
+			pos_y += 30;
+			
+			if( (Type == nLOAD_SC) ){
+				PageButton[i].visible = true;
+			}else if( (Type == nSAVE_SC) && (i == 0) ){
+				PageButton[i].visible = false;
+			}
+			
+		}
+		
+		
+		
+		PartsBord.visible   = false;
+		
+		PageParts.visible   = false;
+		
+		PanelParts.visible  = false;
+		
+		SlBaseParts.visible = false;
+		
+		PageNumberParts.visible = false;
+		
+		CommonParts.visible = false;
+		
+		BaseFrame.loadProvinceImage( "clm_saveload.png" );
+		
+		MapRes = TempRes = 0;
+		
+		//ページ作成関数
+		PageCreateFunc( NowPage );
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Default Func
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		if(ClickFlag != false)
+		{//Save Load Button Work
+			ClickFlag = false;
+			ButtonWork();
+			return;
+		}
+		
+		
+		
+		//wheel解除処理
+		if((Wheel_X != PriLayer.cursorX) || (Wheel_Y != PriLayer.cursorY)){
+			WheelFlag = false;
+			Wheel_X = 0;
+			Wheel_Y = 0;
+		}
+		
+		
+		//コピーボード移動
+		if(DataCopyFlag || DataMoveFlag)DataCopyMoveWork();
+		
+		
+		
+		
+		MapRes = BaseFrame.GetProvincePixel();
+		
+		if(MapRes != TempRes)
+		{
+			ClearFunc();
+			
+			CursorFunc();
+		}
+		
+		TempRes = MapRes;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		//LOAD FLAGを見る
+		if(MainWnd.LoadFlag)return;
+		
+		if(
+			((DataCopyFlag == true) || (DataMoveFlag == true)) &&
+			((0 < MapRes) && (MapRes < 4))
+		){
+			RightMouseUpAction();
+			return;
+		}
+		
+		//DATACOPY処理
+		if(
+			((DataCopyFlag == true) || (DataMoveFlag == true)) &&
+			(((24 < MapRes) && (MapRes < 35)) ||
+			((34 < MapRes) && (MapRes < 75)))
+		){
+			var num = 0;
+			if((34 < MapRes) && (MapRes < 75)){
+				num = ((MapRes - 35) \ 4);
+			}else{
+				num = (MapRes - 25);
+			}
+			
+			DataCopyNum = num;
+			
+			if(DataCopyFlag){
+				DataFileCopyCheck();
+			}else{
+				DataMoveCheck();
+			}
+			
+			
+			return;
+		}
+		
+		
+		if(MapRes)ClickWork();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Downを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseDownAction()
+	{
+		//LOAD FLAGを見る
+		if(MainWnd.LoadFlag)return;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		//データコピー中なら終了
+		if(DataCopyFlag || DataMoveFlag){
+			
+			DataCopyFlag = false;
+			DataMoveFlag = false;
+			
+			invalidate DataWorkSlot;
+			
+			DataWorkSlot = void;
+			
+			//ベースレイヤ更新
+			for(var i=0; i<10; i++)SlBaseLayer[i].copyRect(0,0,SlBaseParts,0,0);
+			
+			TempRes = 0;
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			return;
+		}
+		else if(DeleteFlag)
+		{//削除フラグをねかす
+			DeleteFlag = false;
+			
+			TempRes = 0;
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			return;
+		}
+		
+		
+		
+		
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		//削除処理
+		DeleteWork( SaveLoadDeleteFunc );
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	shift	同時キー
+	
+	delta	方向：正:奥　負:手前
+	
+	x		X座標
+	
+	y		Y座標
+	
+	説明：
+	Mouse Wheelを処理するハンドラ
+	
+	-----------------------------------------*/
+	function MouseWheelAction(shift, delta, x, y)
+	{
+		super.MouseWheelAction(shift, delta, x, y);
+		
+		WheelFlag = true;
+		
+		if(delta < 0){
+		//下方向
+		}else{
+		//上方向
+		}
+		
+		
+		if(WheelFlag){
+			Wheel_X = PriLayer.cursorX;
+			Wheel_Y = PriLayer.cursorY;
+			ScrollWork( delta );
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ KEY UP
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		switch(key){
+			case VK_RETURN:{
+			//return
+			//altキーが押されていたらここまで
+			if(shift & ssAlt)return;
+				LeftMouseUpAction();
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆カーソル関数
+	
+	引数：
+	
+	-----------------------------------------*/
+	function CursorFunc()
+	{
+		var i = MapRes - 4;
+		
+		
+		switch ( MapRes ){
+		case 1://saveload
+			if(Type == nSAVE_SC){
+				SaveLoadButton.copyRect(0,0,CommonParts,0,SaveLoadButton.height);
+			}else{
+				if(!SaveLoadButton.visible)return;
+				SaveLoadButton.copyRect(0,0,CommonParts,SaveLoadButton.width,SaveLoadButton.height);
+			}
+		break;
+		case 2://return
+			if(Type == nSAVE_SC){
+				ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width,ReturnButton.height);
+			}else{
+				ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width*2,ReturnButton.height);
+			}
+		break;
+		case 3://continue
+			if(DataCopyFlag == true)return;
+			if(DataMoveFlag == true)return;
+			if(Type == nSAVE_SC)return;
+			if(!s["continue"] || !DataCheck(nC_SAVENUM))return;
+			ContinueButton.copyRect(0,0,CommonParts,0,ContinueButton.height*1);
+			ContinueBase.visible = true;
+		break;
+		
+		case 4://quick
+			if(Type == nSAVE_SC)return;
+			if( NowPage == 0 )return;
+			if( (DataCopyFlag) || (DataMoveFlag) )return;
+			
+			PageButton[i].copyRect(0,0,PageParts,PageButton[i].width*(i), PageButton[i].height );
+		break;
+		
+		//ページボタン
+		case 5://1
+		case 6://2
+		case 7://3
+		case 8://4
+		case 9://5
+		case 10://6
+		case 11://7
+		case 12://8
+		case 13://9
+		case 14://10
+		case 15://11
+		case 16://12
+		case 17://13
+		case 18://14
+		case 19://15
+		case 20://16
+		case 21://17
+		case 22://18
+		case 23://19
+		case 24://20
+		{
+			if( NowPage == i )return;
+			PageButton[i].copyRect(0,0,PageParts,PageButton[i].width*(i), PageButton[i].height );
+		}
+		break;
+		
+		case 25://BORD 01
+		case 26://BORD 02
+		case 27://BORD 03
+		case 28://BORD 04
+		case 29://BORD 05
+		case 30://BORD 06
+		case 31://BORD 07
+		case 32://BORD 08
+		case 33://BORD 09
+		case 34://BORD 10
+		{
+			i = MapRes - 25;
+			
+			if(Type == nLOAD_SC){
+			//リソースの確認
+				if((!DataCopyFlag && !DataMoveFlag) && (!DataCheck( i )))return;
+			}
+			
+			SlBaseLayer[i].copyRect(0,0,SlBaseParts,0,SlBaseLayer[i].height);
+			
+		}break;
+		
+		case 35://COPY01
+		case 36://MOVE01
+		case 37://ERASE01
+		case 38://COMMENT01
+		
+		case 39://COPY02
+		case 40://MOVE02
+		case 41://ERASE02
+		case 42://COMMENT02
+		
+		case 43://COPY03
+		case 44://MOVE03
+		case 45://ERASE03
+		case 46://COMMENT03
+		
+		case 47://COPY04
+		case 48://MOVE04
+		case 49://ERASE04
+		case 50://COMMENT04
+		
+		case 51://COPY05
+		case 52://MOVE05
+		case 53://ERASE05
+		case 54://COMMENT05
+		
+		case 55://COPY06
+		case 56://MOVE06
+		case 57://ERASE06
+		case 58://COMMENT06
+		
+		case 59://COPY07
+		case 60://MOVE07
+		case 61://ERASE07
+		case 62://COMMENT07
+		
+		case 63://COPY08
+		case 64://MOVE08
+		case 65://ERASE08
+		case 66://COMMENT08
+		
+		case 67://COPY09
+		case 68://MOVE09
+		case 69://ERASE09
+		case 70://COMMENT09
+		
+		case 71://COPY10
+		case 72://MOVE10
+		case 73://ERASE10
+		case 74:{//COMMENT10
+			var t = MapRes - 35;
+			
+			if(!DataCheck( t\4 ))return;
+			
+			PanelButton[t].copyRect(0,0,PanelParts,PanelButton[t].width*(t%4),PanelButton[t].height);
+		}break;
+		
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆クリア関数
+	
+	引数：
+	
+	-----------------------------------------*/
+	function ClearFunc()
+	{
+		var i = TempRes - 4;
+		
+		
+		
+		switch ( TempRes ){
+		
+		case 1://saveload
+			if(Type == nSAVE_SC){
+				SaveLoadButton.copyRect(0,0,CommonParts,0,0);
+			}else{
+				if(!SaveLoadButton.visible)return;
+				SaveLoadButton.copyRect(0,0,CommonParts,SaveLoadButton.width,0);
+			}
+		break;
+		case 2://return
+			if(Type == nSAVE_SC){
+				ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width,0);
+			}else{
+				ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width*2,0);
+			}
+		break;
+		case 3://continue
+			if(Type == nSAVE_SC)return;
+			if(!s["continue"] || !DataCheck(nC_SAVENUM))return;
+			ContinueButton.copyRect(0,0,CommonParts,0,0);
+			ContinueBase.visible = false;
+		break;
+		
+		case 4://quick
+			if(Type == nSAVE_SC)return;
+			if( NowPage == 0 )return;
+			if( (DataCopyFlag) || (DataMoveFlag) )return;
+			PageButton[i].copyRect(0,0,PageParts,PageButton[i].width*(i), 0 );
+		break;
+		
+		//ページボタン
+		case 5://1
+		case 6://2
+		case 7://3
+		case 8://4
+		case 9://5
+		case 10://6
+		case 11://7
+		case 12://8
+		case 13://9
+		case 14://10
+		case 15://11
+		case 16://12
+		case 17://13
+		case 18://14
+		case 19://15
+		case 20://16
+		case 21://17
+		case 22://18
+		case 23://19
+		case 24://20
+		{
+			if( NowPage == i )return;
+			PageButton[i].copyRect(0,0,PageParts,PageButton[i].width*(i), 0 );
+		}
+		break;
+		
+		case 25://BORD 01
+		case 26://BORD 02
+		case 27://BORD 03
+		case 28://BORD 04
+		case 29://BORD 05
+		case 30://BORD 06
+		case 31://BORD 07
+		case 32://BORD 08
+		case 33://BORD 09
+		case 34://BORD 10
+		{
+			i = TempRes - 25;
+			
+			if(Type == nLOAD_SC){
+			//リソースの確認
+				if((!DataCopyFlag && !DataMoveFlag) && (!DataCheck( i )))return;
+			}
+			
+			SlBaseLayer[i].copyRect(0,0,SlBaseParts,0,0);
+			
+		}break;
+		
+		case 35://COPY01
+		case 36://MOVE01
+		case 37://ERASE01
+		case 38://COMMENT01
+		
+		case 39://COPY02
+		case 40://MOVE02
+		case 41://ERASE02
+		case 42://COMMENT02
+		
+		case 43://COPY03
+		case 44://MOVE03
+		case 45://ERASE03
+		case 46://COMMENT03
+		
+		case 47://COPY04
+		case 48://MOVE04
+		case 49://ERASE04
+		case 50://COMMENT04
+		
+		case 51://COPY05
+		case 52://MOVE05
+		case 53://ERASE05
+		case 54://COMMENT05
+		
+		case 55://COPY06
+		case 56://MOVE06
+		case 57://ERASE06
+		case 58://COMMENT06
+		
+		case 59://COPY07
+		case 60://MOVE07
+		case 61://ERASE07
+		case 62://COMMENT07
+		
+		case 63://COPY08
+		case 64://MOVE08
+		case 65://ERASE08
+		case 66://COMMENT08
+		
+		case 67://COPY09
+		case 68://MOVE09
+		case 69://ERASE09
+		case 70://COMMENT09
+		
+		case 71://COPY10
+		case 72://MOVE10
+		case 73://ERASE10
+		case 74:{//COMMENT10
+			var t = TempRes - 35;
+			if( !DataCheck( t\4) )return;
+			
+			PanelButton[t].copyRect(0,0,PanelParts,PanelButton[t].width*(t%4),0);
+		}break;
+		
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	//■ CLICK処理
+	-----------------------------------------*/
+	function ClickWork()
+	{
+		if(!MapRes)return;
+		
+		var i = MapRes - 4;
+		
+		
+		//CLICK フラグを寝かせる
+		ClickFlag = false;
+		
+		switch ( MapRes ){
+		
+		case 1://saveload
+			if(Type == nSAVE_SC){
+				SaveLoadButton.copyRect(0,0,CommonParts,0,SaveLoadButton.height*2);
+			}else{
+				if(!SaveLoadButton.visible)return;
+				SaveLoadButton.copyRect(0,0,CommonParts,SaveLoadButton.width,SaveLoadButton.height*2);
+			}
+		break;
+		case 2://return
+			if(Type == nSAVE_SC){
+				ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width,ReturnButton.height*2);
+			}else{
+				ReturnButton.copyRect(0,0,CommonParts,ReturnButton.width*2,ReturnButton.height*2);
+			}
+		break;
+		case 3://continue
+			if(Type == nSAVE_SC)return;
+			if(!s["continue"] || !DataCheck(nC_SAVENUM))return;
+			ContinueButton.copyRect(0,0,CommonParts,0,ContinueButton.height*2);
+		break;
+		
+		//ページボタン
+		case 4://quick
+			if(Type == nSAVE_SC)return;
+			if( NowPage == 0 )return;
+			if( (DataCopyFlag) || (DataMoveFlag) )return;
+			PageButton[i].copyRect(0,0,PageParts,PageButton[i].width*(i), PageButton[i].height*2 );
+		break;
+		
+		//ページボタン
+		case 5://1
+		case 6://2
+		case 7://3
+		case 8://4
+		case 9://5
+		case 10://6
+		case 11://7
+		case 12://8
+		case 13://9
+		case 14://10
+		case 15://11
+		case 16://12
+		case 17://13
+		case 18://14
+		case 19://15
+		case 20://16
+		case 21://17
+		case 22://18
+		case 23://19
+		case 24://20
+		{
+			if( NowPage == i )return;
+			PageButton[i].copyRect(0,0,PageParts,PageButton[i].width*(i), PageButton[i].height*2 );
+		}
+		break;
+		
+		case 25://BORD 01
+		case 26://BORD 02
+		case 27://BORD 03
+		case 28://BORD 04
+		case 29://BORD 05
+		case 30://BORD 06
+		case 31://BORD 07
+		case 32://BORD 08
+		case 33://BORD 09
+		case 34://BORD 10
+		{
+			i = MapRes - 25;
+			
+			if(Type == nLOAD_SC){
+			//リソースの確認
+				if(!DataCheck( i ))return;
+			}
+			
+		}break;
+		
+		case 35://COPY01
+		case 36://MOVE01
+		case 37://ERASE01
+		case 38://COMMENT01
+		
+		case 39://COPY02
+		case 40://MOVE02
+		case 41://ERASE02
+		case 42://COMMENT02
+		
+		case 43://COPY03
+		case 44://MOVE03
+		case 45://ERASE03
+		case 46://COMMENT03
+		
+		case 47://COPY04
+		case 48://MOVE04
+		case 49://ERASE04
+		case 50://COMMENT04
+		
+		case 51://COPY05
+		case 52://MOVE05
+		case 53://ERASE05
+		case 54://COMMENT05
+		
+		case 55://COPY06
+		case 56://MOVE06
+		case 57://ERASE06
+		case 58://COMMENT06
+		
+		case 59://COPY07
+		case 60://MOVE07
+		case 61://ERASE07
+		case 62://COMMENT07
+		
+		case 63://COPY08
+		case 64://MOVE08
+		case 65://ERASE08
+		case 66://COMMENT08
+		
+		case 67://COPY09
+		case 68://MOVE09
+		case 69://ERASE09
+		case 70://COMMENT09
+		
+		case 71://COPY10
+		case 72://MOVE10
+		case 73://ERASE10
+		case 74:{//COMMENT10
+			var t = MapRes - 35;
+			
+			if((!PanelButton[t].visible) || (!DataCheck( t\4 )))return;
+			
+			PanelButton[t].copyRect(0,0,PanelParts,PanelButton[t].width*(t%4),PanelButton[t].height*2);
+		}break;
+		}
+		
+		//CLICK フラグを立てる
+		ClickFlag = MapRes;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	//■ CLICK処理
+	-----------------------------------------*/
+	function ButtonWork()
+	{
+		if((24 < MapRes) && (MapRes < 35)){
+		//データクリック
+			DataClick();
+		
+		}else if( MapRes == 3 ){
+		//Continue
+		if(Type == nSAVE_SC){ return; }
+			
+			Wait( nBUTTONWAIT );
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//ロード実行
+			MainWnd.DataLoadAction(nC_SAVENUM);
+			
+			//右クリックで画面破棄
+			RightMouseUpAction();
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+		}else if(MapRes == 1){
+		//画面変更
+			ScreenChange();
+			
+		}else if(MapRes == 2){
+		//戻る
+			Wait( nBUTTONWAIT );
+			RightMouseUpAction();
+			
+		}else if((3 < MapRes) && (MapRes < 25)){
+		//ページ変更
+			PageCreateFunc( MapRes-4 );
+			
+		}else if((34 < MapRes) && (MapRes < 75)){
+		//コントロールパネル
+			var t = MapRes - 35;
+			Wait( nBUTTONWAIT );
+			
+			//ボタンを戻す
+			PanelButton[t].copyRect(0,0,PanelParts,PanelButton[t].width*(t%4),0);
+			
+			switch( t%4 ){
+			case 0:{//COPY
+				DataCopyWork( t\4 );
+			}break;
+			case 1:{//MOVE
+				DataMoveCopy( t\4 );
+			}break;
+			case 2:{//DELETE
+				DataDeleteCheck( t\4 );
+			}break;
+			case 3:{//COMMENT
+				CommentWork( t\4 );
+			}break;
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ データ確認関数
+	-----------------------------------------*/
+	function DataCheck( num )
+	{
+		var datafile = "";
+		var filenum  = 0;
+		
+		if(num == nC_SAVENUM){
+			datafile = "savedata%03d.bmp".sprintf(nC_SAVENUM);
+		}else{
+		//QUICK or NORMAL
+			if(Type == nLOAD_SC){
+				if(NowPage == 0){
+					filenum = nQ_SAVENUM;
+				}else{
+					filenum = NowPage*nSAVE_PAGE_NUM;
+				}
+			}else{
+			//SAVE
+				filenum = NowPage*nSAVE_PAGE_NUM;
+			}
+			
+			datafile = "savedata%03d.bmp".sprintf(filenum + num);
+		}
+		
+		return ResourceCheck(datafile);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	//■ページ作成関数
+	-----------------------------------------*/
+	function PageCreateFunc( page = 1 )
+	{
+		//ページボタンを消しておく
+		PageButton[NowPage].copyRect(0,0,PageParts,PageButton[NowPage].width*NowPage, 0 );
+		
+		//SAVEのQUICKはないので
+		if((Type == nSAVE_SC) && (page == 0))page = 1;
+		
+		//ページボタンを点灯させておく
+		NowPage = page;
+		PageButton[page].copyRect(0,0,PageParts,PageButton[page].width*page, PageButton[page].height*2 );
+		
+		
+		//NEW はけしておく
+		NewLayer.visible = false;
+		
+		for (var i=0; i<10; i++)
+		{
+			//ベースレイヤ
+			SlBaseLayer[i].copyRect(0,0,SlBaseParts,0,0);
+			
+			//描画
+			PageLayer[i].copyRect(0,0,PageNumberParts, 0, PageLayer[i].height*page );
+			
+			//画像の検索
+			var datafile = "savedata%03d.bmp".sprintf((page*10)+i);
+			
+			//テキストをクリアしておく
+			SaveTextLayer[i].colorRect(0, 0, SaveTextLayer[i].width, SaveTextLayer[i].height, 0, -255);
+			
+			TimeStampLayer[i].colorRect(0, 0, TimeStampLayer[i].width, TimeStampLayer[i].height, 0, -255);
+			
+			var t=i*4;
+			//QUICKはCOMMENT以外のコントロールボタンを表示させない
+			if( NowPage == 0 ){
+				//COPY
+				PanelButton[t].visible   = false;
+				//MOVE
+				PanelButton[t+1].visible = false;
+				//ERASE
+				PanelButton[t+2].visible = false;
+				//COMMENT
+				PanelButton[t+3].visible = true;
+			}else{
+				//COPY
+				PanelButton[t].visible   = true;
+				//MOVE
+				PanelButton[t+1].visible = true;
+				//ERASE
+				PanelButton[t+2].visible = true;
+				//COMMENT
+				PanelButton[t+3].visible = true;
+			}
+			
+			
+			if(ResourceCheck(datafile))
+			{//画像発見
+				PictureLayer[i].loadImages(datafile);
+				
+				PictureLayer[i].setSizeToImageSize();
+				
+				PictureLayer[i].visible = true;
+				
+				
+				//TEXT
+				var text = s[datafile];
+				
+				var savetext = "";
+				
+				var daytext  = "";
+				
+				var timetext = "";
+				
+				var draw_y   = 0;
+				
+				var loop     = false;
+				
+				if(text != "")
+				{	
+					//ボードに取得したデータを書き込む
+					MainWnd.DataBordWirte( SaveTextLayer[i], TimeStampLayer[i], text );
+					
+					SaveTextLayer[i].visible = true;
+					
+					TimeStampLayer[i].visible= true;
+					
+					//NEW 表示
+					if(
+						((0 <  NowPage) && ((s["newdata"] !== void) && (s["newdata"] == ((page*10)+i))))   ||
+						((0 == NowPage) && ((s["quick_number"] !== void) && (s["quick_number"] == (i+1)))) ||
+						((0 == NowPage) && ((s["quick_number"] !== void) && (s["quick_number"] == 0) && (i == 9)))
+					){
+						var base_x   = SlBaseLayer[i].left;
+						var base_y   = SlBaseLayer[i].top;
+						
+						NewLayer.setPos(base_x+20, base_y+1);
+						
+						NewLayer.visible = true;
+					}
+				}
+			}
+			else
+			{
+				PictureLayer[i].visible   = false;
+				
+				TimeStampLayer[i].visible = false;
+				
+				SaveTextLayer[i].visible  = false;
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	//■ 画面変更
+	-----------------------------------------*/
+	function ScreenChange()
+	{
+		Wait(nBUTTON_WAIT);
+		
+		if(Type == nSAVE_SC)
+		{//LOAD画面へ変更
+			
+			Type = nLOAD_SC;
+			
+			ScreenSet();
+			
+		}else{
+		//LOAD画面
+			
+			//SAVE 画面へ変更
+			Type = nSAVE_SC;
+			
+			ScreenSet();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	//■ ロード確認関数
+	-----------------------------------------*/
+	function LoadResultFunc()
+	{
+		if(MainWnd.CheckBoxResult)
+		{//YES
+			MainWnd.CheckBoxResult = false;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//アクティブをSAVE・LOADオブジェクトへ変更
+			MainWnd.ChangeActive(this);
+			
+			//データ番号を格納する
+			var DataNum = MapRes - 25;
+			
+			//ロード実行
+			MainWnd.DataLoadAction((NowPage*10) + DataNum);
+			
+			//右クリックで画面破棄
+			RightMouseUpAction();
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			return;
+		}
+		
+		//MEDIA系を戻す
+		MainWnd.onActivate();
+		
+		//タイマー再開
+		MainWnd.DefaultTimer.enabled = true;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ スクロール処理
+	-----------------------------------------*/
+	function ScrollWork( delta )
+	{
+		var Page = NowPage;
+		
+		if( delta < 0 ){
+		//下
+			++Page;
+			
+			if(20 < Page){
+				if(Type == nSAVE_SC){
+				//SAVE
+					Page = 1;
+				}else{
+				//LOAD
+					Page = 0;
+					if( (DataCopyFlag) || (DataMoveFlag) )Page = 1;
+				}
+			}
+			
+			TempRes = 0;
+			
+		}else{
+		//上
+			--Page;
+			
+			if( Page < 0 ){
+				Page = 20;
+			}
+			
+			if( (Page == 0) && ((DataCopyFlag) || (DataMoveFlag)) )Page = 20;
+			
+			TempRes = 0;
+		}
+		
+		
+		//ページ変更
+		PageCreateFunc( Page );
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ データ選択
+	-----------------------------------------*/
+	function DataClick()
+	{
+		//データ番号を格納する
+		var DataNum = MapRes - 25;
+		
+		
+		if(Type == nLOAD_SC)
+		{//LOAD
+			
+			if(s["dlg_load"] == true) {
+				
+				MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "ロードします。よろしいですか？", LoadResultFunc, nLOAD_BOX);
+				
+				//アクティブオブジェクトを変更する
+				MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+				
+				//タイマー再開
+				MainWnd.DefaultTimer.enabled = true;
+				
+			}else{
+				
+				//タイマー停止
+				MainWnd.DefaultTimer.enabled = false;
+				
+				MainWnd.CheckBoxResult = true;
+				
+				LoadResultFunc();
+				
+			}
+			
+		}else{
+		 //SAVE
+		 	
+		 	//データが存在するか？
+		 	var String = "";
+		 	
+		 	datafile = "savedata%03d.bmp".sprintf( (NowPage*10) + DataNum );
+		 	
+		 	var StringType = 0;
+		 	
+		 	if(ResourceCheck(datafile)){
+				String = "上書きセーブします。よろしいですか？";
+				
+				StringType = nREWRITE_BOX;
+				
+				if(s["dlg_save"] == true) {
+					
+					MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, String, SaveResultFunc, StringType);
+					
+					//アクティブオブジェクトを変更する
+					MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+					
+					//タイマー再開
+					MainWnd.DefaultTimer.enabled = true;
+					
+				}else{
+					
+					//タイマー停止
+					MainWnd.DefaultTimer.enabled = false;
+					
+					MainWnd.CheckBoxResult = true;
+					
+					SaveResultFunc();
+				}
+				
+			}else{
+				String = "セーブします。よろしいですか？";
+				
+				StringType = nSAVE_BOX;
+				
+				//新規セーブは確認なし
+				//タイマー停止
+				MainWnd.DefaultTimer.enabled = false;
+				
+				MainWnd.CheckBoxResult = true;
+				
+				SaveResultFunc();
+			}
+			
+			
+
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SAVE 関数
+	-----------------------------------------*/
+	function SaveResultFunc()
+	{
+		if(MainWnd.CheckBoxResult)
+		{//YES
+			MainWnd.CheckBoxResult = false;
+			
+			//データ番号を格納する
+			var DataNum = MapRes - 25;
+			
+			//セーブ実行
+			MainWnd.SaveAction((NowPage*10) + DataNum);
+			
+			//ページ再更新
+			PageCreateFunc( NowPage );
+			
+		}
+		
+		
+		//MEDIA系を戻す
+		MainWnd.onActivate();
+		
+		//タイマー再開
+		MainWnd.DefaultTimer.enabled = true;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DATA COPY 関数
+	-----------------------------------------*/
+	function DataCopyWork( num )
+	{
+		//SYSTEM音声の再生
+		if(s["system"] == true) {
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_COPYCALL;
+			MainWnd.SystemVoicePlay(file);
+		}
+		
+		CopyBaseFileName = "savedata%03d.bmp".sprintf((NowPage*10) + num);
+		
+		//元PAGE番号を保持
+		CopyPageNum  = NowPage;
+		
+		//ボード作成
+		DataWorkSlot = new BaseLayer( MainWnd, PriLayer, 0,0,585,123);
+		
+		DataWorkSlot.opacity = 180;
+		
+		var now_screen = new BaseLayer( MainWnd, PriLayer, 0,0,MainWnd.WndScreenX, MainWnd.WndScreenY );
+		
+		now_screen.piledCopy(0, 0, BaseFrame, 0, 0, MainWnd.WndScreenX, MainWnd.WndScreenY);
+		
+		//COPY座標
+		var xpos = ((num \ 5) * 591) + 19;
+		var ypos = ((num % 5) * 130) + 71;
+		
+		DataWorkSlot.copyRect(0,0, now_screen, xpos, ypos );
+		
+		invalidate now_screen;
+		
+		now_screen = void;
+		
+		DataWorkSlot.left = MainWnd.PrimaryLayer.cursorX - (DataWorkSlot.width  \ 2);
+		DataWorkSlot.top  = MainWnd.PrimaryLayer.cursorY - (DataWorkSlot.height \ 2);
+		
+		//コピーフラグを立てる
+		DataCopyFlag = true;
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DATACOPY MOVE 関数
+	-----------------------------------------*/
+	function DataCopyMoveWork()
+	{
+		//マップ値は取得しておく
+		MapRes = BaseFrame.GetProvincePixel();
+		
+		DataWorkSlot.left = MainWnd.PrimaryLayer.cursorX - (DataWorkSlot.width  \ 2);
+		DataWorkSlot.top  = MainWnd.PrimaryLayer.cursorY - (DataWorkSlot.height \ 2);
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DATAFILECOPY CHECK 関数
+	-----------------------------------------*/
+	function DataFileCopyCheck()
+	{
+		if(s["dlg_copy"] == true) {
+			
+			MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "データをコピーします。よろしいですか？", DataFileCopyWork, nCOPY_BOX);
+			
+			//アクティブオブジェクトを変更する
+			MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+		}else{
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			MainWnd.CheckBoxResult = true;
+			
+			DataFileCopyWork();
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DATAFILECOPY WORK 関数
+	-----------------------------------------*/
+	function DataFileCopyWork()
+	{
+		//NOだとここまで
+		if(!MainWnd.CheckBoxResult){
+			//フラグを寝かす
+			RightMouseUpAction();
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			return;
+		}
+		
+		var datafile = "savedata%03d.bmp".sprintf( (NowPage*10) + DataCopyNum);
+		
+		//ファイル情報をコピー
+		s[ datafile ] = s[ CopyBaseFileName ];
+		
+		//コピーする
+		Storages.copyFile( CopyBaseFileName, Savefolder + datafile, false );
+		
+		//フラグを寝かす
+		RightMouseUpAction();
+		
+		//SYSTEM音声の再生
+		if(s["system"] == true) {
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_COPYEND;
+			MainWnd.SystemVoicePlay(file);
+		}
+		
+		//ページ作成関数
+		PageCreateFunc( NowPage );
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DATAFILEDELETE CHECK 関数
+	-----------------------------------------*/
+	function DataDeleteCheck( num )
+	{
+		//フラグを立てる
+		DataDelNum = num;
+		DeleteFlag = true;
+		
+		if(s["dlg_erase"] == true) {
+			
+			MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "データを消去します。よろしいですか？", DataFileDeleteWork, nDELETE_BOX);
+			
+			//アクティブオブジェクトを変更する
+			MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+		}else{
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			MainWnd.CheckBoxResult = true;
+			
+			DataFileDeleteWork();
+			
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DATAFILEDELETE WORK 関数
+	-----------------------------------------*/
+	function DataFileDeleteWork()
+	{
+		//NOだとここまで
+		if(!MainWnd.CheckBoxResult){
+			//フラグを寝かす
+			RightMouseUpAction();
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			return;
+		}
+		
+		var datafile = "savedata%03d.bmp".sprintf((NowPage*10) + DataDelNum);
+		
+		//ファイル情報をコピー
+		s[ datafile ] = "";
+		
+		//ファイル削除
+		Storages.deleteFile(datafile);
+		
+		//NEWを削除しておく
+		if(NowPage != 0){
+			s[ "newdata" ]= "";
+			//最新を更新する
+			DataNewChange( nN_SAVENUM, nN_SAVELAST, 0 );
+		}else{
+			s["quick_number"] = void;
+			//最新を更新する
+			DataNewChange( nQ_SAVENUM, nQ_SAVELAST, 1 );
+		}
+		
+		
+		
+		//フラグを寝かす
+		RightMouseUpAction();
+		
+		//SYSTEM音声の再生
+		if(s["system"] == true) {
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_DELETEEND;
+			MainWnd.SystemVoicePlay(file);
+		}
+		
+		//ページ作成関数
+		PageCreateFunc( NowPage );
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DATA NEW更新 関数
+	-----------------------------------------*/
+	function DataNewChange( topnum, lastnum, type )
+	{
+		//ディレクトリの情報取得
+		var FileArr  = Storages.dirlistEx( Savefolder );
+		var save_id  = 0;
+		var new_name = "";
+		
+		for(var i=0; i<FileArr.count; i++){
+			//SAVEDATAを見つけたので更新時間を格納する
+			if(FileArr[i]["name"].indexOf("savedata") != -1){
+				
+				//0@@だと８進数になってしまうので、1000を足しておく
+				var number = +("1"+(FileArr[i]["name"]).substr(8,3));
+				number -= 1000;
+				if( (topnum <=number) && (number < lastnum) ){
+					if(save_id <= (FileArr[i]["mtime"]).getTime()){
+						save_id  = (FileArr[i]["mtime"]).getTime();
+						new_name = FileArr[i]["name"];
+					}
+				}
+			}
+		}
+		
+		//NEW番号更新
+		if(new_name != ""){
+			if( type == 0 ){
+				s["newdata"] = (+("1"+new_name.substr(8,3))) - 1000;
+				
+			}else{
+				var qnum =  (+("1"+new_name.substr(8,3))) - 1000;
+				++qnum;
+				s["quick_number"] = (qnum % nSAVE_PAGE_NUM);
+				
+				if(MainWnd.TitleObj !== void){
+					MainWnd.TitleObj.QuickBordText();
+				}
+				
+				//メッセージボードのQUICKを更新しておく
+				if(MainWnd.MessObj !== void){
+					MainWnd.MessObj.QuickBordText();
+				}
+			}
+		}else{
+			if( type == 0 ){
+				if(MainWnd.TitleObj !== void){
+					MainWnd.TitleObj.LoadDataFlag = false;
+				}
+			}else if( type == 1 ){
+				//QUICKを削除したらフラグを寝かせる
+				if(MainWnd.MessObj !== void){
+					MainWnd.MessObj.QuickSave = false;
+					MainWnd.MessObj.MessButton[2].copyRect(0,0,MainWnd.MessObj.ButtonResource,36+(32*1),32*3);
+				}
+				if(MainWnd.TitleObj !== void){
+					MainWnd.TitleObj.QuickDataFlag = false;
+				}
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ データ移動確認関数
+	-----------------------------------------*/
+	function DataMoveCopy( num )
+	{
+		//SYSTEM音声の再生
+		if(s["system"] == true) {
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_MOVEYCALL;
+			MainWnd.SystemVoicePlay(file);
+		}
+		
+		//フラグを立てる
+		DataMoveFlag = true;
+		
+		DataMoveNum  = num;
+		
+		CopyBaseFileName = "savedata%03d.bmp".sprintf((NowPage*10) + num);
+		
+		//元PAGE番号を保持
+		CopyPageNum  = NowPage;
+		
+		//ボード作成
+		DataWorkSlot = new BaseLayer( MainWnd, PriLayer, 0,0,585,123);
+		
+		DataWorkSlot.opacity = 180;
+		
+		var now_screen = new BaseLayer( MainWnd, PriLayer, 0,0,MainWnd.WndScreenX, MainWnd.WndScreenY );
+		
+		now_screen.piledCopy(0, 0, BaseFrame, 0, 0, MainWnd.WndScreenX, MainWnd.WndScreenY);
+		
+		//COPY座標
+		var xpos = ((num \ 5) * 591) + 19;
+		var ypos = ((num % 5) * 130) + 71;
+		
+		DataWorkSlot.copyRect(0,0, now_screen, xpos, ypos );
+		
+		invalidate now_screen;
+		
+		now_screen = void;
+		
+		DataWorkSlot.left = MainWnd.PrimaryLayer.cursorX - (DataWorkSlot.width  \ 2);
+		DataWorkSlot.top  = MainWnd.PrimaryLayer.cursorY - (DataWorkSlot.height \ 2);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ データ移動確認関数
+	-----------------------------------------*/
+	function DataMoveCheck()
+	{
+		if(s["dlg_move"] == true) {
+			
+			MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "データを移動します。よろしいですか？", DataFileMoveWork, nMOVE_BOX);
+			
+			//アクティブオブジェクトを変更する
+			MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+		}else{
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			MainWnd.CheckBoxResult = true;
+			
+			DataFileMoveWork();
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ データ移動処理
+	-----------------------------------------*/
+	function DataFileMoveWork()
+	{
+		//NOだとここまで
+		if(!MainWnd.CheckBoxResult){
+			//フラグを寝かす
+			RightMouseUpAction();
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			return;
+		}
+		
+		var datafile = "savedata%03d.bmp".sprintf( (NowPage*10) + DataCopyNum);
+		
+		//ファイル情報をコピー
+		s[ datafile ] = s[ CopyBaseFileName ];
+		
+		//コピーする
+		Storages.copyFile( CopyBaseFileName, Savefolder + datafile, false );
+		
+		
+		
+		//ファイル情報をコピー
+		s[ CopyBaseFileName ] = "";
+		
+		//ファイル削除
+		Storages.deleteFile(CopyBaseFileName);
+		
+		
+		//最新を更新する
+		if(CopyPageNum != 0){
+			s[ "newdata" ]= "";
+			//最新を更新する
+			DataNewChange( nN_SAVENUM, nN_SAVELAST, 0 );
+		}else{
+			s["quick_number"] = void;
+			//最新を更新する
+			DataNewChange( nQ_SAVENUM, nQ_SAVELAST, 1 );
+		}
+		
+		//フラグを寝かす
+		RightMouseUpAction();
+		
+		//SYSTEM音声の再生
+		if(s["system"] == true) {
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_MOVEEND;
+			MainWnd.SystemVoicePlay(file);
+		}
+		
+		//ページ作成関数
+		PageCreateFunc( NowPage );
+		
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コメント編集
+	-----------------------------------------*/
+	function CommentWork( num )
+	{
+		//SYSTEM音声の再生
+		if(s["system"] == true) {
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_COMMENTCALL;
+			MainWnd.SystemVoicePlay(file);
+		}
+		
+		var datafile = "savedata%03d.bmp".sprintf( (NowPage*10)+num );
+		var datanum  = (NowPage*10)+num;
+		
+		//TEXT
+		var text = s[datafile].substring(0, nSAVETEXT_NUM);
+		var time = s[datafile].substring(nSAVETEXT_NUM, s[datafile].length - nSAVETEXT_NUM);
+		
+		//置換処理
+		text = text.replace(new RegExp("／"), "" );
+		
+		//パディングを削除する
+		var top = text.indexOf("  ");
+		if( top != -1 ){
+			text = text.substr(0, top);
+		}
+		
+		
+		var comment = System.inputString("DATAコメント", "編集したいコメントを記述してください",text);
+		
+		//コメント編集
+		if(comment !== void)
+		{
+			var num = nSAVETEXT_NUM - comment.length;
+			for(var i=0; i<num; i++)comment += " ";
+			
+			//データ更新
+			s[datafile] = comment + time;
+			
+			//MESSのQUICKのボードを書き換えておく
+			if( datanum < nQ_SAVELAST){
+				//メッセージボードのQUICKを更新しておく
+				if(MainWnd.MessObj !== void){
+					MainWnd.MessObj.QuickBordText();
+				}
+			}
+			
+			
+			//ページ作成関数
+			PageCreateFunc( NowPage );
+		}
+		
+	}
+	
+}
+
+
+
+
+
+
+
+
+/*-----------------------------------------
+■SAVELOAD オブジェクト削除関数
+-----------------------------------------*/
+function SaveLoadDeleteFunc()
+{
+
+	//アクティブオブジェクトを変更する
+	MainObj.ActiveObj = MainObj.SaveLoadObj.TempActive;
+	
+	
+	@if(_DEBUG == 1)
+	if(MainObj.ActiveObj === void){
+		DebugMess("saveload 破棄 error ActiveObjがvoidです");
+	}
+	@endif
+	
+	//オブジェクトを削除する
+	invalidate MainObj.SaveLoadObj;
+	
+	MainObj.SaveLoadObj = void;
+	
+	//ガベージを強制的に動かす
+	System.doCompact();
+	
+	if(MainObj.LoadFlag == false){
+		//タイマー再開
+		MainObj.DefaultTimer.enabled = true;
+	}else{
+		MainObj.LoadAction();
+	}
+}
+
+
+
+
+@endif
+
+

@@ -1,0 +1,312 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/08/04
+// File : AnimationObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Utility Function
+//------------------------------------------------------------------------------
+@if (__ANIMATIONOBJECT_TJS__== 0)
+@set(__ANIMATIONOBJECT_TJS__ = 1)
+
+class _ANIMATIONOBJECT {
+	
+	/*-----------------------------------------
+	■ パラメータ
+	-----------------------------------------*/
+	var MainWin;			//メインオブジェクト
+	
+	var targetlayer;		//ターゲットレイヤ
+	
+	var imagefilename;		//imageファイル名
+	
+	var imagelayer = void;	//imageレイヤ
+	
+	var type;				//AnimationType [0:Count 1:Clip]
+	
+	var loop;				//loopフラグ
+	
+	var count = 0;			//カウント
+	
+	var nowcnt= 0;			//現在のカウント
+	
+	var segment;			//セグメント
+	
+	var wait;				//ウェイト
+	
+	var x;					//x座標
+	
+	var y;					//y座標
+	
+	var w;					//画像の幅
+	
+	var h;					//画像の高さ
+	
+	var startTick;			//現在Time
+	
+	var anime;				//Animeフラグ
+	
+	var drawType;			//Layer Type
+	
+	var BaseType;			//Layer Base Type
+	
+	var stoptime;			//ダイアログを表示された際の時間
+	
+	var delay;				//発動までの遅延時間
+	
+	var delayTimer;			//delay用のタイマー
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	-----------------------------------------*/
+	function _ANIMATIONOBJECT(win, layer, storage)
+	{
+		MainWin     = win;
+		
+		targetlayer = layer;
+		
+		BaseType    = layer.type;
+		
+		stoptime    = void;
+		
+		if(ResourceCheck((storage) + ".asd"))
+		{
+			segment = Scripts.evalStorage(storage + ".asd");
+			
+			//type
+			this.type  = +segment.type;
+			
+			this.count = +segment.count;
+			
+			this.wait  = +segment.wait;
+			
+			this.x     = (segment.x === void ? 0 : +segment.x);
+			
+			this.y     = (segment.y === void ? 0 : +segment.y);
+			
+			this.loop  = (segment.loop === void ? 0 : +segment.loop);
+			
+			this.nowcnt= (segment.start === void) ? 0 : +segment.start;
+			
+			this.drawType = (segment.layertype === void) ? targetlayer.type : getDrawLayerType(segment.layertype);
+			
+			this.delay = (segment.delay === void) ? 0 : +segment.delay;
+			
+			
+			if(this.loop == 0){
+			//１回アニメのみカウントをあげる
+				++win.AnimeCount;
+			}
+			
+			if(this.type == 0){
+			//カウント
+				
+				if(ResourceCheck(segment.storage + "%03d.png".sprintf(0))){
+					imagefilename = segment.storage + "%03d.png".sprintf(0);
+				}else if(ResourceCheck(segment.storage + "%03d.bmp".sprintf(0))){
+					imagefilename = segment.storage + "%03d.bmp".sprintf(0);
+				}else if(ResourceCheck(segment.storage + "%03d.jpg".sprintf(0))){
+					imagefilename = segment.storage + "%03d.jpg".sprintf(0);
+				}
+				
+			}else{
+			//Clip
+				if(ResourceCheck(segment.storage + ".png")){
+					imagefilename = segment.storage + ".png";
+				}else if(ResourceCheck(segment.storage + ".bmp")){
+					imagefilename = segment.storage + ".bmp";
+				}else if(ResourceCheck(segment.storage + ".jpg")){
+					imagefilename = segment.storage + ".jpg";
+				}
+				
+				this.w = +segment.w;
+				
+				this.h = +segment.h;
+			}
+			
+			imagelayer         = new BaseLayer(win, win.CaptureLayer, 0,0,0,0,imagefilename);
+			
+			imagelayer.visible = false;
+			
+			if(this.type == 0){
+				targetlayer.setSize(imagelayer.width,imagelayer.height);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,imagelayer.width,imagelayer.height);
+			}else{
+				targetlayer.setSize(this.w,this.h);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,this.w,this.h);
+			}
+			
+			targetlayer.setPos(this.x, this.y);
+			
+			targetlayer.type = this.drawType;
+			
+			startTick = System.getTickCount() - ((this.nowcnt*this.wait));
+			
+			
+			// タイマーを開始する
+			if(this.delay != 0)
+			{
+				delayTimer = new Timer(onDelayTimer, '');
+				delayTimer.interval = delay;
+				delayTimer.enabled = true;
+				
+			}else{
+				System.addContinuousHandler(AnimeHandler);
+				
+				anime = true;
+			}
+		}else{
+			DebugMess( storage + ".asd がありません");
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		if(imagelayer !== void)invalidate imagelayer;
+		
+		imagelayer = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	◇ delay用関数
+	-----------------------------------------*/
+	function onDelayTimer()
+	{
+		System.addContinuousHandler(AnimeHandler);
+		
+		anime = true;
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■アニメーション関数
+	-----------------------------------------*/
+	function AnimeHandler(tick)
+	{
+		if(MainWin.CheckBoxObj !== void){
+			if(stoptime === void){
+				stoptime = tick - startTick;
+			}
+			return;
+		}
+		
+		if(stoptime !== void){
+			startTick = tick - stoptime;
+			stoptime = void;
+		}
+		
+		
+		// 時間を得る
+		var tm = tick - startTick;
+		
+		if(tm < 0)return;
+		
+		tm /= wait;
+		
+		if(nowcnt != tm)
+		{
+			tm = (int)tm;
+			
+			nowcnt = tm;
+			
+			if(tm > (count-1))
+			{//終了処理
+				AnimeStop();
+				return;
+			}
+			
+			if(type == 0) {
+			//セルアニメ
+				var file = "";
+				
+				if(ResourceCheck(segment.storage + "%03d.png".sprintf(tm))){
+					file = segment.storage + "%03d.png".sprintf(tm);
+				}else if(ResourceCheck(segment.storage + "%03d.bmp".sprintf(tm))){
+					file = segment.storage + "%03d.bmp".sprintf(tm);
+				}else if(ResourceCheck(segment.storage + "%03d.jpg".sprintf(tm))){
+					file = segment.storage + "%03d.jpg".sprintf(tm);
+				}
+				
+				imagelayer.loadImages(file);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,imagelayer.width,imagelayer.height);
+			} else {
+			//Clipアニメ
+				targetlayer.copyRect(0,0,imagelayer,(tm*w),0,w,h);
+			}
+			
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 終了処理
+	-----------------------------------------*/
+	function AnimeStop()
+	{
+		if(loop){
+		//ループの場合はカウントを戻す
+			startTick = System.getTickCount();
+			nowcnt    = 0;
+		}else{
+			if(type == 0) {
+			//セルアニメ
+				var file = "";
+				
+				if(ResourceCheck(segment.storage + "%03d.png".sprintf((count-1)))){
+					file = segment.storage + "%03d.png".sprintf((count-1));
+				}else if(ResourceCheck(segment.storage + "%03d.bmp".sprintf((count-1)))){
+					file = segment.storage + "%03d.bmp".sprintf((count-1));
+				}else if(ResourceCheck(segment.storage + "%03d.jpg".sprintf((count-1)))){
+					file = segment.storage + "%03d.jpg".sprintf((count-1));
+				}
+				
+				imagelayer.loadImages(file);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,imagelayer.width,imagelayer.height);
+				
+				//１回アニメのみカウントを下げる
+				--MainWin.AnimeCount;
+			} else {
+			//Clipアニメ
+				targetlayer.copyRect(0,0,imagelayer,(nowcnt*w),0,w,h);
+			}
+			
+			anime     = false;
+			
+			targetlayer.type = drawType;
+			
+			System.removeContinuousHandler(AnimeHandler);
+		}
+	}
+	
+}
+
+
+@endif
+

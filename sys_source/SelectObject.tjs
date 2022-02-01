@@ -1,0 +1,744 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/05/14
+// File : SoundObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : SoundObject
+//------------------------------------------------------------------------------
+@if (__SELECTOBJECT_TJS__== 0)
+@set(__SELECTOBJECT_TJS__ = 1)
+
+class _SELECTOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	■ パラメータ
+	-----------------------------------------*/
+	var SelectArray = [];	//選択肢レイヤー
+	
+	var SelectHidden= [];	//選択肢仮レイヤー
+	
+	var SelectText  = [];	//選択肢TEXTレイヤー
+	
+	var SelectMess  = [];	//選択肢TEXT
+	
+	var SelAnswer   = [];	//選択肢答え
+	
+	var SelResource = void;	//選択肢リソース
+	
+	var SelChkFlag  = [];	//非選択フラグ格納配列
+	
+	var selnum;				//選択肢数
+	
+	var SelAns;				//答え格納
+	
+	var SelPre;				//答え格納
+	
+	var SelCnt;				//SELECT COUNT
+	
+	var m_left;				//mouse left
+	
+	var m_top;				//mouse top
+	
+	var keyactive;			//key active
+	
+	var nSELRES_NUM = 3;	//選択肢リソースの数
+	
+	var SelectHistory;		//選択肢履歴
+	
+	var SelHistoryId;		//選択肢履歴ID
+	
+	var SelHideFlag;		//非選択フラグ
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	○ コンストラクタ
+	-----------------------------------------*/
+	function _SELECTOBJECT(win, pri)
+	{
+		super.BaseObject(win, pri);
+		
+		SelResource = void;
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	○ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize(...);
+		
+		//削除関数
+		DelSelect();
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	○ 選択肢メッセージ格納
+	-----------------------------------------*/
+	function SetMessage( str, id, chkflag = void )
+	{
+		//選択肢テキスト格納
+		SelectMess.add(str);
+		
+		//選択肢答え
+		SelAnswer.add(id);
+		
+		//選択肢非表示配列
+		SelChkFlag.add( chkflag );
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	○ 選択肢作成 関数
+	-----------------------------------------*/
+	function CreateSelect()
+	{
+		SelAns = 0;
+		
+		SelPre = 0;
+		
+		var ypos = 0;
+		
+		
+		switch (SelectMess.count) {
+			case 1:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select01.png");
+				
+				ypos = 273;
+			}break;
+			
+			case 2:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select02.png");
+				
+				ypos = 243;
+			}break;
+			
+			case 3:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select03.png");
+				
+				ypos = 213;
+			}break;
+			
+			case 4:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select04.png");
+				
+				ypos = 183;
+			}break;
+			
+			case 5:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select05.png");
+				
+				ypos = 153;
+			}break;
+			
+			case 6:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select06.png");
+				
+				ypos = 123;
+			}break;
+			case 7:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select07.png");
+				
+				ypos = 93;
+			}break;
+			case 8:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select08.png");
+				
+				ypos = 63;
+			}break;
+		}
+		
+		//選択肢履歴
+		SelectHistory = (string)(MainWnd.PaserObj.curStorage + "_" + MainWnd.PaserObj.curLine);
+		
+		
+		
+		//リソースを転送
+		SelResource = new BaseLayer(MainWnd, PriLayer, 0,0,0,0,"frm_select.png");
+		
+		SelResource.visible = false;
+		
+		selnum = SelectMess.count;
+		
+		for(var i=0; i<selnum; i++)
+		{
+			//選択肢フレームレイヤ
+			SelectArray[i] = new BaseLayer(MainWnd, PriLayer, 0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+			
+			SelectArray[i].absolute = nSELLAYER + i;
+			
+			SelectHidden[i] = new BaseLayer(MainWnd, PriLayer, 0,0,SelectArray[i].width,SelectArray[i].height);
+			
+			SelectHidden[i].absolute = nSELLAYER+10 + i;
+			
+			//選択肢テキストレイヤ
+			SelectText[i]  = new BaseLayer(MainWnd, SelectHidden[i], 0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+			
+			SelectText[i].absolute    = (nSELLAYER+20) + i;
+			
+			//選択肢フォント名
+			SelectText[i].font.face   = stFONTNAME;
+			
+			//選択肢フォントサイズ
+			SelectText[i].font.height = nSELECT_FONTSIZE;
+			
+			//選択肢BOLD
+			SelectText[i].font.bold   = nSELECT_FONTBOLD;
+			
+			//テキスト描画
+			var x = ((SelectText[i].width\2)-((SelectMess[i].length*nSELECT_FONTSIZE)\2));
+			//var x = nSELECT_XPOS;
+			
+			;//var y = ((SelectText[i].height/2)-(nSELECT_FONTSIZE/2)) + nSELECT_FUKURO_WIDTH + nSELECT_YPOS;
+			var y = nSELECT_YPOS;
+			
+			var SelMess = SelectMess[i];
+			
+			//選択肢履歴ID
+			SelHistoryId = SelectHistory+"%02d".sprintf(SelAnswer[i]);
+			
+			//非選択フラグ
+			SelHideFlag  = SelChkFlag[i];
+			
+			//文字数だけループさせる
+			for(var t=0; t<SelMess.length; t++){
+				
+				TextDraw(SelectText[i], x, y, SelMess[t] );
+				
+				//X座標
+				// －－が付かないため
+				x += SelectText[i].font.getEscWidthX(SelMess[t]) + nSELECT_KERNING;
+			}
+			
+			
+			//リソース展開
+			SelectArray[i].copyRect(0,0,SelResource,0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+			
+			//座標設定
+			SelectArray[i].setPos(
+				((PriLayer.width / 2)-(SelectArray[i].width / 2)), 
+				i == 0 ? ypos : ((SelectArray[i-1].top+SelectArray[i-1].height))+4
+			);
+			
+			SelectHidden[i].left    = SelectArray[i].left;
+			SelectHidden[i].top     = SelectArray[i].top;
+		}
+		
+		
+		//透明度設定
+		//SetSelectDensity();
+		
+		//選択肢後SKIP処理
+		if((s["selectskip"] == false) && MainWnd.SkipCheck()){
+			//SKIP解除
+			MainWnd.SkipFlag = false;
+			//SKIP
+			MainWnd.MessObj.MessButton[8].copyRect(0,0, MainWnd.MessObj.ButtonResource,32*8,0,32,32);
+		}
+		
+		
+		
+		//選択肢後AUTO処理
+		if((s["selectauto"] == false) && MainWnd.MessObj.AutoFlag){
+			//AUTO解除
+			MainWnd.MessObj.AutoFlag = false;
+			//AUTO
+			MainWnd.MessObj.MessButton[7].copyRect(0,0, MainWnd.MessObj.ButtonResource,32*7,0,32,32);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//マウスカーソル自動移動
+		if( s["mouse"] == true ){
+			MainWnd.PrimaryLayer.cursorX = SelectArray[0].left + (SelectArray[0].width\2);
+			MainWnd.PrimaryLayer.cursorY = SelectArray[0].top  + (SelectArray[0].height\2);
+			
+			SelPre = 0;
+			SelAns = 0;
+			
+			//移動アニメ ※言われたら使用するってことで
+			//MainWnd.SetCursorMove( SelectArray[0].left + (SelectArray[0].width\2), SelectArray[0].top  + (SelectArray[0].height\2), nMOUSE_MOVE_TIME );
+		}
+		
+		//キーボードフォーカスを解除しておく
+		keyactive = false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ TEXT　DRAW
+	-----------------------------------------*/
+	function TextDraw(drawlayer, x, y, str, color = nSELECT_FONTCOLOR)
+	{
+		//袋文字処理
+		if(nSELECT_FUKURO == true){
+			
+			for(var i=0; i<=nSELECT_FUKURO_WIDTH; i++){
+				//袋文字テキスト描画
+				drawlayer.drawText(x+i, y  , str, nSELECT_FUKUROCOLOR);
+				drawlayer.drawText(x-i, y  , str, nSELECT_FUKUROCOLOR);
+				drawlayer.drawText(x  , y-i, str, nSELECT_FUKUROCOLOR);
+				drawlayer.drawText(x  , y+i, str, nSELECT_FUKUROCOLOR);
+				
+				if((nSELECT_FUKURO_WIDTH-1) == i){
+					drawlayer.drawText(x+i, y-i, str, nSELECT_FUKUROCOLOR);
+					drawlayer.drawText(x+i, y+i, str, nSELECT_FUKUROCOLOR);
+					drawlayer.drawText(x-i, y-i, str, nSELECT_FUKUROCOLOR);
+					drawlayer.drawText(x-i, y+i, str, nSELECT_FUKUROCOLOR);
+				}
+			
+			}
+		}
+		
+		
+		var shadow_color = nSELECT_SHADOWCOLOR;
+		
+		//選択肢履歴チェック
+		if( (s["selectlog"] == true) && (s[SelHistoryId] == true) ){
+			color        = nSELECT_HISTORY_FONTCOLOR;
+			shadow_color = nSELECT_HISTORY_SHADOWCOLOR;
+		}
+		
+		
+		//非選択肢
+		if( ( SelHideFlag !== void ) && (f[ SelHideFlag ] == false) && (s[ SelHideFlag ] == false) ){
+			color        = nSELECT_FLAG_FONTCOLOR; 0x777777;
+			shadow_color = nSELECT_FLAG_SHADOWCOLOR;
+		}
+		
+		
+		
+		//テキスト描画
+		drawlayer.drawText(
+			x, 
+			y, 
+			str, 
+			color, 
+			0xff, 
+			true, 
+			nSELECT_SHADOW,
+			shadow_color,
+			0,
+			nSELECT_SHADOW_WIDTH,
+			nSELECT_SHADOW_HEIGHT
+		);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 選択肢削除関数
+	
+	説明：
+	削除関数
+	
+	-----------------------------------------*/
+	function DelSelect()
+	{
+		if(SelResource != void)invalidate SelResource;
+		
+		SelResource = void;
+		
+		if(SelectMess.count)
+		{//TEXT
+			SelectMess.clear();
+		}
+		
+		
+		if(SelectText.count)
+		{//TEXT LAYER
+			for( var i=0; i<SelectText.count; i++){
+				invalidate SelectText[i];
+			}
+			SelectText.clear();
+		}
+		
+		
+		if(SelectArray.count)
+		{//SELECT LAYER
+			for( var i=0; i<SelectArray.count; i++){
+				invalidate SelectArray[i];
+			}
+			SelectArray.clear();
+		}
+		
+		
+		if(SelectHidden.count)
+		{//Select Hidden
+			for( var i=0; i<SelectHidden.count; i++){
+				invalidate SelectHidden[i];
+			}
+			SelectHidden.clear();
+		}
+		
+		
+		//選択肢答えクリア
+		SelAnswer.clear();
+		
+		//選択肢非表示配列をクリア
+		SelChkFlag.clear();
+		
+		//オブジェクトが生きていたらメッセージをクリア
+		if(isvalid MainWnd.MessObj)MainWnd.MessObj.MessFormat();
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆デフォルト関数
+	
+	引数：
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		for(var i=0; i<SelectArray.count; i++){
+			if(SelectArray[SelAns-1].PaintFlag){
+				
+				SelectArray[SelAns-1].PaintFlag = false;
+				
+				Wait( nSELECT_WAIT );
+				
+				ResultFunc();
+				
+				return;
+			}
+		}
+		
+		if(!keyactive){
+		//mouse 制御
+			SelAns = MainWnd.PrimaryLayer.GetProvincePixel();
+		}else{
+		//key 制御
+			if(	(m_left != MainWnd.PrimaryLayer.cursorX) ||
+				(m_top  != MainWnd.PrimaryLayer.cursorY)
+			){
+				keyactive = false;
+			}
+		}
+		
+		
+		
+		
+		if(SelAns != SelPre)
+		{
+			ActiveFunc();
+			
+			ClearFunc();
+		}
+		
+		SelPre = SelAns;
+		
+		
+		//MES フレームのチェックを呼び出す
+		MainWnd.MessObj.DefaultAction();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ LEFT MOUSE
+	
+	説明：
+	左クリック
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		if(!SelAns || !SelectArray[0].visible){
+			
+			if(MainWnd.MessObj.MapReg != 0){
+				//ボタン処理関数
+				MainWnd.MessObj.ButtonWorkFunc();
+			}
+			
+			return;
+		}
+		
+		//非選択
+		if( ( SelChkFlag[SelAns-1] !== void ) && (f[ SelChkFlag[SelAns-1] ] == false) && (s[ SelChkFlag[SelAns-1] ] == false) )return;
+		
+		
+		//リソース更新
+		SelectArray[SelAns-1].copyRect(0,0,SelResource,0,(SelResource.height/nSELRES_NUM)*2,SelResource.width,SelResource.height/nSELRES_NUM);
+		
+		SelectArray[SelAns-1].update();
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ RESULT処理
+	-----------------------------------------*/
+	function ResultFunc()
+	{
+		//答えを格納
+		
+		//通常SAVE用
+		f["selcnt%d".sprintf(SelCnt++)] = SelAnswer[SelAns-1];
+		
+		f["selans"] = SelAnswer[SelAns-1];
+		
+		//選択肢履歴保存
+		s[SelectHistory+"%02d".sprintf(f["selans"])] = true;
+		
+		
+		SelPre = SelAns = false;
+		
+		//次のタグを取得しにいく
+		MainWnd.PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ RIGHT MOUSE
+	
+	説明：
+	右クリック
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		
+		if(!MainWnd.SkipCheck() && !MainWnd.MessObj.AutoFlag)
+		{//SKIP フラグ中はSKIP解除のみ
+			for(var i=0; i<selnum; i++){
+				SelectArray[i].visible = !SelectArray[i].visible;
+				SelectHidden[i].visible = !SelectHidden[i].visible;
+			}
+		}
+		
+		//FRAME
+		MainWnd.MessObj.RightMouseUpAction();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆アクティブ関数
+	
+	引数：
+	
+	-----------------------------------------*/
+	function ActiveFunc()
+	{
+		if(!SelAns)return;
+		
+		if( ( SelChkFlag[SelAns-1] !== void ) && (f[ SelChkFlag[SelAns-1] ] == false) && (s[ SelChkFlag[SelAns-1] ] == false) )return;
+		
+		SelectArray[SelAns-1].copyRect(0,0,SelResource,0,SelResource.height/nSELRES_NUM,SelResource.width,SelResource.height/nSELRES_NUM);
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆クリア関数
+	
+	引数：
+	
+	-----------------------------------------*/	
+	function ClearFunc()
+	{
+		if(!SelPre)return;
+		
+		if( ( SelChkFlag[SelPre-1] !== void ) && (f[ SelChkFlag[SelPre-1] ] == false) && (s[ SelChkFlag[SelPre-1] ] == false) )return;
+		
+		SelectArray[SelPre-1].copyRect(0,0,SelResource,0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+		//SelectArray[SelPre-1].fillRect(0,0,SelResource.width,SelResource.height, 0);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ KEY UP
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		switch(key){
+			case VK_RETURN:{
+			//return
+			//altキーが押されていたらここまで
+			if(shift & ssAlt)return;
+				LeftMouseUpAction();
+			}break;
+			
+			case VK_UP:{
+			//↑
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				if(SelAns < 2){
+					SelAns = selnum;
+				}else{
+					--SelAns;
+				}
+			}break;
+			
+			case VK_DOWN:{
+			//↓
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				if(selnum  == SelAns){
+					SelAns = 1;
+				}else{
+					++SelAns;
+				}
+				
+				//非選択フラグがある場合は再帰で呼び出してみる
+				if( ( SelChkFlag[SelAns-1] !== void ) && (f[ SelChkFlag[SelAns-1] ] == false) && (s[ SelChkFlag[SelAns-1] ] == false) ){
+					KeyUpAction(key, shift, process);
+				}
+				
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ホイール処理
+	-----------------------------------------*/
+	function MouseWheelAction(shift, delta, x, y)
+	{
+		if(!SelectArray[0].visible)return;
+		
+		keyactive = true;
+		m_left    = MainWnd.PrimaryLayer.cursorX;
+		m_top     = MainWnd.PrimaryLayer.cursorY;
+		
+		if(delta < 0){
+		//下方向
+			KeyUpAction(VK_DOWN);
+		}else{
+		//上方向
+			//KeyUpAction(VK_UP);
+			MainWnd.MessObj.MouseWheelAction( shift, delta, x, y );
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 透明度設定
+	-----------------------------------------*/
+	function SetSelectDensity()
+	{
+		//透明度設定
+		var density = 255*(s["wnddensity"]/100);
+		
+		if( density < 0){
+			density = 0;
+		}else if(255 < density){
+			density = 255;
+		}
+		
+		for(var i=0; i<SelectArray.count; i++){
+			SelectArray[i].opacity = density;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ テキスト再描画
+	-----------------------------------------*/
+	function ReWriteText()
+	{
+		for(var i=0; i<SelectArray.count; i++)
+		{
+			//テキストをクリアしておく
+			SelectText[i].drawRect( 0 );
+			
+			//テキスト描画
+			var x = ((SelectText[i].width\2)-((SelectMess[i].length*nSELECT_FONTSIZE)\2));
+			//var x = nSELECT_XPOS;
+			
+			;//var y = ((SelectText[i].height/2)-(nSELECT_FONTSIZE/2)) + nSELECT_FUKURO_WIDTH + nSELECT_YPOS;
+			var y = nSELECT_YPOS;
+			
+			var SelMess = SelectMess[i];
+			
+			//選択肢履歴ID
+			SelHistoryId = SelectHistory+"%02d".sprintf(SelAnswer[i]);
+			
+			//非選択フラグ
+			SelHideFlag  = SelChkFlag[i];
+			
+			//文字数だけループさせる
+			for(var t=0; t<SelMess.length; t++){
+				
+				TextDraw(SelectText[i], x, y, SelMess[t] );
+				
+				//X座標
+				// －－が付かないため
+				x += SelectText[i].font.getEscWidthX(SelMess[t]) + nSELECT_KERNING;
+			}
+		}
+	}
+	
+}
+
+@endif

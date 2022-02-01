@@ -1,0 +1,4323 @@
+//------------------------------------------------------------------------------
+// Note : ADV BASE SYSTEM
+// Data : 2010/04/27
+// File : MainWindow.tjs - 基本WINDOW
+// Creator : Kazuyuki Uchino
+// Memo : MainWindow File
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+//由 小鳥遊 曉 修改
+//修理了不正常的保存文件方法
+//------------------------------------------------------------------------------
+
+@if(__MAINWINDOW_TJS__ == 0)
+@set(__MAINWINDOW_TJS__ = 1)
+
+
+/*-----------------------------------------
+□メインウィンドウクラス
+
+
+説明：
+メインウィンドウに必要な設定及び
+基本LAYERを作成するクラス
+
+-----------------------------------------*/
+class MainWindow extends global.Window {
+	
+	/*-----------------------------------------
+	■メンバオブジェクト
+	-----------------------------------------*/
+	var PrimaryLayer;	//基本レイヤ
+	
+	var CaptureLayer;	//キャプチャー用レイヤ
+	
+	var ScreenBase;		//スクリーンベース用レイヤ
+	
+	
+	
+	
+	//◆オブジェクト関連
+	
+	var ImageObj;		//画像オブジェクト
+	
+	var MessObj;		//メッセージオブジェクト
+	
+	var PaserObj;		//Paserオブジェクト
+	
+	var SoundObj;		//SoundCtrlオブジェクト
+	
+	var BgmObj;			//Bgmオブジェクト
+	
+	var SeObj   = [];	//Seオブジェクト
+	
+	var VoiceObj= [];	//Voiceオブジェクト
+	
+	var MovieObj;		//MOVIEオブジェクト
+	
+	var SystemObj;		//SYSTEM SE オブジェクト
+	
+	var EyeCatchBgmObj;	//EYECATCH BGM オブジェクト
+	
+	var SelObj;			//SELECTオブジェクト
+	
+	var ConfigObj;		//CONFIGオブジェクト
+	
+	var CheckBoxObj;	//CHECK BOXオブジェクト
+	
+	var SaveLoadObj;	//SAVE LOADオブジェクト
+	
+	var EffectObj;		//EFFECT オブジェクト
+	
+	var TitleObj;		//TITLE オブジェクト
+	
+	var CgReplayObj;	//REPLAY オブジェクト
+	
+	var EscapeObj;		//緊急回避オブジェクト
+	
+	var ExtraObj;		//EXTRAオブジェクト
+	
+	var LogJumpObj;		//LOGJUMPオブジェクト
+	
+	var EndingObj;		//ENDINGオブジェクト
+	
+	var DayBordObj;		//DayBordオブジェクト
+	
+	
+	
+	
+	
+	@if(_DEBUG == 1)
+	var DebugInfoObj;	//DEBUG INFORMATION
+	@endif
+	
+	var Canclose;		//CANCLOSE
+	
+	var ActiveObj;		//現在処理しているオブジェクト
+	
+	var ChangeScreen;	//最大化ボタン用オブジェクト
+	
+	
+	
+	//◆制御フラグ関連
+	var WndActiveFlag;	//アクティブフラグ
+	
+	var MenuItemFlag;	//MenuItemフラグ
+	
+	var DefaultTimer;	//デフォルトタイマー
+	
+	var CheckBoxResult;	//CHECK BOXの結果
+	
+	var LoadFlag;		//LOADフラグ
+	
+	var JumpFlag;		//JUMPフラグ
+	
+	var MoveCount;		//MOVEカウント
+	
+	var AnimeCount;		//ANIMEカウント
+	
+	var RightClickCtrl; //RightClickコントロール
+	
+	var SkipFlag;		//SKIP FLAG
+	
+	var EndScreen;		//終了画面
+	
+	var ReplayPage;		//リプレイページ
+	
+	var ReplayChar;		//リプレイキャラクターページ
+	
+	var ReplayFlag;		//リプレイ実行フラグ
+	
+	var LoadEyeCatchId;	//ロード時表示キャラ
+	
+	var ExtraFlag;		//extra実行フラグ
+	
+	var EyeCatchLayer;	//EYECATCH画面レイヤ
+	
+	var EyeCatchChar;	//EYECATCHキャラ画面レイヤ
+	
+	var ContinueFlag;	//コンティニューフラグ
+	
+	var LoadErrorFlag;	//ロードエラーフラグ
+	
+	var TempActive;		//アクティブ保存レジスタ
+	
+	var LeftMouseCtrl;	//左クリック抑制
+	
+	var DebugLoadFlag;	//デバッグロードフラグ
+	
+	var MoveCursorX;	//カーソルX座標
+	
+	var MoveCursorY;	//カーソルY座標
+	
+	var MoveCursorStep;	//カーソル移動量
+	
+	var CursorMoveTimer;//カーソル移動タイマー
+	
+	var EscapeFullScreen;
+	
+	
+	
+	
+	//SAVE DATA 関連オブジェクト
+	var TraceArray = %[];	//既読SKIP用配列
+	
+	
+	
+	
+	
+	//◆ウィンドウパラメータ関連
+	var WndScreenX;		//WINDOW WIDTH
+	
+	var WndScreenY;		//WINDOW HEIGHT
+	
+	var ScreenSizeType; //WINDOW　SIZE
+	
+	var WndXpos;		//表示座標
+	
+	var WndYpos;		//表示座標
+	
+	var WndWidth;		//ウィンドウサイズ
+	
+	var WndHeight;		//ウィンドウサイズ;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■メンバ関数
+	-----------------------------------------*/
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	
+	引数：
+	
+	width	作成するWindowの横size
+	height	作成するWindowの縦size
+	
+	-----------------------------------------*/
+	function MainWindow(wid, hei)
+	{
+		//親クラスの生成
+		super.Window(...);
+		
+		//SYSTEM使用スレッド数を設定
+		System.drawThreadNum = dtnAuto;
+		
+		//画面サイズの確保
+		WndScreenX = wid;
+		
+		WndScreenY = hei;
+		
+		//System Data Load
+		SystemLoad();
+		
+		
+		
+		
+		/*-----------------------------------------
+		●Ｗｉｎｄｏｗ 設定関連
+		-----------------------------------------*/
+		//Windowの外観
+		//borderStyle    = bsSingle;//サイズ変更不可
+		borderStyle    = bsSizeable;//サイズ変更可
+		
+		
+		innerSunken    = false;//Windowに窪みを持たせるか
+		
+		showScrollBars = false;//ScrollBarを付けるか
+		
+		caption        = nCAPTION_TITLE;//WindowのCaption
+		
+		System.title   = nCAPTION_TITLE;//SystemのCaption
+		
+		
+		
+		//■基本レイヤーの作成
+		add(PrimaryLayer = new BaseLayer(this, null,0,0,wid,hei));
+		
+		//■キャプチャ用レイヤの作成
+		add(CaptureLayer = new BaseLayer(this, PrimaryLayer,0,0,wid,hei));
+		
+		//■Paserオブジェクト
+		PaserObj         = new Parser(this);
+		
+		//■画像オブジェクト
+		ImageObj         = new ImageObject(this, CaptureLayer);
+		
+		//■メッセージオブジェクト
+		MessObj          = new MessObject(this, CaptureLayer);
+		
+		//最初は消しておく
+		MessObj.RightMouseUpAction();
+		
+		//■SOUND CONTROLオブジェクト
+		SoundObj         = new _SOUND_CTRL();
+		
+		//■BGM オブジェクト
+		BgmObj           = new _SOUNDOBJECT("bgm", this);
+		
+		//■SE オブジェクト
+		for(var i=0; i<nSE_MAXNUM; i++){
+			SeObj[i]     = new _SOUNDOBJECT("se", this);
+		}
+		
+		//■VOICE オブジェクト
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			VoiceObj[i]         = new _SOUNDOBJECT("voice", this);
+		}
+		
+		//■MOVIE オブジェクト
+		MovieObj         = new _MOVIEOBJECT(this);
+		
+		//■SYSTEM SEオブジェクト
+		SystemObj        = new _SOUNDOBJECT("system_se", this);
+		
+		//■EYECATH用BGMオブジェクト
+		EyeCatchBgmObj   = new _SOUNDOBJECT("system_se", this);
+		
+		
+		//■SELECT オブジェクト
+		SelObj           = new _SELECTOBJECT(this,CaptureLayer);
+		
+		//■EFFECT オブジェクト
+		EffectObj        = new _EFFECTOBJECT(this,CaptureLayer);
+		
+		//■JUMP オブジェクト
+		LogJumpObj       = new _LOGJUMPOBJECT( this );
+		
+		//■ENDING オブジェクト
+		EndingObj        = void;
+		
+		//■TITLE オブジェクト
+		TitleObj         = void;
+		
+		//■CG・REPLAYオブジェクト
+		CgReplayObj      = void;
+		
+		//■EXTRAオブジェクト
+		ExtraObj         = void;
+		
+		//■DAYBORDオブジェクト
+		DayBordObj       = new _DAYBORDOBJECT(this, PrimaryLayer);
+		
+		
+		
+		
+		
+		//アクティブフラグ
+		WndActiveFlag = true;
+		
+		//アクティブオブジェクト
+		ActiveObj = void;
+		
+		//緊急回避オブジェクト
+		EscapeObj = void;
+		
+		ScreenSizeType = 0;
+		
+		
+		
+		//Windowの作成
+		if(s.scsize == 0){
+		//通常
+			ScreenSizeType = 0;
+		}else if(s.scsize == 1){
+		//SIZE 1
+			ScreenSizeType = 1;
+		}else if(s.scsize == 2){
+		//SIZE 2
+			ScreenSizeType = 2;
+		}else if(s.scsize == 3){
+		//SIZE 3
+			ScreenSizeType = 3;
+		}else if(s.scsize == 4){
+		//SIZE 4
+			ScreenSizeType = 4;
+		}
+		
+		//ウィンドウ作成関数
+		WindowCreateFunc( ScreenSizeType );
+		
+		//
+		//setMaxSize(width, height);
+		
+		
+		
+		
+		//ロードフラグを寝かせておく
+		LoadFlag   = false;
+		
+		//*
+		// ウィンドウ位置の調節
+		if ((s.scLeft === void) || (s.scTop === void) || 
+			(System.desktopWidth < (s.scLeft + this.width)) || 
+			(System.desktopHeight < (s.scTop + this.height))
+		) {
+			left = ((System.desktopWidth - this.width) >> 1) + System.desktopLeft;
+			top = ((System.desktopHeight - this.height) >> 1) + System.desktopTop;
+		}
+		else {
+			left = s.scLeft;
+			top = s.scTop;
+		}
+		//*/
+		
+		//base レイヤーを作成しておく
+		ScreenBase = new BaseLayer(this, CaptureLayer, 0, 0, nWND_WIDTH, nWND_HEIGHT);
+		ScreenBase.fillRect(0, 0, nWND_WIDTH, nWND_HEIGHT, 0xff000000);
+		ScreenBase.absolute = 1;
+		this.add(ScreenBase);
+		
+		
+		//Window表示
+		visible = true;
+		
+		//MOVEカウント
+		MoveCount = 0;
+		
+		//RightClickCtrlはtrue
+		RightClickCtrl = true;
+		
+		//SKIP FLAG
+		SkipFlag  = false;
+		
+		//リプレイフラグを寝かす
+		ReplayFlag = false;
+		
+		//EXTRAフラグを寝かす
+		ExtraFlag  = false;
+		f["extra"] = ExtraFlag;
+		
+		
+		//画面モードを復帰
+		if(s["screen"] == true){
+			//画面解像度を通常にもどしておく
+			setInnerSize(wid, hei);
+			this.setZoom(1, 1);
+			fullScreen = true;
+		}
+		
+		//QUICK SAVEフラグの判断
+		if(ResourceCheck("savedata%03d.bmp".sprintf(nQ_SAVENUM))){
+			//フラグを立ててボタンをON状態にする
+			MessObj.QuickSave = true;
+			MessObj.MessButton[2].copyRect(0,0,MessObj.ButtonResource, 32*2,0,32,32);
+		}else{
+			MessObj.QuickSave = false;
+			MessObj.MessButton[2].copyRect(0,0,MessObj.ButtonResource, 32*2,32*3,32,32);
+		}
+		
+		
+		@if(_DEBUG == 1)
+			if(s["debug_savetype"] == false){
+				scSaveMode   = "";
+			}else{
+				scSaveMode   = "z";
+			}
+		@endif
+		
+		
+		
+		//Timer設定
+		DefaultTimer = new Timer(DefaultFunc,"");
+		
+		DefaultTimer.enabled  = true;
+		
+		DefaultTimer.interval = 16;
+		
+		//カーソルアニメタイマー
+		CursorMoveTimer = void;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ファイナライズ
+	
+	引数：
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize(...);
+		
+		//■Paserオブジェクト
+		invalidate PaserObj;
+		
+		//■メッセージオブジェクト
+		invalidate MessObj;
+		
+		//■SOUND CONTROLオブジェクト
+		invalidate SoundObj;
+		
+		//■BGM オブジェクト
+		invalidate BgmObj;
+		
+		//■SE オブジェクト
+		for(var i=0; i<nSE_MAXNUM; i++){
+			invalidate SeObj[i];
+		}
+		
+		//■VOICE オブジェクト
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			invalidate VoiceObj[i];
+		}
+		
+		//■MOVIE オブジェクト
+		invalidate MovieObj;
+		
+		//■SELECT オブジェクト
+		invalidate SelObj;
+		
+		//■EFFECT オブジェクト
+		invalidate EffectObj;
+		
+		//■画像オブジェクト
+		invalidate ImageObj;
+		
+		//■CONFIG オブジェクト
+		if(ConfigObj !== void)invalidate ConfigObj;
+		
+		//■SAVELOADオブジェクト
+		if(SaveLoadObj !== void)invalidate SaveLoadObj;
+		
+		@if(_DEBUG == 1)
+		//■DEBUG INFORMATION
+		if(DebugInfoObj !== void)invalidate DebugInfoObj;
+		@endif
+		
+		//終了画面オブジェクト
+		if(EndScreen !== void)invalidate EndScreen;
+		
+		//■TITLEオブジェクト
+		if(TitleObj !== void)invalidate TitleObj;
+		
+		//■CG・REPLAYオブジェクト
+		if(CgReplayObj !== void)invalidate CgReplayObj;
+		
+		//■EYECATCHレイヤ
+		if(EyeCatchLayer !== void)invalidate EyeCatchLayer;
+		
+		if(EyeCatchChar !== void)invalidate EyeCatchChar;
+		
+		//■緊急回避レイヤ
+		if(EscapeObj !== void)invalidate EscapeObj;
+		
+		//■EXTRA MODEオブジェクト
+		if(ExtraObj !== void)invalidate ExtraObj;
+		
+		//■LOG JUMPオブジェクトを削除する
+		if(LogJumpObj !== void)invalidate LogJumpObj;
+		
+		//■ENDINGオブジェクトを削除する
+		if(EndingObj !== void)invalidate EndingObj;
+		
+		//■DAYBORDオブジェクトを削除する
+		if(DayBordObj !== void)invalidate DayBordObj;
+		
+		//■Paser オブジェクトを削除する
+		if( PaserObj !== void )invalidate PaserObj;
+		
+		//ベースレイヤを削除しておく
+		invalidate ScreenBase;
+		
+		
+		//Trace Save
+		TraceSave();
+		
+		
+		//System Save
+		SystemSave();
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SYSTEM DATA LOAD
+	-----------------------------------------*/
+	function SystemLoad()
+	{
+		if(ResourceCheck(nTRACESAVE_NAME))
+		{//既読DATA
+			(Dictionary.assignStruct incontextof TraceArray)(Scripts.evalStorage(nTRACESAVE_NAME));
+		}
+		
+		
+		if(ResourceCheck(nSYSTEMSAVE_NAME))
+		{
+			(Dictionary.assignStruct incontextof s)(Scripts.evalStorage(nSYSTEMSAVE_NAME));
+			
+		}else{
+		 //SYSTEM SAVE
+		 	//基本ステータスをクリア
+			SystemFormat();
+			
+			//※ここからは 初期化コマンドに該当しないフラグ
+			
+			//画面モードをWINDOWにしておく
+			s["screen"]       = false;
+			
+			//画面サイズを通常に設定
+			s["scsize"]       = 0;
+			
+			//Continueフラグを消しておく
+			s["continue"]     = false;
+			
+			
+			//game clear
+			s["game_clear"]   = false;
+			
+			//extra flag
+			s["extra_flag"]   = false;
+			
+			//quick save number
+			s["quick_number"] = 0;
+			
+			
+			
+			//リプレイフラグ				//使用画像
+			//みるく
+			s["dicReplayFlagA1"] = false; //	A01
+			s["dicReplayFlagA2"] = false; //	A02-03
+			s["dicReplayFlagA3"] = false; //	A04-05
+			s["dicReplayFlagA4"] = false; //	A06
+			s["dicReplayFlagA5"] = false; //	A07-08
+			s["dicReplayFlagA6"] = false; //	A09-11
+			s["dicReplayFlagA7"] = false; //	A12
+			s["dicReplayFlagA8"] = false; //	A13
+			s["dicReplayFlagA9"] = false; //	A13
+
+			//胡桃
+			s["dicReplayFlagB1"] = false; //	B01
+			s["dicReplayFlagB2"] = false; //	B02-03
+			s["dicReplayFlagB3"] = false; //	B04
+			s["dicReplayFlagB4"] = false; //	B05
+			s["dicReplayFlagB5"] = false; //	B06
+			s["dicReplayFlagB6"] = false; //	B07-08
+			s["dicReplayFlagB7"] = false; //	B09
+			s["dicReplayFlagB8"] = false; //	B10-11
+			s["dicReplayFlagB9"] = false; //	B12-13
+
+			//咲久耶
+			s["dicReplayFlagC1"] = false; //	C01
+			s["dicReplayFlagC2"] = false; //	C02-03
+			s["dicReplayFlagC3"] = false; //	C04-05
+			s["dicReplayFlagC4"] = false; //	C06
+			s["dicReplayFlagC5"] = false; //	C07-08
+			s["dicReplayFlagC6"] = false; //	C09
+			s["dicReplayFlagC7"] = false; //	C10
+			s["dicReplayFlagC8"] = false; //	C11-12
+
+			//芽衣
+			s["dicReplayFlagD1"] = false; //	D01
+			s["dicReplayFlagD2"] = false; //	D02-03
+			s["dicReplayFlagD3"] = false; //	D04-05
+			s["dicReplayFlagD4"] = false; //	D06-07
+			s["dicReplayFlagD5"] = false; //	D08-09
+			s["dicReplayFlagD6"] = false; //	D10
+			s["dicReplayFlagD7"] = false; //	D11
+			s["dicReplayFlagD8"] = false; //	D12-13
+			
+			//以下、パッチでその他に追加分
+			//その他
+			s["dicReplayFlagE1"] = false; //	E01
+			s["dicReplayFlagE2"] = false; //	E02-03
+			s["dicReplayFlagE3"] = false; //	E02-03
+			s["dicReplayFlagE4"] = false; //	E02-03
+			
+			s["dicReplayFlagF1"] = false; //	F01-02
+			s["dicReplayFlagF2"] = false; //	F01-02
+			s["dicReplayFlagF3"] = false; //	F01-02
+			
+			//s["dicReplayFlagG1"] = false; //	G01-02
+			
+			//s["dicReplayFlagH1"] = false; //	H01-02
+			
+			//s["dicReplayFlagI1"] = false; //	I01-02
+			//s["dicReplayFlagI2"] = false; //	I03-05
+			
+			//キャラクリアフラグ
+			s["CLEAR_A"]         = false;
+			s["CLEAR_B"]         = false;
+			s["CLEAR_C"]         = false;
+			s["CLEAR_D"]         = false;
+			s["CLEAR_E"]         = false;
+			s["CLEAR_F"]         = false;
+			s["CLEAR_G"]         = false;
+			
+			//ムービー用フラグ
+			s["EF_A01"]          = false;
+			s["EF_B01"]          = false;
+			s["EF_C01"]          = false;
+			s["EF_D01"]          = false;
+			
+			//エンディング通過フラグ
+			s["ENDING_A"]        = false;
+			s["ENDING_B"]        = false;
+			s["ENDING_C"]        = false;
+			s["ENDING_D"]        = false;
+			s["ENDING_E"]        = false;
+			s["ENDING_F"]        = false;
+			s["ENDING_G"]        = false;
+			
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SYSTEM FORMAT
+	-----------------------------------------*/
+	function SystemFormat()
+	{
+		//演出効果
+		s["effect"]       = nEFFECT;
+		
+		//MES SPEED
+		s["messpeed"]     = nMESSPEED;
+		
+		//VOICE SKIP MODE
+		s["voiceskip"]    = nVOICESKIP;
+		
+		//SKIP MODE
+		s["skipmode"]     = nSKIPMODE;
+		
+		//auto speed
+		s["autospeed"]    = nAUTOSPEED;
+		
+		//window density
+		s["wnddensity"]   = nWNDDENSITY;
+		
+		//mes view
+		s["mess_view"]    = nMESS_VIEW;
+		
+		//voice on/off
+		s["voice"]        = nVOICE;
+		
+		//voice vol
+		s["voice_vol"]    = nVOICE_VOL;
+		
+		//voice char
+		s["char_1"]       = nCHAR_1;
+		
+		//voice char
+		s["char_2"]       = nCHAR_2;
+		
+		//voice char
+		s["char_3"]       = nCHAR_3;
+		
+		//voice char
+		s["char_4"]       = nCHAR_4;
+		
+		//voice char
+		s["char_5"]       = nCHAR_5;
+		
+		//voice char
+		s["char_6"]       = nCHAR_6;
+		
+		//voice char
+		s["char_7"]       = nCHAR_7;
+		
+		//voice char
+		s["char_8"]       = nCHAR_8;
+		
+		//voice char
+		s["char_9"]       = nCHAR_9;
+		
+		//voice char
+		s["char_10"]      = nCHAR_10;
+		
+		//voice char
+		s["char_11"]      = nCHAR_11;
+		
+		
+		//voice char vol
+		s["char_1_vol"]   = nCHAR_1_VOL;// 「菜乃花」A
+		
+		//voice char
+		s["char_2_vol"]   = nCHAR_2_VOL;// 「このみ」B
+		
+		//voice char
+		s["char_3_vol"]   = nCHAR_3_VOL;// 「花梨」C
+		
+		//voice char
+		s["char_4_vol"]   = nCHAR_4_VOL;// 「雨音」D
+		
+		//voice char
+		s["char_5_vol"]   = nCHAR_5_VOL;// 「玲於奈」F
+		
+		//voice char
+		s["char_6_vol"]   = nCHAR_6_VOL;// 「時雨」G
+		
+		//voice char
+		s["char_7_vol"]   = nCHAR_7_VOL;// 「あんず」K
+		
+		//voice char
+		s["char_8_vol"]   = nCHAR_8_VOL;// 「彩菜」E
+		
+		//voice char
+		s["char_9_vol"]   = nCHAR_9_VOL;// 「晴乃」L
+		
+		//voice char
+		s["char_10_vol"]   = nCHAR_10_VOL;// 「氷雨」M
+		
+		//voice char
+		s["char_11_vol"]   = nCHAR_11_VOL;// 「その他」
+		
+		//Movie on/off
+		s["movie"]        = nMOVIE;
+		
+		//Movie Volume
+		s["movie_vol"]    = nMOVIE_VOL;
+		
+		//system on/off
+		s["system"]       = nSYSTEM;
+		
+		//voice char
+		s["sys_char_id"]  = nSYS_CHAR_ID;
+		
+		//system vol
+		s["system_vol"]   = nSYSTEM_VOL;
+		
+		
+		//se on/off
+		s["se"]           = nSE;
+		
+		//se vol
+		s["se_vol"]       = nSE_VOL;
+		
+		//bgm on/off
+		s["bgm"]          = nBGM;
+		
+		//bgm vol
+		s["bgm_vol"]      = nBGM_VOL;
+		
+		//dialog save
+		s["dlg_save"]      = nDIALOG_SAVE;
+		
+		//dialog copy
+		s["dlg_copy"]      = nDIALOG_COPY;
+		
+		//dialog move
+		s["dlg_move"]      = nDIALOG_MOVE;
+		
+		//dialog erase
+		s["dlg_erase"]     = nDIALOG_ERASE;
+		
+		//dialog load
+		s["dlg_load"]      = nDIALOG_LOAD;
+		
+		//dialog jump
+		s["dlg_jump"]      = nDIALOG_JUMP;
+		
+		//dialog end
+		s["dlg_end"]       = nDIALOG_END;
+		
+		//dialog format
+		s["dlg_format"]    = nDIALOG_FORMAT;
+		
+		//dialog title
+		s["dlg_title"]     = nDIALOG_TITLE;
+
+		//dialog replay
+		s["dlg_replay"]    = nDIALOG_REPLAY;
+
+		//key config
+		s["space_key"]    = nSPACE_KEY;
+		
+		//key config
+		s["esc_key"]      = nESC_KEY;
+		
+		//apend
+		s["ApendUse"]     = false;
+		
+		//MenuLock
+		s["MenuLock"]     = false;
+		
+		//face
+		s["face"]         = nFACE_STATE;
+		
+		//mouse
+		s["mouse"]        = nMOUSE_STATE;
+		
+		//select skip
+		s["selectskip"]   = nSELECTSKIP;
+		
+		//select auto
+		s["selectauto"]   = nSELECTAUTO;
+		
+		//select log
+		s["selectlog"]    = nSELECTLOG;
+		
+		//log max
+		s["logmax"]       = nLOGMAX;
+		
+		//voice mask
+		s["voice_mask"]   = nVOICE_MASK;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SYSTEM DATA SAVE
+	-----------------------------------------*/
+	function SystemSave()
+	{
+		//* 座標を保存
+		if (!s.screen) {
+			s.scLeft = (left >= 0) ? left : 0;
+			s.scTop  = (top  >= 0) ? top  : 0;
+		}
+		
+		//WINDOW SIZEの保存
+		s.scsize = ScreenSizeType;
+		
+		//既読DATAの保存
+		//(Dictionary.saveStruct incontextof TraceArray)(Savefolder+nTRACESAVE_NAME, scSaveMode);
+		
+		//SYSTEM DATAの保存
+		(Dictionary.saveStruct incontextof s)(Savefolder+nSYSTEMSAVE_NAME, scSaveMode);
+		
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ TRACE SAVE
+	-----------------------------------------*/
+	function TraceSave()
+	{
+		//既読DATAの保存
+		(Dictionary.saveStruct incontextof TraceArray)(Savefolder+nTRACESAVE_NAME, scSaveMode);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆フルスクリーン関数
+	
+	引数：
+	
+	-----------------------------------------*/
+	function FullScreenWork( )
+	{
+		
+		if(!fullScreen){
+			MainObj.setInnerSize(nWND_WIDTH, nWND_HEIGHT);
+			MainObj.setZoom(1, 1);
+		}
+		
+		fullScreen = !fullScreen;
+		
+		if(!fullScreen){
+			//ウィンドウ作成関数
+			WindowCreateFunc( ScreenSizeType );
+		}
+		
+		s["screen"] = fullScreen;
+		
+		//最大化ボタンを押した場合のCONFIG画面処理
+		if((ChangeScreen !== void) && (ConfigObj !== void) && (isvalid ConfigObj))
+		{
+			ConfigObj.KeyUpAction( VK_RETURN, 3 );
+			//最大化ボタン処理オブジェクトを削除しておく
+			invalidate ChangeScreen;
+			ChangeScreen = void;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◇ メインアクティブを変更する
+	-----------------------------------------*/
+	function ChangeActive(obj)
+	{
+		if(CheckBoxObj !== void){
+			ActiveObj = CheckBoxObj;
+			//確認ダイアログが表示されている場合はTempに格納
+			CheckBoxObj.TempActive = obj;
+		}else{
+			ActiveObj  = obj;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ 拡張イベント使用開始関数
+	
+	※この関数を使用しないと拡張イベントハンドラが使用できない
+	※時には例外も発生する
+	※使用するにはオブジェクトが作成完了している必要があります
+	----------------------------------------------------------*/
+	function SetExEvent()
+	{
+		if(MainObj === void)return false;
+		
+		//拡張イベントを有効にする
+		this.registerExEvent();
+		//ウィンドウサイズの変更を禁止する
+		this.disableResize = true;
+		
+		//< メッセージフックを設定(on:有効, ev:イベント番号またはイベント名文字：省略時全部）
+		this.setMessageHook( true );
+		
+		
+		
+		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆デフォルト関数
+	
+	引数：
+	-----------------------------------------*/
+	function DefaultFunc()
+	{
+		if(ActiveObj !== void)
+		{//デフォルト処理を呼ぶ
+			
+			//CHECKBOXが最優先
+			if(CheckBoxObj !== void){
+				ActiveObj = CheckBoxObj;
+			}
+			
+			
+			
+			//画面更新をさせる為
+			if(
+				((EyeCatchChar !== void)  &&
+				(EyeCatchChar.PaintFlag))
+			){
+				EyeCatchChar.PaintFlag = false;
+				
+				//タイマーを止めておく
+				DefaultTimer.enabled  = false;
+				
+				//パーサーをクリアしておく
+				PaserObj.clear();
+				
+				//パーサーのCallStackをクリアしておく
+				PaserObj.clearCallStack();
+				
+				//エラーならここでロード
+				if(LoadErrorFlag)LoadErrorFunc();
+				
+				//シナリオをロードする
+				PaserObj.ChageFile(f["scenario"], false);
+				
+				return;
+			}
+			
+			
+			//LOAD時の演出キャンセル連打抑制処理
+			if(EffectObj.CaptureLayer.PaintFlag){
+				EffectObj.CaptureLayer.PaintFlag = false;
+				
+				//アクティブオブジェクトを戻す
+				ActiveObj = TempActive;
+			}
+			
+			
+			
+			
+			if(ActiveObj !== this)ActiveObj.DefaultAction();
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ ここから イベントハンドラ関数処理
+	----------------------------------------------------------*/
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	ウィンドウがアクティブになったとき
+	
+	-----------------------------------------*/
+	function onActivate()
+	{
+		super.onActivate(...);
+		
+		//アクティブフラグ
+		WndActiveFlag = true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	ウィンドウが非アクティブになったとき
+	
+	-----------------------------------------*/
+	function onDeactivate()
+	{
+		super.onDeactivate(...);
+		
+		//アクティブフラグ
+		WndActiveFlag = false;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	ウィンドウがクリックされた
+	
+	-----------------------------------------*/
+	function onClick(x, y)
+	{
+		PrimaryLayer.cursorX;
+		
+		PrimaryLayer.cursorY;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	ウィンドウを閉じる確認
+	
+	-----------------------------------------*/
+	function onCloseQuery(canclose)
+	{
+		//既に表示している場合はここまで
+		if(CheckBoxObj !== void){ 
+			super.onCloseQuery( false );
+			return;
+		}
+		
+		//LOAD中ならここまで
+		if(LoadFlag){ 
+			super.onCloseQuery( false );
+			return;
+		}
+		
+		//既に終了しているなら出さない
+		if(ActiveObj === void){ 
+			super.onCloseQuery( false );
+			return;
+		}
+		
+		//演出中なら出さない
+		if(ActiveObj === EffectObj){ 
+			super.onCloseQuery( false );
+			return;
+		}
+		
+		//MOVIE再生中でOverlay Modeなら出さない
+		if((ActiveObj === MovieObj) && (MovieObj.PlayMode == nOVERLAY_MODE)){
+			super.onCloseQuery( false );
+			return;
+		}
+		
+		
+		//アイキャッチ中ならださない
+		if(f["eyecatch_start"] == 1){ 
+			super.onCloseQuery( false );
+			return;
+		}
+		
+		
+		//message と select でskip中なら解除
+		if(SkipCheck()){
+			MessObj.SkipAutoRelease();
+		}
+		
+		//CONFIG画面ならテスト音声停止
+		if((ConfigObj !== void) && (isvalid ConfigObj))ConfigObj.TestSoundStopWork();
+		
+		
+		//緊急回避中なら即終了
+		
+		if((s["dlg_end"] == true) && (EscapeObj === void))
+		{//ダイアログ表示
+			
+			//タイマー停止
+			MainObj.DefaultTimer.enabled = false;
+			
+			CheckBoxObj = new _CHECKDIALOG(this, PrimaryLayer, "終了します。よろしいですか？", EndResultFunc);
+			
+			//アクティブオブジェクトを変更する
+			ActiveObj   = CheckBoxObj;
+			
+			Canclose    = canclose;
+			
+			//タイマー再開
+			MainObj.DefaultTimer.enabled = true;
+			
+		}else{
+			//タイマー停止
+			MainObj.DefaultTimer.enabled = false;
+			
+			CheckBoxResult = true;
+			
+			Canclose       = canclose;
+			
+			EndResultFunc();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 終了イベントハンドラ
+	-----------------------------------------*/
+	function EndResultFunc()
+	{
+		if(CheckBoxResult)
+		{
+			//Continue用にSAVEをする
+			ContinueSave();
+			
+			//return;
+			
+			CheckBoxResult = false;
+			
+			ActiveObj      = void;
+			
+			//SYSTEM音声の再生
+			if(s["system"] == true) {
+				
+				//エフェクト表示
+				EffectObj.TransSetFunc();
+				
+				//終了時にSAVE・LOAD画面ならプライマリをキャプチャーする
+				if((TitleObj === void) && (SaveLoadObj !== void)){
+					EffectObj.CaptureLayer.piledCopy(0, 0, PrimaryLayer, 0, 0, WndScreenX, WndScreenY);
+				}
+				
+				//画面初期化関数
+				ScreenFormat();
+				
+				//終了画面処理
+				EndScreen = new BaseLayer(this, CaptureLayer,0,0, nWND_WIDTH, nWND_HEIGHT);
+				
+				EndScreen.absolute = nCHKLAYER;
+				
+				EndScreen.colorRect(0,0, nWND_WIDTH, nWND_HEIGHT, 0);
+				
+				EndScreen.opacity = 0;
+				
+				//ゲーム終了
+				var file = nSYSTEM_VOICE_HEADER + getCharID(s.sys_char_id) + nSYS_GAMEEND + ".ogg";
+				
+				//リソースチェック 無かったら即終了
+				if(!ResourceCheck(file)){
+					
+					super.onCloseQuery(true);
+					
+					return;
+				}
+				
+				//音声の再生
+				SystemVoicePlay(file);
+				
+				//監視関数
+				System.addContinuousHandler(GameEndTransEnd);
+				
+			} else {
+				
+				super.onCloseQuery(true);
+			}
+			
+			return;
+		}else{
+			
+			super.onCloseQuery( false );
+			
+		}
+		
+		//MEDIA系を戻す
+		onActivate();
+		
+		//タイマー再開
+		MainObj.DefaultTimer.enabled = true;
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	key 　押されたキーの仮想キーコードの値です。
+ 	
+	
+	
+	キーが押された
+	
+	
+	-----------------------------------------*/
+	function onKeyDown(key, shift, process = true)
+	{
+		super.onKeyDown(...);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	キーが離された
+	
+	-----------------------------------------*/
+	function onKeyUp(key, shift, process = true)
+	{
+		if((ActiveObj === void) || (ActiveObj === this) || (WndActiveFlag == false))return;
+		
+		super.onKeyUp(...);
+		
+		//緊急回避画像が表示されている場合は他は抑制する
+		if((EscapeObj !== void) && (key != VK_ESCAPE))return;
+		
+		
+		//KEY ACTION
+		if(key == VK_F1){
+			@if(_DEBUG == 1)
+				
+				//デバッグ情報表示関数
+				if(DebugInfoObj === void){
+				//オブジェクト作成
+					DebugInfoObj = new _DEBUGINFO(this);
+				}else{
+					//表示・非表示
+					DebugInfoObj.ViewFunc();
+				}
+			@endif
+		}else if(key == VK_F2){
+			@if(_DEBUG == 1)
+			//FILE CHANGE
+			//タイマー停止
+			DefaultTimer.enabled = false;
+			
+			var jumpfile = System.inputString("FILE JUMP", "FILE名","拡張子付きで指定してください");
+			
+			if(ResourceCheck(jumpfile)){
+			//FILE JUMP
+				f["scenario"] = jumpfile;
+				
+				DebugLoad();
+				
+				return;
+			}
+			
+			//タイマー再開
+			DefaultTimer.enabled = true;
+			@endif
+		}else if(key == VK_F3){
+		//LOG 100
+			
+		}else if(key == VK_F4){
+		//LOG 200
+			
+		}else if(key == VK_F5){
+		}else if(key == VK_F6){
+		}else if(key == VK_F7){
+		}else if(key == VK_F8){
+		}else if(key == VK_F9){
+		}else if(key == VK_F10){
+		}else if(key == VK_F11){
+		}else if(key == VK_F12){
+			@if(_DEBUG == 1)
+				//演出確認用LOAD処理
+				DebugEffectChange();
+			@endif
+		}else if(key == VK_ESCAPE){
+		//ESC
+			if(s["esc_key"] == true){
+			//右クリック処理
+				//ActiveObj.RightMouseUpAction();
+			//壁紙差し替え処理
+				this.WallPaperWork();
+			}else{
+			//緊急回避処理
+				this.EscapeWork();
+			}
+		}else if(key == VK_SPACE){
+		//SPACE
+			if(s["space_key"] == true){
+				ActiveObj.RightMouseUpAction();
+			}else{
+				ActiveObj.LeftMouseUpAction();
+			}
+		}else if(key == VK_RETURN){
+		//RETURN
+			
+			if(shift & ssAlt)
+			{//フルスクリーン関数
+				FullScreenWork();
+				
+				if((ConfigObj !== void) && (isvalid ConfigObj)){
+					ActiveObj.KeyUpAction(key, shift);
+				}
+				
+				return;
+			}
+			
+			ActiveObj.KeyUpAction(key, shift);
+			
+		}else if(
+			(key == VK_UP)   || (key == VK_DOWN) ||
+			(key == VK_LEFT) || (key == VK_RIGHT)||
+			(key == VK_PRIOR)|| (key == VK_NEXT)
+		){
+		//LEFT RIGHT
+			ActiveObj.KeyUpAction(key);
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	マウスのボタンが押された
+	
+	-----------------------------------------*/
+	function onMouseDown(x, y, button, shift)
+	{
+		
+		//ロード用のトランジションは聞かなくしておく
+		if(EffectObj.LoadTrans || LoadFlag)return;
+		
+		if((ActiveObj !== void) && (ActiveObj !== this))
+		{
+			if(CheckBoxObj !== void){
+				ActiveObj = CheckBoxObj;
+			}
+			
+			if(button == mbLeft)
+			{//LEFT処理を呼ぶ
+				//CHECKBOXが最優先
+				ActiveObj.LeftMouseDownAction();
+				
+			}else if(button == mbRight){
+			 //RIGHT処理を呼ぶ
+				ActiveObj.RightMouseDownAction();
+				
+			}else if(button == mbMiddle){
+			 //中処理を呼ぶ
+			
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	マウスのボタンが離された
+	
+	-----------------------------------------*/
+	function onMouseUp(x, y, button, shift)
+	{
+		
+		
+		//左マウス抑制
+		if(LeftMouseCtrl)return;
+		
+		//緊急回避抑制
+		if(EscapeObj !== void)return;
+		
+		if(EndScreen !== void) {
+			//SYSTEM 音声を停止する
+			SystemObj.FileStop();
+			//画面も黒くしておく
+			EndScreen.opacity = 0xff;
+			return;
+		}
+		
+		
+		//ロード用のトランジションは聞かなくしておく
+		if(EffectObj.LoadTrans || LoadFlag){
+			EffectObj.LeftMouseUpAction();
+			return;
+		}
+		
+		
+		if((ActiveObj !== void) && (ActiveObj !== this))
+		{
+			if(CheckBoxObj !== void){
+				ActiveObj = CheckBoxObj;
+			}
+			
+			if(button == mbLeft)
+			{//LEFT処理を呼ぶ
+				ActiveObj.LeftMouseUpAction();
+				
+			}else if(button == mbRight){
+			 //RIGHT処理を呼ぶ
+			 if((RightClickCtrl) || (ActiveObj === CheckBoxObj)){
+				ActiveObj.RightMouseUpAction();
+			}
+			
+			}else if(button == mbMiddle){
+			 //中処理を呼ぶ
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	マウスが移動した
+	
+	-----------------------------------------*/
+	function onMouseMove(x, y, shift)
+	{
+		PrimaryLayer.cursorX;
+		
+		PrimaryLayer.cursorY;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	マウスホイールが回転した
+	
+	-----------------------------------------*/
+	function onMouseWheel(shift, delta, x, y)
+	{
+		//ロード用のトランジションは聞かなくしておく
+		if(EffectObj.LoadTrans || LoadFlag)return;
+		
+		x = PrimaryLayer.cursorX;
+		
+		y = PrimaryLayer.cursorY;
+		
+		if(ActiveObj !== void)
+		{
+			if(CheckBoxObj !== void){
+				ActiveObj = CheckBoxObj;
+			}else{
+				ActiveObj.MouseWheelAction(shift, delta, x, y);
+			}
+		}
+		
+		super.onMouseWheel(...);
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	ファイルがドロップされた
+	
+	-----------------------------------------*/
+	function onFileDrop(files)
+	{
+		super.onFileDrop(...);
+		
+		//デバッグオブジェクト
+		@if(_DEBUG == 1)
+		
+		//画面初期化関数
+		ScreenFormat();
+		
+		if(DebugInfoObj !== void)invalidate DebugInfoObj;
+		
+		DebugInfoObj     = void;
+		
+		PaserObj.clear();
+		
+		if(files[0].indexOf("/") != -1)
+		{
+			var top = 0;
+			
+			while(files[0].indexOf("/", top) != -1){
+				top = (files[0].indexOf("/", top) + 1);
+			}
+			
+			files[0] = files[0].substr(top, (files[0].length-top));
+			
+		}
+		
+		//LOG NUMをクリアする
+		MessObj.lognum        = 0;
+		
+		//HITRET CNTをクリアする
+		MessObj.hitret_cnt    = 0;
+		
+		//LOG JUMPパラメータをクリアしておく
+		if(LogJumpObj.LogData !== void)LogJumpObj.LogData.clear();
+		
+		//パーサーをクリアしておく
+		PaserObj.clear();
+		
+		//パーサーのCallStackをクリアしておく
+		PaserObj.clearCallStack();
+		
+		//先頭セーブを行う
+		PaserObj.LogTopSave = true;
+		
+		//コンティニュー用SAVEフラグ
+		ContinueFlag        = true;
+		
+		//シナリオの読み込み
+		PaserObj.ChageFile(files[0]);
+		
+		@endif
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベントハンドラ
+	
+	引数：
+	
+	ウィンドウサイズが変更された
+	
+	-----------------------------------------*/
+	function onResize()
+	{
+		dm(left+":"+top);
+		dm(width+":"+height);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：最大化を許可するかどうか確認
+	
+	* @return true を返すと最大化を許可しない
+	-----------------------------------------*/
+	function onMaximizeQuery()
+	{
+		ChangeScreen = new AsyncTrigger(this.FullScreenWork, "");
+		
+		ChangeScreen.cached = true;
+		
+		ChangeScreen.trigger();
+		
+		//最大化を許可しない替わりにフルスクリーンに変更
+		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：ウィンドウ最大化
+	
+	* 呼ばれた時点でウィンドウサイズは既に最大化されている
+	-----------------------------------------*/
+	function onMaximize()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：ウィンドウ最小化
+	
+	* フルスクリーン中にAlt+Tabなどで別のアプリを選んだ場合や，
+	　mainWindow以外が最小化されたときに呼ばれる
+	* タスクバーに収納された場合は onHide イベントが呼ばれるので注意
+	-----------------------------------------*/
+	function onMinimize()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：ウィンドウ表示
+	
+	
+	* タスクバーから復帰したときなどに呼ばれる
+	-----------------------------------------*/
+	function onShow()
+	{
+		//if(EscapeFullScreen)FullScreenWork();
+		
+		EscapeFullScreen = false;
+		
+		//■BGM オブジェクト
+		BgmObj.SetState(2, 0);
+		
+		//■SE オブジェクト
+		for(var i=0; i<nSE_MAXNUM; i++){
+			SeObj[i].SetState(2, 0);
+		}
+		
+		//■VOICE オブジェクト
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			VoiceObj[i].SetState(2, 0);
+		}
+		
+		//■MOVIE オブジェクト
+		MovieObj.play();
+		
+		//SYSTEM SE
+		SystemObj.SetState(2, 0);
+		
+		//■CONFIG使用 TEST音声
+		if(ConfigObj !== void){
+			ConfigObj.VoiceTest.SetState(2, 0);
+			ConfigObj.SystemTest.SetState(2, 0);
+			ConfigObj.SeTest.SetState(2, 0);
+			ConfigObj.BgmTest.SetState(2, 0);
+			ConfigObj.CharVoiceTest.SetState(2, 0);
+		}
+		
+		//フラグ消去
+		EscapeObj = void;
+		
+		//タイマーを動かす
+		DefaultTimer.enabled  = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：ウィンドウ非表示
+	
+	
+	* タスクバーに収納された時などに呼ばれる
+	-----------------------------------------*/
+	function onHide()
+	{
+		dm("minisize");
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	 * ■拡張イベント：リサイズ・移動開始通知/終了
+	 
+	 * フレームやタイトルバーをドラッグ開始した時やAlt+SpaceでSやMを選んだ時（開始通知），
+	 * および移動やリサイズが終了した時（終了通知）にそれぞれ呼ばれる
+	 
+	 * onMovingやonResizing中に元のウィンドウ位置やサイズを参照したい時はここで保存しておくとよい
+	 * リサイズか移動かは WM_ENTERSIZEMOVE/WM_EXITSIZEMOVE の都合で判定不可
+	-----------------------------------------*/
+	function onMoveSizeBegin()
+	{//< 開始通知
+		
+		//変更時のサイズを保存しておく
+		WndWidth = this.width;
+		
+		WndHeight= this.height;
+	}
+	
+	
+	
+	
+	function onMoveSizeEnd()
+	{//< 終了通知
+	
+		//変更はCONFIG画面から以外はさせないので戻す
+		this.setSize( WndWidth, WndHeight );
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：ウィンドウ移動中
+	
+	* @param rect %[ x, y, w, h ] ウィンドウ座標
+	
+	* Windowsでウィンドウ内容を表示したまま移動する設定（移動枠表示なし）の場合，
+	　すぐにonMoveが呼ばれる
+	※registerExEvent()後の追加は無効（詳細はregisterExEventの説明を参照）
+	-----------------------------------------*/
+	function onMoving( rect )
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：ウィンドウ移動（完了）
+	
+	* @param x,y クライアント領域左上のスクリーン座標
+	※innerSunken枠分はクライアント領域に含まれるので注意
+	※registerExEvent()後の追加は無効（詳細はregisterExEventの説明を参照）
+	-----------------------------------------*/
+	function onMove( x, y )
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	 * ■拡張イベント：サイズ変更中
+	 
+	 * @param rect %[ x, y, w, h, type ] 変更中サイズ（ウィンドウ座標）
+	 * @param rect.type ウィンドウのどこをつかんでサイズを変更しているか 1～8
+	 *                  +1:左側, +2:右側, +3:上側, +6:下側  の組み合わせ（3進数的表現）
+	 *                         4 3 5
+	 *                  配置： 1   3
+	 *                         7 6 8
+	 * @return true を返すと rect の変更を反映（位置・サイズを強制指定）
+	 *         この場合，つかんだ位置(rect.type)に応じてうまく書き換え内容を調整しないと
+	 *         サイズ変更中にウィンドウが動いてしまうことがあるので注意（⇒forceResizeRect()参照）
+	 * 
+	 *※Windowsでウィンドウ内容を表示したままリサイズする設定（サイズ枠表示なし）の場合，すぐにonResizeが呼ばれる
+	 ※registerExEvent()後の追加は無効（詳細はregisterExEventの説明を参照）
+	-----------------------------------------*/
+	function onResizing( rect )
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	* ■拡張イベント：ディスプレイ構成の変更通知
+	
+	* 解像度や色数、マルチモニタの構成（位置変更も含む）が変更されたときに呼ばれる
+	-----------------------------------------*/
+	function onDisplayChanged()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	 * ■拡張イベント：メニュー処理の開始・終了通知
+	 
+	 * ウィンドウのメニュー処理（クリックやF10を押した場合など）の開始と終了の通知イベント
+	 * WM_ENTERMENULOOP / WM_EXITMENULOOP 通知のコールバック
+	 *
+	 * ※フルスクリーンにした場合のメニューではこのイベントは発生しないので注意！
+	-----------------------------------------*/
+	function onEnterMenuLoop()
+	{//メニュー処理開始
+		
+	}
+	
+	
+	
+	function onExitMenuLoop()
+	{//メニュー処理終了
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	 * ■拡張イベント：スクリーンセーバー開始通知，モニタパワー変更通知
+	 
+	 * @param mode -1/1/2
+	 * @return true を返すと制御抑制
+	-----------------------------------------*/
+	function onScreenSave()
+	{
+		
+	}
+	
+	
+	
+	
+	function onMonitorPower( mode )
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	 * ■拡張イベント：アクティブ状態変更通知
+	 
+	 * @param active 0:非アクティブ化 1:マウスクリック以外でアクティブ化 2:マウスクリックでアクティブ化
+	 * @param minimize 0:ウィンドウは最小化されていない それ以外:最小化されている
+	 *
+	 * ※Window.onActivate や Window.onDeactivate と違うのは、（これは拡張イベント全般に言えることだが）
+	 * System.eventDisabled == true でもイベントコールバックが飛んでくるという点
+	 *
+	 * 例えば System.onDeactivate 時に System.eventDisabled=true（こうすると System.onActivateは
+	 * 飛んでこない）にして，このイベント通知で復帰させると「非アクティブ時に動作停止」といった機能を
+	 * 追加できるかもしれない（ただしこれはイベントを配信停止するだけなので，前との時間差を見るような
+	 * タイマーを使ったアプリではあまり意味が無い）
+	 * なお，System.eventDisabled=true 時は画面更新すら走らないので，他のウィンドウを上にするなどして
+	 * WM_PAINT が発生すると画面が崩れる問題がある（後述の OverlayBitmap を使うなどする）
+	-----------------------------------------*/
+	function onActivateChanged( active, minimize )
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	 * ■拡張イベント：非クライアントエリアマウスイベント
+	
+	* @param x, y マウス座標
+	* @param ht 領域の種類（NCHITTEST定数）
+	* @param btn マウスボタン（mbLeft, mbRight, mbMiddle）
+	* registerExEvent()後の追加は無効（詳細はregisterExEventの説明を参照）
+	-----------------------------------------*/
+	function onNcMouseMove(x, y, ht)
+	{
+		
+	}
+	
+	
+	function onNcMouseUp(  x, y, btn, ht)
+	{
+		
+	}
+	
+	
+	function onNcMouseDown(x, y, btn, ht)
+	{
+		
+	}
+	
+	
+	function onNcMouseLeave()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	 * ■拡張イベント：setMessageHookで指定したイベント発生時のコールバック
+	
+	* @param msg イベント番号
+	* @param wp WPARAM
+	* @param lp LPARAM
+	* registerExEvent()後の追加は無効（詳細はregisterExEventの説明を参照）
+	-----------------------------------------*/
+	function onWindowsMessageHook( msg, wp, lp )
+	{
+		//dm(msg);
+		//dm(wp);
+		//dm(lp);
+		
+		//dm( global.Window.getNotificationName( msg ) );
+		// WM_***** メッセージの分類
+		/*switch( global.Window.getNotificationName( msg ) ){
+			case "event":{
+			}break;
+		}*/
+		
+	}
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	----------------------------------------------------------*/
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SKIP CHECK関数
+	-----------------------------------------*/
+	function SkipCheck()
+	{
+		//LOAD時はさせない
+		if(EffectObj.LoadTrans || LoadFlag)return false;
+		
+		//エンディング中はさせない
+		if(f.ending_start == true)return false;
+		
+		if(
+			(SkipFlag) || ((WndActiveFlag == true) && System.getKeyState(VK_CONTROL))
+		){
+			if(
+				(!s["skipmode"] && MessObj.TraceFlag) ||
+				(s["skipmode"])                       ||
+				System.getKeyState(VK_CONTROL)
+			){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ EFFECT CHECK関数
+	-----------------------------------------*/
+	function EffectCheck()
+	{
+		//エンディング中はさせない
+		if(f.ending_start == true)return false;
+		
+		if(s["effect"] == true){
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ リターンタイトル関数
+	-----------------------------------------*/
+	function ReturnTitleFunc( reset = false)
+	{
+		//エフェクト表示
+		EffectObj.TransSetFunc();
+		
+		//画面初期化関数
+		ScreenFormat();
+		
+		if(reset)SystemLoad();
+		
+		//シナリオをロードする
+		PaserObj.ChageFile("title.ks");
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ＳＡＶＥ実行関数
+	-----------------------------------------*/
+	function SaveAction(savenum)
+	{
+		//サムネイル画像を作成
+		var templayer = new Layer(this, PrimaryLayer);
+		
+		var Thumbnail = new Layer(this, PrimaryLayer);
+		
+		templayer.setSize(PrimaryLayer.width, PrimaryLayer.height);
+		
+		//サムネイルのサイズを確保する
+		var size = calcThumbnailSize();
+		
+		Thumbnail.setImageSize(size.width, size.height);
+		
+		Thumbnail.setSize(size.width, size.height);
+		
+		Thumbnail.face = dfAlpha;
+		
+		//画像重ね合わせ
+		templayer.piledCopy(0, 0, CaptureLayer, 0, 0, PrimaryLayer.width, PrimaryLayer.height);
+		
+		//縮小
+		Thumbnail.stretchCopy(0, 0, Thumbnail.width, Thumbnail.height, templayer, 0, 0, templayer.width, templayer.height, stLinear);
+		
+		//Ｈシーン時のサムネイルの差し替え処理はリリースのみ
+		@if(_DEBUG == 0)
+		//Ｈシーンであればリソースから差し替え
+		for(var i=0; i<nIMAGEMAX; i++)
+		{
+			var index = "imagefile%d".sprintf(i);
+			
+			if(f[index] === void)continue;
+			
+			if(ResourceCheck("FRM_"+f[index].substr(0,9)+".png"))
+			{
+				var ThumbFile = f[index].substr(0,9);
+				var TempSave = new BaseLayer(this, PrimaryLayer, 0,0,0,0,"FRM_"+ThumbFile);
+				TempSave.visible = false;
+				Thumbnail.copyRect(0,0,TempSave,0,0,Thumbnail.width,Thumbnail.height);
+				invalidate TempSave;
+				TempSave = void;
+			}
+		}
+		@endif
+		
+		var thumb_name = "savedata%03d.bmp".sprintf(savenum);
+		
+		Thumbnail.saveLayerImage(Savefolder + thumb_name, "bmp" + thumbnailDepth);
+		
+		
+		
+		//HITRETカウントをセーブ
+		f["hitret_cnt"]    = MessObj.hitret_cnt;
+		
+		//LOG NUMを保存
+		f["lognum"]        = (LogJumpObj.GetJumpDataIndex()).count;
+		
+		
+		
+		//ファイルサイズの確認はReleaseのみ
+		@if(_DEBUG == 0)
+			//scenario サイズ
+			f["scenario_size"] = Storages.fstat(Storages.getPlacedPath(f["scenario"])).size;
+			
+			//タイトル毎のSAVEIDを保存
+			f["save_id"]       = scSaveDataId;
+		@endif
+		
+		
+		//SAVEするDATAを作成する
+		var SaveDictionary = new Dictionary();
+		
+		(Dictionary.assignStruct incontextof SaveDictionary)(f);
+		
+		for(var i=0; i<nSCENARIOFLAG; i++){
+			
+			var Index = "%d".sprintf(i);
+			
+			SaveDictionary[Index] = PaserObj.temp_f[Index];
+		}
+		
+		
+		//暗号化or圧縮処理
+		var mode = scSaveMode;
+		
+		//var before = System.getTickCount();
+		
+		//USER SAVE
+		// データを保存
+		mode += "o" + size.size; // モード文字列に 書き込みオフセットを指定
+		(Dictionary.saveStruct incontextof SaveDictionary)(Savefolder + thumb_name, mode);
+		
+		//Debug.message(System.getTickCount() - before );
+		
+		//セーブタイトルを保存
+		
+		//日時を取得
+		var DateObj = new Date();
+		
+		var Year    = DateObj.getYear();
+		
+		var Month   = DateObj.getMonth()+1;
+		
+		var Day     = DateObj.getDate();
+		
+		var Hours   = DateObj.getHours();
+		
+		var Minutes = DateObj.getMinutes();
+		
+		var Seconds = DateObj.getSeconds();
+		
+		var savetileflag = true;
+		
+		if( f["savetitle"] === void ){
+		//セーブタイトルが指定されていない場合は表示メッセージから取得
+			f["savetitle"] = f["lastmess"];
+			savetileflag = false;
+		}
+		
+		
+		//改行文字を空白に変える
+		var savetext = f["savetitle"].replace(new RegExp("／"), "" );
+		f["savetitle"]   = savetext.substring( 0, nSAVETEXT_NUM );
+		
+		
+		if(f["savetitle"].length < nSAVETEXT_NUM){
+			var num = nSAVETEXT_NUM - f["savetitle"].length;
+			for(var i=0; i<num; i++)f["savetitle"] += " ";
+		}
+		
+		
+		//セーブタイトルを保存
+		//SYSTEMに保存
+		s[thumb_name] = f["savetitle"] + "$%d/%02d/%02d@%02d：%02d：%02d".sprintf(Year, Month, Day, Hours, Minutes, Seconds);
+		
+		//NEW DATA番号を保存
+		if(!((savenum < nQ_SAVELAST) || (nC_SAVENUM == savenum))){
+			s["newdata"] = savenum;
+		}
+		
+		
+		//SAVEタイトルが設定されていなければタイトルをクリアする
+		if(!savetileflag)f["savetitle"] = void;
+		
+		
+		//破棄
+		invalidate SaveDictionary;
+		
+		invalidate templayer;
+		
+		invalidate Thumbnail;
+		
+		
+		SaveDictionary = void;
+		
+		templayer      = void;
+		
+		Thumbnail      = void;
+		
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+		//SYSTEM音声の再生
+		if(s["system"] == true) {
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s.sys_char_id) + nSYS_SAVEEND + ".ogg";
+			SystemVoicePlay(file);
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ロード実行関数
+	-----------------------------------------*/
+	function DataLoadAction( loadnum )
+	{
+		if(LoadFlag)return;
+		
+		//LOAD フラグを立てる
+		LoadFlag = true;
+		
+		//選択データファイル
+		var datafile = "savedata%03d.bmp".sprintf(loadnum);
+		
+		// 指定オフセットからデータを読み込む
+		var modestr  = "o" + calcThumbnailSize().size;
+		
+		var data     = Scripts.evalStorage(datafile, modestr);
+		
+		//Data Clear
+		(Dictionary.clear incontextof f)();
+		
+		(Dictionary.clear incontextof PaserObj.temp_f)();
+		
+		@if(_DEBUG == 1)
+		//DEBUG用のレジスタをクリア
+		(Dictionary.clear incontextof debug_f)();
+		@endif
+		
+		//Data復帰
+		(Dictionary.assignStruct incontextof f)(data);
+		
+		invalidate data;
+		
+		data = void;
+		
+		//エフェクト表示
+		EffectObj.TransSetFunc();
+		
+		//画面をキャプチャーする GAME画面はキャプチャーしたくないのでプライマリで
+		EffectObj.CaptureLayer.piledCopy(0, 0, PrimaryLayer, 0, 0, WndScreenX, WndScreenY);
+		
+		//フラグを寝かしておく
+		LoadErrorFlag = false;
+		
+		//ファイルサイズの確認はReleaseのみ
+		@if((_DEBUG == 0) && (_GAMEMODE == 0))
+		
+		//タイトル毎のSAVEIDを確認
+		if(scSaveDataId != f["save_id"])
+		{
+			System.inform("他のシステムのデータを読み込もうとしましたので終了します", "エラー");
+			System.terminate();
+			return;
+		}
+		
+		
+		//ファイルサイズ確認
+		var FileSize = Storages.fstat(Storages.getPlacedPath(f["scenario"])).size;
+		
+		if(f["scenario_size"] != FileSize){
+		//ファイルサイズが違うので先頭から開始する
+			
+			f["hitret_cnt"] = 0;
+			
+			//LOG NUMをクリアする
+			MessObj.lognum  = 0;
+			
+			System.inform(
+				"シナリオファイルが更新されている可能性があるので、\nシナリオファイルの先頭から開始します。",
+				"LOAD ERROR"
+			);
+			
+			LoadErrorFlag = true;
+		}
+		
+		@endif
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ JUMP用ロード関数
+	-----------------------------------------*/
+	function JumpDataAction()
+	{
+		if(LoadFlag)return;
+		
+		
+		//LOAD フラグを立てる
+		LoadFlag = true;
+		
+		//エフェクト表示
+		EffectObj.TransSetFunc();
+		
+		//画面をキャプチャーする GAME画面はキャプチャーしたくないのでプライマリで
+		EffectObj.CaptureLayer.piledCopy(0, 0, PrimaryLayer, 0, 0, WndScreenX, WndScreenY);
+		
+		//フラグを寝かしておく
+		LoadErrorFlag = false;
+		
+		//ファイルサイズの確認はReleaseのみ
+		//@if(_DEBUG == 0)
+		
+		//ファイルサイズ確認
+		var FileSize = Storages.fstat(Storages.getPlacedPath(f["scenario"])).size;
+		
+		if(f["scenario_size"] != FileSize){
+		//ファイルサイズが違うので先頭から開始する
+			
+			f["hitret_cnt"] = 0;
+			
+			//JUMPパラメータをクリアする
+			LogJumpObj.JumpParamClear();
+			
+			//LOG NUMをクリアする
+			MessObj.lognum  = 0;
+			
+			MessObj.logcnt  = 0;
+			
+			MessObj.hitret_cnt = 0;
+			
+			System.inform(
+				"シナリオファイルが更新されている可能性があるので、\nシナリオファイルの先頭から開始します。",
+				"LOAD ERROR"
+			);
+			
+			LoadErrorFlag = true;
+		}
+		
+		//@endif
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ サムネイルのサイズを計算する
+	-----------------------------------------*/
+	function calcThumbnailSize()
+	{
+		var ratio = WndScreenY / WndScreenX;
+		var w = nTHUMBNAIL_W;
+		var h = (int)(w * ratio);
+		
+		// サムネイル用ビットマップのサイズを計算
+		// サムネイル用画像は 256 色 BMP または 24bit フルカラー BMP
+		var size;
+		
+		if (thumbnailDepth == 8){
+		  size = ((((w - 1) >> 2) + 1) << 2) * h + 1024 + 54;
+		}else{
+		  size = (((w * 3 + 3) >> 2) << 2) * h + 54;
+		}
+		
+		return %[width : w, height : h, size : size];
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ タイトル戻り関数
+	-----------------------------------------*/
+	function ReturnSceneReplay( type = false)
+	{
+		//画面キャプチャーをしておく
+		EffectObj.TransSetFunc();
+		
+		//タイマー停止
+		DefaultTimer.enabled = false;
+		
+		//画面を消しておく
+		ScreenFormat();
+		
+		TitleObj = new _TITLEOBJECT(this, CaptureLayer);
+		
+		//FILE名を消しておく
+		f["bgm"]    = void;
+		f["bgmpan"] = void;
+		f["bgmpause"] = false;
+		
+		//SEを停止する＆SEを一時停止を解除する
+		for(var i=0; i<nSE_MAXNUM; i++){
+			f["se"+i]    = void;
+			f["sepan"+i] = void;
+			f["seloop"+i]= void;
+		}
+		
+		
+		
+		//タイトルＢＧ
+		var NowTime = new Date();
+		var TimeFlag= false;
+		if(( 22 < NowTime.getHours() ) || ( NowTime.getHours() < 7 )){
+			TimeFlag = true;
+		}
+		
+		invalidate NowTime;
+		
+		//ロゴ
+		ImageObj.ImageDraw(%["layer"=>1,"file"=>"frm_title01","x"=>783,"y"=>18]);
+		
+		if(TimeFlag){
+		//深夜帯
+			//背景
+			ImageObj.ImageDraw(%["layer"=>0,"file"=>"frm_title03","x"=>-42,"y"=>-65]);
+			//キャラ設置
+			if(s['CLEAR_A'] == true){
+				ImageObj.ImageDraw(%["layer"=>5,"file"=>"frm_title05_02","x"=>-216,"y"=>-7,"parent"=>0]);
+			}
+			if(s['CLEAR_B'] == true){
+				ImageObj.ImageDraw(%["layer"=>4,"file"=>"frm_title06_02","x"=>798,"y"=>245,"parent"=>0]);
+			}
+			if(s['CLEAR_C'] == true){
+				ImageObj.ImageDraw(%["layer"=>3,"file"=>"frm_title07_02","x"=>482,"y"=>341,"parent"=>0]);
+			}
+			if(s['CLEAR_D'] == true){
+				ImageObj.ImageDraw(%["layer"=>2,"file"=>"frm_title08_02","x"=>291,"y"=>498,"parent"=>0]);
+			}
+		}else{
+		//通常帯
+			if(s['ALL_CLEAR'] == false){
+				//背景
+				ImageObj.ImageDraw(%["layer"=>0,"file"=>"frm_title02","x"=>-42,"y"=>-65]);
+				//キャラ設置
+				if(s['CLEAR_A'] == true){
+					ImageObj.ImageDraw(%["layer"=>5,"file"=>"frm_title05_01","x"=>-216,"y"=>-7,"parent"=>0]);
+				}
+				if(s['CLEAR_B'] == true){
+					ImageObj.ImageDraw(%["layer"=>4,"file"=>"frm_title06_01","x"=>798,"y"=>245,"parent"=>0]);
+				}
+				if(s['CLEAR_C'] == true){
+					ImageObj.ImageDraw(%["layer"=>3,"file"=>"frm_title07_01","x"=>482,"y"=>341,"parent"=>0]);
+				}
+				if(s['CLEAR_D'] == true){
+					ImageObj.ImageDraw(%["layer"=>2,"file"=>"frm_title08_01","x"=>291,"y"=>498,"parent"=>0]);
+				}
+			}else{
+				//背景
+				ImageObj.ImageDraw(%["layer"=>0,"file"=>"frm_title09","x"=>-42,"y"=>-65]);
+			}
+		}
+		
+		//タイトル画面作成
+		if( type == false){
+		//リプレイ画面
+			TitleObj.TitleCreate( 1 );
+		}else{
+			TitleObj.TitleCreate( 2 );
+		}
+		
+		
+		//タイマー停止
+		DefaultTimer.enabled = false;
+		
+		
+		
+		//レイヤ深度を変える
+		if( type == false){
+			EffectObj.ClearLayer.absolute   = CgReplayObj.CgScreen.absolute + 1;
+			
+			EffectObj.CaptureLayer.absolute = CgReplayObj.CgScreen.absolute + 2;
+		}else{
+			EffectObj.ClearLayer.absolute   = ExtraObj.BgLayer.absolute + 1;
+			
+			EffectObj.CaptureLayer.absolute = ExtraObj.BgLayer.absolute + 2;
+			
+		}
+		
+		//トランジション開始
+		EffectObj.ActTransition(%["type"=>0,"time"=>1000], null, true);
+		
+		//タイマー再開
+		DefaultTimer.enabled = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 画面初期化関数
+	-----------------------------------------*/
+	function ScreenFormat()
+	{
+		//タイマーを停止する
+		DefaultTimer.enabled = false;
+		
+		//アクティブオブジェクトを破棄する
+		ActiveObj = void;
+		
+		//フレームを消す
+		MessObj.MessFrame.visible = false;
+		MessObj.MessHidden.visible= false;
+		
+		//フェースを消す
+		MessObj.FaceLayer.visible = false;
+		MessObj.FaceTempLayer.visible = false;
+		
+		MessObj.FaceDrawFlag      = false;
+		MessObj.FaceForceFlag     = void;
+		MessObj.FaceHiddenFlag    = false;
+		MessObj.FaceDrawType      = false;
+		MessObj.FaceHiddenType    = false;
+		MessObj.FaceDrawFile      = void;
+		MessObj.FaceDrawTempFile  = void;
+		MessObj.FaceDelayTime     = false;
+		MessObj.FaceDelayType     = 0;
+		if(MessObj.FaceDelayObj !== void)invalidate MessObj.FaceDelayObj;
+		MessObj.FaceDelayObj      = void;
+		
+		//フレームを戻す
+		f["MessFrameType"] = 0;
+		MessObj.SetMessFrameType( f["MessFrameType"] );
+		
+		//テキストを消す
+		MessObj.MessClear();
+		
+		//MESSAGE 初期化処理
+		MessObj.MessFormat();
+		
+		//リピートフラグを寝かせる
+		MessObj.RepeatFlag= false;
+		
+		//リプレイフラグを寝かす
+		ReplayFlag = false;
+		
+		//EXTRAフラグ
+		ExtraFlag  = false;
+		
+		//ボタンを元に戻す
+		MessObj.SkipAutoRelease();
+		
+		MessObj.MapReg = 0;
+		
+		MessObj.TempReg= 0;
+		
+		
+		//ログ画面があったら消去
+		if(MessObj.LogObject !== void)invalidate MessObj.LogObject;
+		
+		MessObj.LogObject = void;
+		
+		//タイトル画面からの際は既に全面表示している
+		if(TitleObj !== void)invalidate TitleObj;
+		
+		TitleObj = void;
+		
+		//SAVE・LOAD画面を破棄
+		if(SaveLoadObj !== void)invalidate SaveLoadObj;
+		
+		SaveLoadObj = void;
+		
+		//CONFIG画面を破棄
+		if(ConfigObj !== void)invalidate ConfigObj;
+		
+		ConfigObj = void;
+		
+		//選択肢オブジェクトが存在するなら削除
+		SelObj.DelSelect();
+		
+		//選択肢カウントをクリアする
+		SelObj.SelCnt = 0;
+		
+		//Handler 関数を切り離す
+		EffectObj.removeEffectHandler();
+		
+		//画像を消す
+		ImageObj.ImageClear(%['layer'=>-1]);
+		
+		//タイムレジスタをクリアする
+		f["BuTimeSelect"] = void;
+		
+		//BGMを停止する
+		BgmObj.FileStop();
+		
+		//SEを停止する＆SEを一時停止を解除する
+		for(var i=0; i<nSE_MAXNUM; i++){
+			SeObj[i].FileStop();
+		}
+		
+		//音声を停止する
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			VoiceObj[i].FileStop();
+		}
+		//再生フラグを寝かしておく
+		MessObj.VoicePlayFlag.clear();
+		
+		//日付ボードを破棄
+		DayBordObj.BaseBord.visible = false;
+		//データ破棄
+		DayBordObj.EraseData();
+		
+		//SYSTEを停止する
+		SystemObj.FileStop();
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ ＬＯＡＤ処理
+	-----------------------------------------*/
+	function LoadAction()
+	{
+		var ReplayTemp = false;
+		//REPLAYからJUMPを呼ばれた際の対処用
+		if(ReplayFlag)ReplayTemp = true;
+		
+		//画面初期化関数
+		ScreenFormat();
+		
+		//リプレイから呼ばれた際はCONTINUE等をさせない
+		if(ReplayTemp){
+			ReplayFlag   = true;
+		}
+		
+		//SYSTEM IDで変更する
+		LoadEyeCatchId = getCharID(s["sys_char_id"]);
+		
+		//Now Loadingを使用するか
+		if(nNOWLODING_ON == true)
+		{
+			//EYECATCH画面の作成
+			var char_file   = "";
+			var eyecatch_bg = "";
+			
+			switch( LoadEyeCatchId ){
+				case "A":{//菜乃花
+					eyecatch_bg = "load_eyecatch_00";
+				}break;
+				case "B":{//このみ
+					eyecatch_bg = "load_eyecatch_01";
+				}break;
+				case "C":{//花梨
+					eyecatch_bg = "load_eyecatch_02";
+				}break;
+				case "D":{//雨音
+					eyecatch_bg = "load_eyecatch_03";
+				}break;
+				case "E":{//彩菜
+					eyecatch_bg = "load_eyecatch_04";
+				}break;
+				case "F":{//玲於奈
+					eyecatch_bg = "load_eyecatch_05";
+				}break;
+				case "G":{//時雨
+					eyecatch_bg = "load_eyecatch_06";
+				}break;
+				case "K":{//あんず
+					eyecatch_bg = "load_eyecatch_07";
+				}break;
+				case "L":{//晴乃
+					eyecatch_bg = "load_eyecatch_08";
+				}break;
+				case "M":{//氷雨
+					eyecatch_bg = "load_eyecatch_09";
+				}break;
+				default:{//errorはaで
+					eyecatch_bg = "load_eyecatch_00";
+				}break;
+			}
+			
+			
+			//EYECATCH画面の作成
+			EffectObj.ClearLayer.loadImages(eyecatch_bg+".png");
+			
+			//レイヤ作成
+			EyeCatchChar = new BaseLayer(this, CaptureLayer,0,0,0,0,eyecatch_bg);
+			
+			//キャラクター画面の合成
+			EffectObj.ClearLayer.pileRect(0, 0, EyeCatchChar, 0, 0, EyeCatchChar.width, EyeCatchChar.height);
+			
+		
+		}else{
+		//白く塗りつぶしておく
+			EffectObj.ClearLayer.fillRect(0,0,EffectObj.ClearLayer.width, EffectObj.ClearLayer.height, 0xffffffff);
+			
+			//レイヤ作成
+			EyeCatchChar = new BaseLayer(this, CaptureLayer,0,0,EffectObj.ClearLayer.width,EffectObj.ClearLayer.height);
+		}
+		
+		EyeCatchChar.visible = false;
+		
+		//アクティブを変更する
+		ChangeActive(EffectObj);
+		
+		EffectObj.LoadTrans = true;
+		
+		//タイマーを止める
+		DefaultTimer.enabled  = false;
+		
+		//ここのフェードだけキャンセル禁止
+		EffectObj.EffectCancelFlag = true;
+		
+		//トランジション開始
+		EffectObj.ActTransition(%["type"=>0,"time"=>800], this.LoadTransEnd);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ ロード 演出終了処理
+	-----------------------------------------*/
+	function LoadTransEnd()
+	{
+		
+		//VOIDにしておく
+		EffectObj.EndFunction = void;
+		
+		EyeCatchChar.copyRect(0,0,EffectObj.ClearLayer,0,0,EffectObj.ClearLayer.width,EffectObj.ClearLayer.height);
+		
+		EyeCatchChar.visible  = true;
+		
+		//アクティブを変更する
+		ChangeActive(this);
+		
+		//JUMPデータ調整処理
+		LogJumpObj.JumpParamLoad();
+		
+		
+		//ペイントフラグを強制的に立たせておく
+		if(EffectCheck()){
+			EyeCatchChar.PaintFlag = true;
+		}else{
+			//アイキャッチの画面更新
+			EyeCatchChar.update();
+		}
+		
+		//タイマーを動かす
+		DefaultTimer.enabled  = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 画面復帰処理
+	-----------------------------------------*/
+	function ScreenRecovery()
+	{
+		//タイマー停止
+		DefaultTimer.enabled = false;
+		
+		ScreenRecreate();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ 画面復帰処理
+	-----------------------------------------*/
+	function ScreenRecreate()
+	{
+		//タイマー停止
+		DefaultTimer.enabled = false;
+		
+		@if(_DEBUG == 1)
+		if(DebugLoadFlag == false){
+			if(EyeCatchChar === void){
+				DebugMess("EyeCatchChar が取得できませんでした。");
+				return;
+			}
+		}
+		
+		DebugLoadFlag = false;
+		@endif
+		
+		
+		//キャラ毎の加算レジスタ
+		var LoadEndTime_add = 0;
+		
+		//SYSTEM音声の再生
+		if(s["system"] == true) 
+		{
+			var file = "";
+			if(LogJumpObj.JumpActionFlag == false){
+				file = nSYSTEM_VOICE_HEADER + LoadEyeCatchId + nSYS_LOADEND;
+			}else{
+				file = nSYSTEM_VOICE_HEADER + LoadEyeCatchId + nSYS_JUMPEND;
+				LogJumpObj.JumpActionFlag = false;
+			}
+			
+			SystemVoicePlay(file);
+			
+			switch( LoadEyeCatchId ){
+				//菜乃花
+				case "A":{ LoadEndTime_add = nLOADEND_CHAR_A_TIME; }break;
+				//このみ
+				case "B":{ LoadEndTime_add = nLOADEND_CHAR_B_TIME; }break;
+				//花梨
+				case "C":{ LoadEndTime_add = nLOADEND_CHAR_C_TIME; }break;
+				//雨音
+				case "D":{ LoadEndTime_add = nLOADEND_CHAR_D_TIME; }break;
+				//彩菜
+				case "E":{ LoadEndTime_add = nLOADEND_CHAR_E_TIME; }break;
+				//玲於奈
+				case "F":{ LoadEndTime_add = nLOADEND_CHAR_F_TIME; }break;
+				//時雨
+				case "G":{ LoadEndTime_add = nLOADEND_CHAR_G_TIME; }break;
+				//あんず
+				case "K":{ LoadEndTime_add = nLOADEND_CHAR_K_TIME; }break;
+				//晴乃
+				case "L":{ LoadEndTime_add = nLOADEND_CHAR_L_TIME; }break;
+				//氷雨
+				case "M":{ LoadEndTime_add = nLOADEND_CHAR_M_TIME; }break;
+				//errorはaで
+				default:{ LoadEndTime_add = nLOADEND_CHAR_A_TIME; }break;
+			}
+			
+		}
+		
+		//画面キャプチャーをしておく
+		EffectObj.TransSetFunc();
+		
+		
+		//キャプチャーレイヤに画面をCOPYしておく
+		if(EyeCatchChar !== void)EffectObj.CaptureLayer.pileRect(0,0,EyeCatchChar,0,0,EyeCatchChar.width, EyeCatchChar.height);
+		
+		//EYECATCH画面の破棄
+		if(EyeCatchChar !== void)invalidate EyeCatchChar;
+		
+		EyeCatchChar  = void;
+		
+		//テキストレイヤをクリアする
+		MessObj.MessClear();
+		
+		
+		//名前描画
+		MessObj.NameDraw();
+		
+		for(var i=0; i<f["lastmess"].length; i++){
+			MessObj.MessArray[i] = f["lastmess"].charAt(i);
+		}
+		
+		//COPY
+		MessObj.HistoryMessArray.assignStruct( MessObj.MessArray );
+		
+		
+		//INDEXをクリアする
+		MessObj.inx      = 0;
+		
+		//カウントをクリアする
+		MessObj.draw_cnt = 0;
+		
+		MessObj.x        = nFUKURO_WIDTH;//X座標
+		
+		MessObj.y        = nFUKURO_WIDTH;//Y座標
+		
+		//メッセージを描画しておく
+		while(MessObj.MessArray.count != MessObj.inx){
+			MessObj.DrawMessFunc();
+		}
+		
+		//初期化処理
+		MessObj.MessFormat();
+		
+		//LAST MESSを戻す
+		MessObj.lastmess = f["lastmess"];
+		
+		//LOG NUMを復帰させる
+		MessObj.lognum = f["lognum"];
+		
+		//メッセージのレジスタとQUICKを消去しておく
+		MessObj.MapReg = 0;
+		
+		//QUICKDATAを消去する
+		if(MessObj.QuickDataBord !== void){
+			MessObj.QuickDataBord.visible = false;
+		}
+		
+		//Iconボードを消す
+		MessObj.IconBord.visible = false;
+		
+		MessObj.IconCnt = 0;
+		
+		
+		//フェイス表示
+		if(f["voiceplay"+0] !== void){
+			MessObj.VoicePlayFlag[0] = true;
+		}else{
+			MessObj.VoicePlayFlag[0] = false;
+		}
+		
+		
+		MessObj.DrawFace();
+		
+		//メッセージフレームを表示
+		MessObj.MessFrame.visible     = true;
+		MessObj.MessHidden.visible    = true;
+		
+		
+		//BGM
+		if((f["bgm"] != "") && (s["bgm"] == true) && f["bgmpause"] == false){
+			//BGM PAN設定
+			BgmObj.SetState(1, f["bgmpan"]);
+			BgmObj.FilePlay(f["bgm"], true);
+		}
+		
+		
+		
+		//SE LOOPの再生
+		for(var i=0; i<nSE_MAXNUM; i++){
+			if((f["seloop"+i] !== void) && (s["se"] == true) && f["sepause"+i] == false){
+				//PAN設定
+				SeObj[i].SetState(1, f["sepan"+i]);
+				//再生処理
+				SeObj[i].FilePlay(f["seloop"+i], true);
+			}
+		}
+		
+		
+		
+		
+		//画像処理
+		for(var i=0; i<nIMAGEMAX; i++)
+		{
+			//fileのIndexを作成
+			var Imagefile = "imagefile%d".sprintf(i);
+			
+			//ファイルの確認
+			if(f[Imagefile] === void)
+			{	//指定が無い場合は塗りつぶし処理
+				if(f[Imagefile+"_color_flag"] !== void)
+				{
+					ImageObj.Imagefill(%["layer"=>i,"color"=>f[Imagefile+"_color"]]);
+					//座標設定と透過度設定
+					ImageObj.ImgObj[i].left    = f[Imagefile+"_x"];
+					ImageObj.ImgObj[i].top     = f[Imagefile+"_y"];
+					ImageObj.ImgObj[i].opacity = f[Imagefile+"_opacity"];
+					//レイヤの幅と高さ
+					ImageObj.ImgObj[i].width   = f[Imagefile+"_width"];
+					ImageObj.ImgObj[i].height  = f[Imagefile+"_height"];
+					
+				}
+				
+				continue;
+			}
+			
+			
+			
+			
+			//ZOOMをフラグを確認
+			var zoomflag = false;
+			var zoom_width;
+			var zoom_height;
+			var zoom_type;
+			
+			if( f[(Imagefile + "zoom")] ){
+				zoomflag   = true;
+				zoom_width = f[Imagefile+"_width"];
+				zoom_height= f[Imagefile+"_height"];
+				zoom_type  = f[Imagefile+"zoom_type"];
+			}
+			
+			//LAYERを破棄
+			ImageObj.ImageClear(%["layer"=>i]);
+			
+			//画像ファイルをレイヤに描画する
+			ImageObj.ImageDraw(
+				%[
+				"layer"=>i, 
+				"file"=>f[Imagefile],
+				"x"=>f["imagefile%d_x".sprintf(i)], 
+				"y"=>f["imagefile%d_y".sprintf(i)], 
+				"opacity"=>f["imagefile%d_opacity".sprintf(i)], 
+				"type"=>f["imagefile%d_type".sprintf(i)], 
+				"absolute"=>f["imagefile%d_absolute".sprintf(i)]
+				]
+			);
+			
+			
+			//ZOOM処理
+			if(zoomflag)
+			{
+				ImageObj.ZoomObj[i].targetLayer = ImageObj.ImgObj[i];
+				
+				ImageObj.ZoomObj[i].tempLayer   = new Layer(this, PrimaryLayer);
+				
+				ImageObj.ZoomObj[i].tempLayer.setSize(ImageObj.ImgObj[i].width, ImageObj.ImgObj[i].height);
+				
+				ImageObj.ZoomObj[i].tempLayer.copyRect(0,0,ImageObj.ImgObj[i],0,0,ImageObj.ImgObj[i].width,ImageObj.ImgObj[i].height);
+				
+				var Imagefile_x   = Imagefile + "_x";
+				
+				var Imagefile_y   = Imagefile + "_y";
+				
+				
+				//サイズが小さい場合は拡大する
+				if(ImageObj.ImgObj[i].imageWidth < zoom_width){
+					ImageObj.ImgObj[i].imageWidth = zoom_width;
+				}
+				
+				if(ImageObj.ImgObj[i].imageHeight< zoom_height){
+					ImageObj.ImgObj[i].imageHeight = zoom_height;
+				}
+				
+				//zoomtypeを戻す
+				f[Imagefile+"zoom_type"] = zoom_type;
+				
+				ImageObj.ZoomObj[i].zoomtype = f[Imagefile+"zoom_type"];
+				
+				//ZOOM処理
+				ImageObj.ZoomObj[i].moveAt(f[Imagefile_x], f[Imagefile_y], zoom_width, zoom_height);
+				
+				//ZOOMフラグを立てておく
+				f[(Imagefile + "zoom")] = true;
+				f[Imagefile+"_width"]   = zoom_width;
+				f[Imagefile+"_height"]  = zoom_height;
+				
+				
+				invalidate ImageObj.ZoomObj[i].tempLayer;
+				
+				ImageObj.ZoomObj[i].targetLayer = void;
+				
+				ImageObj.ZoomObj[i].tempLayer   = void;
+				
+				//ガベージを強制的に動かす
+				System.doCompact();
+				
+				zoomflag = false;
+			}
+			
+			
+			
+			
+			//グレイスケール & ガンマ補正処理
+			if(f[(Imagefile + "_gray")] || f[(Imagefile + "_gamma")]) {
+				ImageObj.ImageGamma(%[	"layer"=>i, 
+										"gray"=>f[(Imagefile + "_gray")], 
+										"rgamma"=>f[Imagefile+"_rgamma"], 
+										"ggamma"=>f[Imagefile+"_ggamma"], 
+										"bgamma"=>f[Imagefile+"_bgamma"]]
+				);
+			}
+			
+			//明度・コントラスト補正処理
+			if(f[(Imagefile + "_light_flag")]){
+				ImageObj.ImageLight(%[
+					"layer"   =>i,
+					"light"   =>f[(Imagefile + "_light")],
+					"contrast"=>f[(Imagefile + "_contrast")]
+				]);
+			}
+			
+			//Shake フラグ
+			var ImageShakeFlag = f[(Imagefile+"shake")];
+			
+			if(ImageShakeFlag){
+				EffectObj.SetShakeLoop(%["layer"=>i,"wait"=>f[Imagefile+"shakewait"]]);
+			}
+		}
+		
+		
+		//ロードフラグを寝かす
+		LoadFlag            = false;
+		
+		//MOVIEファイルがある場合はここで復帰する
+		if(f["moviefile"] !== void){
+			MovieObj.PlayFile(f["moviefile"], f["movieloop"] , nLAYER_MODE, true, -1, f["movielayer"]);
+		}
+		
+		
+		//ロード用のトランジション
+		EffectObj.LoadTrans = true;
+		
+		//ウェイト処理
+		Wait(800);
+		
+		//現在のアクティブオブジェクトを保持しておく
+		TempActive = ActiveObj;
+		
+		//アクティブを変更する
+		ChangeActive(EffectObj);
+		
+		//ここからキャンセルＯＫ
+		EffectObj.EffectCancelFlag = false;
+		
+		//トランジション開始
+		EffectObj.ActTransition(%["type"=>0,"time"=>(nLOADEND_DEFALT_TIME+LoadEndTime_add)], this.RecoveryEnd);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 復帰処理終了関数
+	-----------------------------------------*/
+	function RecoveryEnd()
+	{
+		//VOIDにしておく
+		EffectObj.EndFunction = void;
+		
+		/*
+		//単発SE再生処理
+		for(var i=0; i<nSE_MAXNUM; i++){
+			if(f["se"+i] === void)continue;
+			
+			SeObj[i].SetState(1, f["sepan"+i]);
+			//SEの再生
+			SeObj[i].FilePlay(f["se"+i]);
+			
+		}*/
+		
+		
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			if(f["voiceplay"+i] === void)continue;
+			//PAN設定
+			VoiceObj[i].SetState(1, f["voicepan"+i]);
+			//音声ファイルを再生する
+			MessObj.VoicePlay(f["voiceplay"+i], i);
+		}
+		
+		
+		//日付表示再生
+		if(f["daybord_mon"] !== void){
+			DayBordObj.SetDayBord( f["daybord_mon"], f["daybord_day"], f["daybord_week"] );
+		}
+		
+		
+		LeftMouseCtrl        = false;
+		
+		//コンティニュー用SAVEフラグ
+		ContinueFlag         = true;
+		
+		//REPLAYからJUMPを呼ばれた際の対処用
+		if(ReplayFlag)ContinueFlag = false;
+		
+		//エクストラフラグを復帰
+		ExtraFlag = f["extra"];
+		
+		
+		//タイマーを動かす
+		DefaultTimer.enabled = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 終了監視関数
+	-----------------------------------------*/
+	function GameEndTransEnd()
+	{
+		if(EndScreen.opacity < 255){
+			EndScreen.opacity += 2;
+			if(EffectCheck())EndScreen.opacity = 0xff;
+		}else{
+			EndScreen.opacity = 0xff;
+		}
+		
+		
+		//監視
+		if(
+			(SystemObj.SetState(3) == "stop") &&
+			(EndScreen.opacity == 0xff)
+		){
+			System.removeContinuousHandler(GameEndTransEnd);
+			super.onCloseQuery(true);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンティニュー用save処理
+	-----------------------------------------*/
+	function ContinueSave()
+	{
+		
+		//コンティニューフラグ
+		if(ContinueFlag == false)return;
+		
+		//リプレイ中はここまで
+		if(ReplayFlag)return;
+		
+		//エンディング中はさせない
+		if(f.ending_start == true)return;
+		
+		//Continue用SAVE
+		SaveAction(nC_SAVENUM);
+		
+		//CONTINUEを使用可能にする
+		s["continue"] = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 緊急回避処理
+	-----------------------------------------*/
+	function EscapeWork()
+	{
+		//ロード中は動作させない
+		if(LoadFlag)return;
+		
+		//エンディング中はさせない
+		if(f.ending_start == true)return;
+		
+		//最小化ボタン
+		if( this.minimized == false )
+		{//最小化ではない
+			//フルスクリーン状態
+			if(this.fullScreen)
+			{
+				EscapeFullScreen = this.fullScreen;
+				//CONFIG画面更新用に取り敢えず何かオブジェクトを作成しておく
+				ChangeScreen = new Array();
+				//WINDOW MODEに戻す
+				//※フルスクリーン状態で最小化すると戻す際に問題が出るため
+				FullScreenWork();
+				//作成したオブジェクトを削除する
+				invalidate ChangeScreen;
+				ChangeScreen = void;
+			}
+			
+			//タイマーを止めておく
+			DefaultTimer.enabled  = false;
+			
+			//■MOVIE オブジェクト
+			MovieObj.pause();
+			
+			//■BGM オブジェクト
+			BgmObj.SetState(2, 1);
+			
+			//■SE オブジェクト
+			for(var i=0; i<nSE_MAXNUM; i++){
+				SeObj[i].SetState(2, 1);
+			}
+			
+			//■VOICE オブジェクト
+			for(var i=0; i<nVOICE_MAXNUM; i++){
+				VoiceObj[i].SetState(2, 1);
+			}
+			
+			//SYSTEM SE
+			SystemObj.SetState(2, 1);
+			
+			if(ConfigObj !== void){
+				ConfigObj.VoiceTest.SetState(2, 1);
+				ConfigObj.SystemTest.SetState(2, 1);
+				ConfigObj.SeTest.SetState(2, 1);
+				ConfigObj.BgmTest.SetState(2, 1);
+				ConfigObj.CharVoiceTest.SetState(2, 1);
+			}
+			
+			//オブジェクトにフラグを立てておく
+			EscapeObj = true;
+			
+			//最小化処理
+			this.minimize();
+			
+		}else{
+		//元に戻す
+			//onShow() で復帰処理を行う方向に修正
+		}
+		
+
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 壁紙差し替え処理
+	-----------------------------------------*/
+	function WallPaperWork()
+	{
+		//■画像差し替え系処理
+		
+		if( EscapeObj === void ){
+			
+			if( ResourceCheck(stESCAPEFILE) ){
+				//回避画像を表示
+				EscapeObj = new BaseLayer(this, PrimaryLayer, 0,0, 0,0, stESCAPEFILE );
+			}else{
+				EscapeObj = new BaseLayer(this, PrimaryLayer, 0,0, WndScreenX, WndScreenY);
+				EscapeObj.fillRect( 0,0,WndScreenX, WndScreenY, 0xff000000 );
+			}
+			
+			EscapeObj.absolute = nESCAPELAYER;
+			
+			//タイマーを止めておく
+			DefaultTimer.enabled  = false;
+			
+			caption        = stESCCAPTION;//WindowのCaption
+			
+			System.title   = stESCCAPTION;//SystemのCaption
+			
+			
+			//■BGM オブジェクト
+			BgmObj.SetState(2, 1);
+			
+			//■SE オブジェクト
+			for(var i=0; i<nSE_MAXNUM; i++){
+				SeObj[i].SetState(2, 1);
+			}
+			
+			//■VOICE オブジェクト
+			for(var i=0; i<nVOICE_MAXNUM; i++){
+				VoiceObj[i].SetState(2, 1);
+			}
+			
+			//SYSTEM SE
+			SystemObj.SetState(2, 1);
+			
+			if(ConfigObj !== void){
+				ConfigObj.VoiceTest.SetState(2, 1);
+				ConfigObj.SystemTest.SetState(2, 1);
+				ConfigObj.SeTest.SetState(2, 1);
+				ConfigObj.BgmTest.SetState(2, 1);
+				ConfigObj.CharVoiceTest.SetState(2, 1);
+			}
+			
+		}else{
+			
+			caption        = nCAPTION_TITLE;//WindowのCaption
+			
+			System.title   = nCAPTION_TITLE;//SystemのCaption
+			
+			//■BGM オブジェクト
+			BgmObj.SetState(2, 0);
+			
+			//■SE オブジェクト
+			for(var i=0; i<nSE_MAXNUM; i++){
+				SeObj[i].SetState(2, 0);
+			}
+			
+			//■VOICE オブジェクト
+			for(var i=0; i<nVOICE_MAXNUM; i++){
+				VoiceObj[i].SetState(2, 0);
+			}
+			
+			//SYSTEM SE
+			SystemObj.SetState(2, 0);
+			
+			if(ConfigObj !== void){
+				ConfigObj.VoiceTest.SetState(2, 0);
+				ConfigObj.SystemTest.SetState(2, 0);
+				ConfigObj.SeTest.SetState(2, 0);
+				ConfigObj.BgmTest.SetState(2, 0);
+				ConfigObj.CharVoiceTest.SetState(2, 0);
+			}
+			
+			//回避画像を消去
+			invalidate EscapeObj;
+			
+			EscapeObj = void;
+			
+			//タイマーを動かす
+			DefaultTimer.enabled  = true;
+		}
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	□ 裸パッチ用再描画処理
+	-----------------------------------------*/	
+	function ApendRedraw()
+	{
+		//一時的にロードフラグを立てておく
+		LoadFlag = true;
+		
+		//画像処理
+		for(var i=0; i<nIMAGEMAX; i++)
+		{
+			//fileのIndexを作成
+			var Imagefile = "imagefile%d".sprintf(i);
+			
+			//ファイルの確認
+			if((f[Imagefile] === void) || (f[Imagefile] == ""))continue;
+			
+			//立ち絵以外は処理しない
+			if(f[Imagefile].indexOf("CH_") == -1)continue;
+			
+			
+			//ZOOMをフラグを確認
+			var ImageZoomFlag = f[(Imagefile + "zoom")];
+			
+			//LAYERを破棄
+			ImageObj.ImageClear(%["layer"=>i]);
+			
+			//画像ファイルをレイヤに描画する
+			ImageObj.ImageDraw(
+				%[
+				"layer"=>i, 
+				"file"=>f[Imagefile],
+				"x"=>f["imagefile%d_x".sprintf(i)], 
+				"y"=>f["imagefile%d_y".sprintf(i)], 
+				"opacity"=>f["imagefile%d_opacity".sprintf(i)], 
+				"type"=>f["imagefile%d_type".sprintf(i)], 
+				"absolute"=>f["imagefile%d_absolute".sprintf(i)]
+				]
+			);
+			
+			
+			//ZOOM処理
+			if(ImageZoomFlag)
+			{
+				ImageObj.ZoomObj[i].targetLayer = ImageObj.ImgObj[i];
+				
+				ImageObj.ZoomObj[i].tempLayer   = new Layer(this, PrimaryLayer);
+				
+				ImageObj.ZoomObj[i].tempLayer.setSize(ImageObj.ImgObj[i].width, ImageObj.ImgObj[i].height);
+				
+				ImageObj.ZoomObj[i].tempLayer.copyRect(0,0,ImageObj.ImgObj[i],0,0,ImageObj.ImgObj[i].width,ImageObj.ImgObj[i].height);
+				
+				var Imagefile_x   = Imagefile + "_x";
+				
+				var Imagefile_y   = Imagefile + "_y";
+				
+				var Imagefile_w   = Imagefile + "_w";
+				
+				var Imagefile_h   = Imagefile + "_h";
+				
+				//サイズが小さい場合は拡大する
+				if(ImageObj.ImgObj[i].imageWidth < f[Imagefile_w])ImageObj.ImgObj[i].imageWidth = f[Imagefile_w];
+				
+				if(ImageObj.ImgObj[i].imageHeight< f[Imagefile_h])ImageObj.ImgObj[i].imageHeight= f[Imagefile_h];
+				
+				//zoomtypeを戻す
+				ImageObj.ZoomObj[i].zoomtype = f[Imagefile+"zoom_type"];
+				
+				//ZOOM処理
+				ImageObj.ZoomObj[i].moveAt(f[Imagefile_x], f[Imagefile_y], f[Imagefile_w], f[Imagefile_h]);
+				
+				//ZOOMフラグを立てておく
+				f[(Imagefile + "zoom")] = true;
+				
+				invalidate ImageObj.ZoomObj[i].tempLayer;
+				
+				ImageObj.ZoomObj[i].targetLayer = void;
+				
+				ImageObj.ZoomObj[i].tempLayer   = void;
+				
+				//ガベージを強制的に動かす
+				System.doCompact();
+				
+				ImageZoomFlag = false;
+			}
+			
+			
+			
+			
+			//グレイスケール & ガンマ補正処理
+			if(f[(Imagefile + "_gray")] || f[(Imagefile + "_gamma")]) {
+				ImageObj.ImageGamma(%[	"layer"=>i, 
+										"gray"=>f[(Imagefile + "_gray")], 
+										"rgamma"=>f[Imagefile+"_rgamma"], 
+										"ggamma"=>f[Imagefile+"_ggamma"], 
+										"bgamma"=>f[Imagefile+"_bgamma"]]
+				);
+			}
+			
+			
+			
+			//明度・コントラスト補正処理
+			if(f[(Imagefile + "_light_flag")]){
+				ImageObj.ImageLight(%[
+					"layer"   =>i,
+					"light"   =>f[(Imagefile + "_light")],
+					"contrast"=>f[(Imagefile + "_contrast")]
+				]);
+			}
+			
+			
+			
+			//Shake フラグ
+			var ImageShakeFlag = f[(Imagefile+"shake")];
+			
+			if(ImageShakeFlag){
+				EffectObj.SetShakeLoop(%["layer"=>i,"wait"=>f[Imagefile+"shakewait"]]);
+			}
+		}
+		
+		//フェイス表示
+		if(f["voiceplay"+0] !== void){
+			MessObj.VoicePlayFlag = true;
+		}else{
+			MessObj.VoicePlayFlag = false;
+		}
+		
+		//フェイスを描画
+		MessObj.DrawFace();
+		
+		//ボイスフラグ
+		MessObj.VoicePlayFlag = false;
+		
+		
+		//ロードフラグを寝かす
+		LoadFlag = false;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SYSTEM VOICE再生
+	-----------------------------------------*/
+	function SystemVoicePlay( file, mode = false, time = false, waittime = false )
+	{
+		//SYSTEM SE VOLUMEの変更
+		SystemObj.SetState(5, GetSystemVolume( (file.substr(6, 1)).toUpperCase() ));
+		
+		//ファイルを再生する
+		SystemObj.FilePlay(file, mode, time, waittime);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ SYSTEM VOL 取得
+	-----------------------------------------*/
+	function GetSystemVolume( id )
+	{
+		var vol = 0;
+		
+		switch( id ){
+			case "A":{
+				vol = (s["system_vol"] * s["char_1_vol"]) \ 100;
+			}break;
+			case "B":{
+				vol = (s["system_vol"] * s["char_2_vol"]) \ 100;
+			}break;
+			case "C":{
+				vol = (s["system_vol"] * s["char_3_vol"]) \ 100;
+			}break;
+			case "D":{
+				vol = (s["system_vol"] * s["char_4_vol"]) \ 100;
+			}break;
+			case "E":{
+				vol = (s["system_vol"] * s["char_5_vol"]) \ 100;
+			}break;
+			case "F":{
+				vol = (s["system_vol"] * s["char_6_vol"]) \ 100;
+			}break;
+			case "G":{
+				vol = (s["system_vol"] * s["char_7_vol"]) \ 100;
+			}break;
+			case "H":{
+				vol = (s["system_vol"] * s["char_8_vol"]) \ 100;
+			}break;
+			default:{
+				vol = (s["system_vol"] * s["char_1_vol"]) \ 100;
+			}break;
+		}
+		
+		
+		
+		return vol;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ウィンドウ作成関数
+	-----------------------------------------*/
+	function WindowCreateFunc( type )
+	{
+		//フルスクリーン中は動作させない
+		if((fullScreen))return false;
+		
+		//ウィンドウサイズの変更を一時的に許可する
+		//※初回中は除く
+		if(MainObj !== void)disableResize = false;
+		
+		//現状のディスプレイサイズで表示可能かどうか？
+		var set_wid = nWND_WIDTH;
+		var set_hei = nWND_HEIGHT;
+		
+		//DUMMY 中は常に通常サイズ
+		if(nDUMMY_FLAG == 1)type = 0;
+		
+		switch( type ){
+			case 0:{
+			//通常サイズ
+				set_wid = nWND_WIDTH;
+				set_hei = nWND_HEIGHT;
+			}break;
+			case 1:{
+			//サイズ１
+				set_wid = nWND_SIZE01_WID;
+				set_hei = nWND_SIZE01_HEI;
+			}break;
+			case 2:{
+			//サイズ２
+				set_wid = nWND_SIZE02_WID;
+				set_hei = nWND_SIZE02_HEI;
+			}break;
+			case 3:{
+			//サイズ３
+				set_wid = nWND_SIZE03_WID;
+				set_hei = nWND_SIZE03_HEI;
+			}break;
+			case 4:{
+			//サイズ４
+				set_wid = nWND_SIZE04_WID;
+				set_hei = nWND_SIZE04_HEI;
+			}break;
+		}
+		
+		
+		if((set_wid <= System.desktopWidth) && (set_hei <= System.desktopHeight)){
+		//表示可能
+			switch( type ){
+				case 0:{
+				//通常サイズ
+					this.setInnerSize(nWND_WIDTH, nWND_HEIGHT);
+					this.setZoom(1, 1);
+				}break;
+				case 1:{
+				//サイズ１
+					this.setInnerSize(nWND_SIZE01_WID, nWND_SIZE01_HEI);
+					this.setZoom(4, 5);
+				}break;
+				case 2:{
+				//サイズ２
+					this.setInnerSize(nWND_SIZE02_WID, nWND_SIZE02_HEI);
+					this.setZoom(3, 4);
+				}break;
+				case 3:{
+				//サイズ３
+					this.setInnerSize(nWND_SIZE03_WID, nWND_SIZE03_HEI);
+					this.setZoom(25, 40);
+				}break;
+				case 4:{
+				//サイズ４
+					this.setInnerSize(nWND_SIZE04_WID, nWND_SIZE04_HEI);
+					this.setZoom(1, 2);
+				}break;
+			}
+			
+			//タイプを保持する
+			ScreenSizeType = type;
+			s.scsize       = type;
+			
+		}else{
+		//表示不可能
+			//現状のディスプレイサイズを取得して、表示可能な最大サイズで起動
+			if((nWND_WIDTH <= System.desktopWidth) && (nWND_HEIGHT <= System.desktopHeight)){
+			//NORMAL
+				setInnerSize(wid, hei);
+				ScreenSizeType = 0;
+				s.scsize       = 0;
+			}else if((nWND_SIZE01_WID <= System.desktopWidth) && (nWND_SIZE01_HEI <= System.desktopHeight)){
+			//SIZE01
+				setInnerSize(nWND_SIZE01_WID, nWND_SIZE01_HEI);
+				this.setZoom(4, 5);
+				ScreenSizeType = 1;
+				s.scsize       = 1;
+			}else if((nWND_SIZE02_WID <= System.desktopWidth) && (nWND_SIZE02_HEI <= System.desktopHeight)){
+			//SIZE02
+				setInnerSize(nWND_SIZE02_WID, nWND_SIZE02_HEI);
+				this.setZoom(3, 4);
+				ScreenSizeType = 2;
+				s.scsize       = 2;
+			}else if((nWND_SIZE03_WID <= System.desktopWidth) && (nWND_SIZE03_HEI <= System.desktopHeight)){
+			//SIZE03
+				setInnerSize(nWND_SIZE03_WID, nWND_SIZE03_HEI);
+				this.setZoom(25, 40);
+				ScreenSizeType = 3;
+				s.scsize       = 3;
+			}else if((nWND_SIZE04_WID <= System.desktopWidth) && (nWND_SIZE04_HEI <= System.desktopHeight)){
+			//SIZE04
+				setInnerSize(nWND_SIZE04_WID, nWND_SIZE04_HEI);
+				this.setZoom(1, 2);
+				ScreenSizeType = 4;
+				s.scsize       = 4;
+			}
+		}
+		
+		
+		//ウィンドウサイズの変更を禁止する
+		//※初回中は除く
+		if(MainObj !== void)disableResize = true;
+	}
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ マウスカーソル移動処理
+	----------------------------------------------------------*/
+	function SetCursorMove(x, y, time)
+	{
+		if(CursorMoveTimer !== void)invalidate CursorMoveTimer;
+		
+		CursorMoveTimer = new OtherMover([PrimaryLayer.cursorX,PrimaryLayer.cursorY,255,x,y,255], time, -1, CursorMoveFunc);
+		
+		CursorMoveTimer.startMove(false);
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ カーソル移動アニメ
+	----------------------------------------------------------*/
+	function CursorMoveFunc( arr, end )
+	{
+		PrimaryLayer.cursorX = arr[0];
+		
+		PrimaryLayer.cursorY = arr[1];
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ データボード 記述処理
+	※セーブデータのタイムスタンプとかコメントを書き出す
+	----------------------------------------------------------*/
+	function DataBordWirte( textlayer, timelayer, text )
+	{
+		//TEXT更新
+		//コメント有りのみ
+		if((nQUICK_BORD_TYPE == 0) && (textlayer !== void)){
+			textlayer.fillRect( 0,0,textlayer.width, textlayer.height, 0 );
+		}
+		
+		timelayer.fillRect( 0,0,timelayer.width, timelayer.height, 0 );
+		
+		//エラー処理 text がvoidの場合は現在時刻と警告メッセージ
+		if( text === void )
+		{
+			text = "強制終了の為このデータが確実に使用可能か保証できません　　　　　　";//警告メッセージ
+			
+			//日時を取得
+			var DateObj = new Date();
+			var Year    = DateObj.getYear();
+			var Month   = DateObj.getMonth()+1;
+			var Day     = DateObj.getDate();
+			var Hours   = DateObj.getHours();
+			var Minutes = DateObj.getMinutes();
+			var Seconds = DateObj.getSeconds();
+			
+			text += "$%d/%02d/%02d@%02d：%02d：%02d".sprintf(Year, Month, Day, Hours, Minutes, Seconds);
+			
+			invalidate DateObj;
+			
+			DateObj = void;
+		}
+		
+		
+		var savetext = text.substring(0, nSAVETEXT_NUM);
+		
+		var daytext  = text.substring(text.indexOf("$")+1, (text.indexOf("@")-text.indexOf("$"))-1);
+		var timetext = text.substring(text.indexOf("@")+1, (text.length-text.indexOf("@"))-1);
+		
+		var draw_y;
+		var draw_x;
+		var cnt;
+		
+		//コメント有りのみ
+		if((nQUICK_BORD_TYPE == 0) && (textlayer !== void))
+		{
+			//SAVE TEXT 描画
+			for(var t=0,draw_y=0,draw_x=0,cnt=0; t<savetext.length; t++){
+				
+				//改行コードの確認
+				if (savetext[t] == "／")continue;
+				
+				textlayer.drawText(draw_x, draw_y, savetext[t], nSAVETEXT_COLOR);
+				
+				draw_x += textlayer.font.getEscWidthX(savetext[t]);
+				
+				if( ((textlayer.width-nSAVETEXT_FONTSIZE) < draw_x) ){
+					
+					draw_y += nSAVETEXT_FONTSIZE + nSAVE_GYOUKAN;
+					
+					draw_x = 0;
+				}
+			}
+		}
+		
+		//タイムスタンプレイヤ
+		timelayer.drawText(nTIMESTAMP_XPOS,nTIMESTAMP_YPOS,daytext ,nTIMESTAMP_COLOR);
+		timelayer.drawText(nTIMESTAMP_XPOS,(nTIMESTAMP_YPOS+nTIMESTAMP_FONTSIZE+nTIMESTAMP_GYOUKAN)," "+timetext,nTIMESTAMP_COLOR);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ ここからデバッグ用処理
+	----------------------------------------------------------*/
+	
+	/*-----------------------------------------
+	■ DEBUG CHANGE
+	-----------------------------------------*/
+	function DebugEffectChange()
+	{
+		//音声の強制停止
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			VoiceObj[i].FileStop();
+		}
+		
+		//パーサーをクリアしておく
+		PaserObj.clear();
+		
+		//パーサーのCallStackをクリアしておく
+		PaserObj.clearCallStack();
+		
+		//シナリオの読み込み
+		PaserObj.loadScenario("debug.tjs");
+		
+		//タグの読み込み開始
+		PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 演出確認用LOAD処理
+	-----------------------------------------*/
+	function DebugLoad()
+	{
+		//HITRETカウントをセーブ
+		debug_f["hitret_cnt"] = 0;
+		
+		//LOG NUMをクリアする
+		MessObj.lognum        = 0;
+		
+		//メッセージ系のパラメータを初期化しておく
+		MessObj.logcnt        = 0;
+		
+		//現状のファイル
+		var NowFile = f["scenario"];
+		
+		//Data Clear
+		(Dictionary.clear incontextof f)();
+		
+		//Data復帰
+		(Dictionary.assignStruct incontextof f)(PaserObj.temp_f);
+		
+		//リピートフラグを破棄
+		MessObj.RepeatFlag   = false;
+		
+		//タイマーを停止する
+		DefaultTimer.enabled = false;
+		
+		//アクティブオブジェクトを破棄する
+		ActiveObj = void;
+		
+		//フレームを消す
+		MessObj.MessFrame.visible = false;
+		MessObj.MessHidden.visible= false;
+		
+		//LOG JUMPパラメータをクリアしておく
+		LogJumpObj.JumpParamClear();
+		
+		//テキストを消す
+		MessObj.MessClear();
+		
+		//MESSAGE 初期化処理
+		MessObj.MessFormat();
+		
+		//ボタンを元に戻す
+		MessObj.SkipAutoRelease();
+		
+		//タイトル画面からの際は既に全面表示している
+		
+		//選択肢オブジェクトが存在するなら削除
+		SelObj.DelSelect();
+		
+		//Handler 関数を切り離す
+		EffectObj.removeEffectHandler();
+		
+		//画像を消す
+		ImageObj.ImageClear(%['layer'=>-1]);
+		
+		//BGMを停止する
+		BgmObj.FileStop();
+		
+		//FILE名を消しておく
+		f["bgm"]    = void;
+		
+		f["bgmpan"] = void;
+		
+		//SEを停止する
+		for(var i=0; i<nSE_MAXNUM; i++){
+			//SE LOOP
+			f["se"+i]    = void;
+			f["sepan"+i] = void;
+			f["seloop"+i]= void;
+			SeObj[i].FileStop();
+		}
+		
+		
+		
+		//音声を停止する
+		for(var i=0; i<nVOICE_MAXNUM; i++){
+			//音声ファイルを破棄
+			f["voiceplay"+i] = void;
+			f["voicepan"+i]  = void;
+			VoiceObj[i].FileStop();
+		}
+		
+		//パーサーをクリアしておく
+		PaserObj.clear();
+		
+		//パーサーのCallStackをクリアしておく
+		PaserObj.clearCallStack();
+		
+		//INDEXをいれておく
+		LogJumpObj.CreateIndex( "ＤＥＢＵＧ" );
+		
+		//先頭のフラグSAVEをする為にフラグを立てる
+		PaserObj.LogTopSave = true;
+		
+		//シナリオをロードする
+		PaserObj.ChageFile(NowFile);
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 演出用DEBUG LOAD
+	-----------------------------------------*/
+	function DebugEffectLoad()
+	{
+		//タイマーを止める
+		DefaultTimer.enabled  = false;
+		
+		//LOAD フラグを立てる
+		LoadFlag = true;
+		
+		DebugLoadFlag = true;
+		
+		//エフェクト表示
+		EffectObj.TransSetFunc();
+		
+		//画面初期化関数
+		ScreenFormat();
+		
+		//パーサーをクリアしておく
+		PaserObj.clear();
+		
+		//パーサーのCallStackをクリアしておく
+		PaserObj.clearCallStack();
+		
+		//トランジション開始
+		EffectObj.ActTransition(%["type"=>0,"time"=>500], this.DebugEffectLoadEnd);
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デバッグロード関数
+	-----------------------------------------*/
+	function DebugEffectLoadEnd()
+	{
+		//LOG NUMをクリアする
+		MessObj.lognum  = 0;
+		
+		//メッセージ系のパラメータを初期化しておく
+		MessObj.logcnt = 0;
+		
+		
+		//シナリオフラグを戻す
+		for(var i=0; i<nSCENARIOFLAG; i++){
+			
+			var Index = "%d".sprintf(i);
+			
+			debug_f[Index] = PaserObj.temp_f[Index];
+		}
+		
+		
+		//Data Clear
+		(Dictionary.clear incontextof f)();
+		
+		//Data復帰
+		(Dictionary.assignStruct incontextof f)(debug_f);
+		
+		
+		
+		
+		//シナリオをロードする
+		PaserObj.ChageFile(f["scenario"]);
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ロードエラー用関数
+	-----------------------------------------*/
+	function LoadErrorFunc()
+	{
+		//EYECATCH画面の破棄
+		if(EyeCatchLayer !== void)invalidate EyeCatchLayer;
+		
+		if(EyeCatchChar !== void)invalidate EyeCatchChar;
+		
+		
+		
+		EyeCatchLayer = void;
+		
+		EyeCatchChar  = void;
+		
+		LoadFlag      = false;
+		
+		LoadErrorFlag = false;
+		
+		//フレームを消す
+		MessObj.MessFrame.visible = false;
+		MessObj.MessHidden.visible= false;
+		
+		//テキストを消す
+		MessObj.MessClear();
+		
+		//MESSAGE 初期化処理
+		MessObj.MessFormat();
+		
+		//ボタンを元に戻す
+		MessObj.SkipAutoRelease();
+		
+		//タイトル画面からの際は既に全面表示している
+		
+		//選択肢オブジェクトが存在するなら削除
+		SelObj.DelSelect();
+		
+		//Handler 関数を切り離す
+		EffectObj.removeEffectHandler();
+		
+		//画像を消す
+		ImageObj.ImageClear(%['layer'=>-1]);
+		
+		//BGMを停止する
+		BgmObj.FileStop();
+		
+		//SEを停止する
+		for(var i=0; i<nSE_MAXNUM; i++)SeObj[i].FileStop();
+		
+		//音声を停止する
+		for(var i=0; i<nVOICE_MAXNUM; i++)VoiceObj[i].FileStop();
+		
+		//タイマーを停止
+		DefaultTimer.enabled = false;
+		
+		//キャプチャーフラグを寝かす
+		EffectObj.CaptureLayer.PaintFlag = false;
+		
+		//ロードフラグはここで寝かす
+		LoadFlag = false;
+		
+		//コンティニュー用SAVEフラグ
+		ContinueFlag         = true;
+		
+		//先頭データの取得はしない
+		PaserObj.LogTopSave = false;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+}
+
+
+
+@endif

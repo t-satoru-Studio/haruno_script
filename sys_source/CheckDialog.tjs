@@ -1,0 +1,825 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/06/07
+// File : CheckDialog.tjs
+// Creator : Kazuyuki Uchino
+// Memo : CheckDialog Function
+//------------------------------------------------------------------------------
+
+@if (__CHECKDIALOG_TJS__== 0)
+@set(__CHECKDIALOG_TJS__ = 1)
+
+class _CHECKDIALOG extends BaseObject {
+	
+	/*-----------------------------------------
+	■ パラメータ
+	-----------------------------------------*/
+	var BaseBord;	//バッグボード
+	
+	var FrameBord;	//フレームボード
+	
+	var MessLayer;	//メッセージレイヤ
+	
+	var YesButton;	//Yesボタンレイヤ
+	
+	var NoButton;	//Noボタンレイヤ
+	
+	var YesButtonParts;//Buttonパーツ
+	
+	var NoButtonParts;//Buttonパーツ
+	
+	var CheckButton;//チェックレイヤ
+	
+	var MessParts;	//メッセージパーツ
+	
+	var CheckParts;//確認パーツ
+	
+	var TempActive;	//TempActiveオブジェクト
+	
+	var MapRes;		//CURSOR オブジェクト
+	
+	var TempRes;	//CURSOR オブジェクト
+	
+	var ResultFunc;	//結果関数
+	
+	var m_left;		//mouse left
+	
+	var m_top;		//mouse top
+	
+	var keyactive;	//key active
+	
+	var ChkType;	//CheckType
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function _CHECKDIALOG(win, pri, message, func, type = 0)
+	{
+		super.BaseObject(win, pri);
+		
+		TempActive = win.ActiveObj;
+		
+		ResultFunc = func;
+		
+		//バッグボード
+		BaseBord = new BaseLayer(win, pri, 0, 0, win.WndScreenX, win.WndScreenY );
+		
+		BaseBord.fillRect(0,0,win.WndScreenX, win.WndScreenY, 0xff000000);
+		
+		BaseBord.opacity  = 125;
+		
+		BaseBord.absolute = nCHKLAYER;
+		
+		//フレームボード
+		FrameBord    = new BaseLayer(win, pri, 310, 225, 0, 0, "frm_chkwin01.png");
+		
+		FrameBord.absolute = nCHKLAYER + 1;
+		
+		//メッセージレイヤ
+		MessLayer    = new BaseLayer(win, FrameBord, 141, 35, 400, 45);
+		
+		MessLayer.absolute = nCHKLAYER + 2;
+		
+		//Yesボタンレイヤ
+		YesButton= new BaseLayer(win, FrameBord, 209, 115, 114, 37);
+		
+		YesButton.absolute = nCHKLAYER + 3;
+		
+		//Noボタンレイヤ
+		NoButton= new BaseLayer(win, FrameBord, 333, 115, 114, 37);
+		
+		NoButton.absolute  = nCHKLAYER + 4;
+		
+		//チェックボタンレイヤ
+		CheckButton= new BaseLayer(win, FrameBord, 477, 152, 156, 32);
+		
+		CheckButton.absolute  = nCHKLAYER + 5;
+		
+		
+		//Buttonパーツ
+		YesButtonParts = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_chkwin02.png");
+		
+		YesButtonParts.visible = false;
+		
+		NoButtonParts  = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_chkwin03.png");
+		
+		NoButtonParts.visible = false;
+		
+		MessParts      = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_chkwin04.png");
+		
+		MessParts.visible     = false;
+		
+		CheckParts     = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_chkwin05.png");
+		
+		CheckParts.visible    = false;
+		
+		
+		
+		//パーツCOPY
+		YesButton.copyRect(0,0,YesButtonParts,0,0,YesButton.width,YesButton.height);
+		
+		NoButton.copyRect(0,0,NoButtonParts,0,0,NoButton.width,NoButton.height);
+		
+		BaseBord.loadProvinceImage("clm_chk.png");
+		
+		
+		
+		
+		//テキスト描画
+		var fileId;
+		
+		//種別保存
+		ChkType = type;
+		
+		//座標
+		if(ChkType == nEXIT_BOX)
+		{//終了確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nEXIT_BOX);
+			
+			//FILE ID
+			fileId = nSYS_ENDCHECK;
+			
+			if(s["dlg_end"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nFORMAT_BOX)
+		{//初期化確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nFORMAT_BOX);
+			
+			//FILE ID
+			fileId = nSYS_FORMAT;
+			
+			if(s["dlg_format"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nTITLE_BOX)
+		{//TITLE画面確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nTITLE_BOX);
+			
+			//FILE ID
+			fileId = nSYS_RETTITLE;
+			
+			if(s["dlg_title"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nLOAD_BOX || ChkType == nSAVE_BOX)
+		{//LOAD SAVE 画面確認
+			
+			//FILE ID
+			if(ChkType == nSAVE_BOX){
+				MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nSAVE_BOX);
+				
+				fileId = nSYS_SAVECHECK;
+				
+				if(s["dlg_save"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}else{
+				MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nLOAD_BOX);
+				
+				fileId = nSYS_LOADCHECK;
+				
+				if(s["dlg_load"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			
+		}
+		else if(ChkType == nREWRITE_BOX)
+		{//上書き SAVE 画面確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nREWRITE_BOX);
+			
+			fileId = nSYS_SAVECHECK;
+			
+			if(s["dlg_save"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nSCENE_REPLAY)
+		{//SCENE REPLAY 画面確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nSCENE_REPLAY);
+			
+			fileId = nSYS_RETREPLAY;
+			
+			if(s["dlg_replay"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nJUMP_BOX)
+		{//JUMP確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nJUMP_BOX);
+			
+			fileId = nSYS_JUMPCHECK;
+			
+			if(s["dlg_jump"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nCOPY_BOX)
+		{//COPY確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nCOPY_BOX);
+			
+			fileId = nSYS_COPYCHECK;
+			
+			if(s["dlg_copy"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nMOVE_BOX)
+		{//MOVE確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nMOVE_BOX);
+			
+			fileId = nSYS_MOVECHECK;
+			
+			if(s["dlg_move"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		else if(ChkType == nDELETE_BOX)
+		{//削除確認
+			MessLayer.copyRect(0,0,MessParts,0,MessLayer.height*nDELETE_BOX);
+			
+			fileId = nSYS_DELETECHECK;
+			
+			if(s["dlg_erase"] == true){
+				CheckParts.loadImages("frm_chkwin05.png");
+			}else{
+				CheckParts.loadImages("frm_chkwin06.png");
+			}
+			
+		}
+		
+		//チェックBOXをCOPYしておく
+		CheckButton.copyRect(0,0,CheckParts,0,0);
+		
+		
+		//SYSTEM音声の再生
+		if(s["system"] == true){
+			//音声ファイル名の作成
+			var file = nSYSTEM_VOICE_HEADER + getCharID(s.sys_char_id) + fileId + ".ogg";
+			
+			//音声の再生
+			win.SystemVoicePlay(file);
+		}
+		
+		
+		//keyactive を寝かしておく
+		keyactive = false;
+		
+		win.mouseCursorState = mcsVisible;
+		
+		
+		
+		//マウスカーソル自動移動
+		if( s["mouse"] == true ){
+			//単純移動
+			win.PrimaryLayer.cursorX = FrameBord.left + NoButton.left + (NoButton.width\2);
+			win.PrimaryLayer.cursorY = FrameBord.top  + NoButton.top  + (NoButton.height\2);
+			
+			//移動アニメ ※言われたら使用するってことで
+			//win.SetCursorMove( FrameBord.left + NoButton.left + (NoButton.width\2), FrameBord.top  + NoButton.top  + (NoButton.height\2), nMOUSE_MOVE_TIME );
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+		
+		invalidate BaseBord;	//バッグボード
+		
+		invalidate FrameBord;	//フレームボード
+		
+		invalidate MessLayer;	//メッセージレイヤ
+		
+		invalidate YesButton;	//Yesボタンレイヤ
+		
+		invalidate NoButton;	//Noボタンレイヤ
+		
+		invalidate YesButtonParts;//Buttonパーツ
+		
+		invalidate NoButtonParts;//Buttonパーツ
+		
+		invalidate MessParts;	//Buttonパーツ
+		
+		invalidate CheckButton;
+		
+		invalidate CheckParts;
+		
+		//音声の停止
+		MainWnd.SystemObj.FileStop();
+		
+		MainWnd.mouseCursorState = mcsVisible;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Default Func
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		MainWnd.mouseCursorState = mcsVisible;
+		
+		if(YesButton.PaintFlag || NoButton.PaintFlag || CheckButton.PaintFlag)
+		{
+			YesButton.PaintFlag= false;
+			
+			NoButton.PaintFlag = false;
+			
+			CheckButton.PaintFlag = false;
+			
+			Wait( nBUTTON_WAIT );
+			
+			ClickWork();
+			
+			return;
+		}
+		
+		
+		
+		if(!keyactive){
+		//mouse 制御
+			MapRes = BaseBord.GetProvincePixel();
+		}else{
+		//key 制御
+			if(	(m_left != MainWnd.PrimaryLayer.cursorX) ||
+				(m_top  != MainWnd.PrimaryLayer.cursorY)
+			){
+				keyactive = false;
+			}
+		}
+		
+		
+		
+		
+		if(MapRes != TempRes)
+		{
+			ActionFunction();
+		
+			ClearFunction();
+		}
+		
+		TempRes = MapRes;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		if(!MapRes)return;
+		
+		//オブジェクトが存在していればここまで
+		if(DeleteObject !== void){
+			return;
+		}
+		
+		if(MapRes == 1){
+			YesButton.copyRect(0,0,YesButtonParts,(YesButtonParts.width/3)*2,0,YesButtonParts.width/3,YesButtonParts.height);
+			
+			YesButton.update();
+		}else if(MapRes == 2){
+			NoButton.copyRect(0,0,NoButtonParts,(NoButtonParts.width/3)*2,0,NoButtonParts.width/3,NoButtonParts.height);
+			
+			NoButton.update();
+			
+		}else if(MapRes == 3){
+			CheckButton.copyRect(0,0,CheckParts,CheckButton.width*2,0);
+			
+			CheckButton.update();
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		//オブジェクトが存在していればここまで
+		if(DeleteObject !== void){
+			return;
+		}
+		
+		MainWnd.CheckBoxResult = false;
+		
+		DeleteFunc();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ アクティブ関数
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function ActionFunction()
+	{
+		if(!MapRes)return;
+		
+		if(MapRes == 1){
+			YesButton.copyRect(0,0,YesButtonParts,(YesButtonParts.width/3),0,(YesButtonParts.width/3),YesButtonParts.height);
+		}else if(MapRes == 2){
+			NoButton.copyRect(0,0,NoButtonParts,(NoButtonParts.width/3),0,(NoButtonParts.width/3),NoButtonParts.height);
+		}else if(MapRes == 3){
+			CheckButton.copyRect(0,0,CheckParts,CheckButton.width,0);
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 消去関数
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function ClearFunction()
+	{
+		if(!TempRes)return;
+		
+		if(TempRes == 1){
+			YesButton.copyRect(0,0,YesButtonParts,0,0,(YesButtonParts.width/3),YesButtonParts.height);
+		}else if(TempRes == 2){
+			NoButton.copyRect(0,0,NoButtonParts,0,0,(NoButtonParts.width/3),NoButtonParts.height);
+		}else if(TempRes == 3){
+			CheckButton.copyRect(0,0,CheckParts,0,0);
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ クリック処理
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function ClickWork()
+	{
+		if(MapRes == 1){
+			
+			//RESULT
+			MainWnd.CheckBoxResult = true;
+			
+			YesButton.copyRect(0,0,YesButtonParts,(YesButtonParts.width/3),0,(YesButtonParts.width/3),YesButtonParts.height);
+			
+			DeleteFunc();
+			
+		}else if(MapRes == 2){
+			NoButton.copyRect(0,0,NoButtonParts,(NoButtonParts.width/3),0,(NoButtonParts.width/3),NoButtonParts.height);
+			
+			//RESULT
+			MainWnd.CheckBoxResult = false;
+			
+			DeleteFunc();
+		}else if(MapRes == 3){
+		//確認BOX
+			
+			if(ChkType == nEXIT_BOX)
+			{//終了確認
+				s["dlg_end"] = !s["dlg_end"];
+				
+				if(s["dlg_end"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nFORMAT_BOX)
+			{//初期化確認
+				
+				s["dlg_format"] = !s["dlg_format"];
+				
+				if(s["dlg_format"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nTITLE_BOX)
+			{//TITLE画面確認
+				
+				s["dlg_title"] = !s["dlg_title"];
+				
+				if(s["dlg_title"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nLOAD_BOX || ChkType == nSAVE_BOX)
+			{//LOAD SAVE 画面確認
+				
+				//FILE ID
+				if(ChkType == nSAVE_BOX){
+					
+					s["dlg_save"] = !s["dlg_save"];
+					
+					if(s["dlg_save"] == true){
+						CheckParts.loadImages("frm_chkwin05.png");
+					}else{
+						CheckParts.loadImages("frm_chkwin06.png");
+					}
+					
+				}else{
+					
+					s["dlg_load"] = !s["dlg_load"];
+					
+					if(s["dlg_load"] == true){
+						CheckParts.loadImages("frm_chkwin05.png");
+					}else{
+						CheckParts.loadImages("frm_chkwin06.png");
+					}
+					
+				}
+				
+			}
+			else if(ChkType == nREWRITE_BOX)
+			{//上書き SAVE 画面確認
+				
+				s["dlg_save"] = !s["dlg_save"];
+				
+				if(s["dlg_save"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nSCENE_REPLAY)
+			{//SCENE REPLAY 画面確認
+				
+				s["dlg_replay"] = !s["dlg_replay"];
+				
+				if(s["dlg_replay"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nJUMP_BOX)
+			{//JUMP確認
+				
+				s["dlg_jump"] = !s["dlg_jump"];
+				
+				if(s["dlg_jump"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nCOPY_BOX)
+			{//COPY確認
+				
+				s["dlg_copy"] = !s["dlg_copy"];
+				
+				if(s["dlg_copy"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nMOVE_BOX)
+			{//MOVE確認
+				
+				s["dlg_move"] = !s["dlg_move"];
+				
+				if(s["dlg_move"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			else if(ChkType == nDELETE_BOX)
+			{//削除確認
+				
+				s["dlg_erase"] = !s["dlg_erase"];
+				
+				if(s["dlg_erase"] == true){
+					CheckParts.loadImages("frm_chkwin05.png");
+				}else{
+					CheckParts.loadImages("frm_chkwin06.png");
+				}
+				
+			}
+			
+			TempRes = 0;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 削除関数
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function DeleteFunc()
+	{
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		DeleteWork( CheckBoxDelete );
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ KEY UP
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		switch(key){
+			case VK_RETURN:{
+			//return
+				//altキーが押されていたらここまで
+				if(shift & ssAlt)return;
+				
+				LeftMouseUpAction();
+			}break;
+			
+			case VK_LEFT:{
+			//←
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				if(MapRes < 1){
+					MapRes = 1;
+				}else{
+					if(MapRes == 1){
+						MapRes = 2;
+					}else{
+						MapRes = 1;
+					}
+				}
+				
+			}break;
+			
+			case VK_RIGHT:{
+			//→
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				if(MapRes == 0){
+					MapRes = 2;
+				}else{
+					if(MapRes == 2){
+						MapRes = 1;
+					}else{
+						MapRes = 2;
+					}
+				}
+				
+			}break;
+		}
+	}
+}
+
+
+
+
+
+
+/*-----------------------------------------
+■ 削除関数
+-----------------------------------------*/
+function CheckBoxDelete()
+{
+	//アクティブオブジェクトを変更する
+	MainObj.ActiveObj = MainObj.CheckBoxObj.TempActive;
+	
+	var ResultFunc = MainObj.CheckBoxObj.ResultFunc;
+	
+	//オブジェクトを削除する
+	invalidate MainObj.CheckBoxObj;
+	
+	MainObj.CheckBoxObj = void;
+	
+	//ガベージを強制的に動かす
+	System.doCompact();
+	
+	//指定したReturn関数を呼び出す
+	ResultFunc();
+}
+
+
+
+@endif

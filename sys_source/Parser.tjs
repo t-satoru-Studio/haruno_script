@@ -1,0 +1,3069 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2008/04/03
+// File : Parser.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Scenario Conductor
+//------------------------------------------------------------------------------
+
+@if(__PARSER_TJS__ == 0)
+@set(__PARSER_TJS__ = 1)
+
+
+
+/*-----------------------------------------
+□シナリオ解析クラス
+
+
+説明：
+シナリオの解析、ロードしているFILE名など
+の情報を確保しておく
+-----------------------------------------*/
+class Parser extends KAGParser {
+	
+	/*-----------------------------------------
+	□メンバ　オブジェクト
+	-----------------------------------------*/
+	var MainWnd;
+	
+	var ChangeFile;
+	
+	var temp_f = %[];
+	
+	var LoadScenarioFlag;
+	
+	var ChangeFlag;
+	
+	var CsvList;
+	
+	var CsvStartFlag;
+	
+	var Unique_Num;
+	
+	var LogTopSave;
+	
+	var ignoreCR_start;
+	
+	var MessageStart;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆コンストラクタ
+	
+	引数：
+	
+	wnd MainWnd
+	
+	
+	
+	-----------------------------------------*/
+	function Parser(wnd)
+	{
+		super.KAGParser();
+		
+		MainWnd = wnd;
+		
+		//改行を無視するか
+		ignoreCR = true;
+		
+		LoadScenarioFlag = false;
+		
+		ignoreCR_start   = false;
+		
+		MessageStart     = false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ファイナライズ
+	
+	引数：
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンダクター解析関数
+	
+	[iscript] と [endscript]を通過した際に呼ばれる
+	
+	イベントハンドラ関数
+	
+	-----------------------------------------*/
+	function onScript(script, storageShortName, scriptStart)
+	{
+		// iscript タグ
+		try
+		{
+			Scripts.exec(script, storageShortName, scriptStart);
+		}
+		catch(e)
+		{
+			throw new Exception(storageShortName + " の 行 " + scriptStart + " から始まる"
+				" iscript ブロックでエラーが発生しました。"
+				"\n( 詳細はコンソールを参照してください )\n" + e.message+"\n"+"エラーファイル："+f["scenario"]);
+		}
+		return true;
+	}	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ シナリオ読み込みが開始した 
+	
+	シナリオ読み込みを開始する時に呼ばれます。
+	このイベントで文字列を返すと、
+	storage の中身の代わりに その文字列をシナリオとして用います。
+	
+	-----------------------------------------*/
+	function onScenarioLoad(storage)
+	{
+		LoadScenarioFlag = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ シナリオ読み込みが終了した 
+	
+	シナリオ読み込みが終了した時に呼ばれます。
+	
+	
+	-----------------------------------------*/
+	function onScenarioLoaded(storage)
+	{
+		LoadScenarioFlag = false;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	○ChageFile 関数
+	
+	引数：
+	filename	LoadするScenario File
+	
+	説明：
+	シナリオファイルの読み込みを開始する
+	
+	-----------------------------------------*/
+	function ChageFile(filename, baselabel = false)
+	{
+		//リソース確認
+		if(ResourceCheck(filename + ".txt")){
+			filename += ".txt";
+		}else if(ResourceCheck(filename + ".soc")){
+			filename += ".soc";
+		}else if(ResourceCheck(filename + ".ks")){
+			filename += ".ks";
+		}else if(!ResourceCheck(filename)){
+			//リソース検索
+			@if( _DEBUG == 1)
+				DebugMess(filename + "がありませんでした");
+				//タイトルにもどしておく
+				filename = "title.ks";
+			@endif
+		}
+		
+		
+		//FILE CHECK
+		if(Storages.isExistentStorage(filename))
+		{
+			//既読SKIP用配列のINDEXを格納
+			if(MainWnd.TraceArray[filename] === void){
+				MainWnd.TraceArray[filename] = new Dictionary();
+			}
+			
+			//セーブタイトルをクリアしておく
+			f["savetitle"] = void;
+			
+			//音声の強制停止
+			for(var i=0; i<nVOICE_MAXNUM; i++){
+				MainWnd.VoiceObj[i].FileStop();
+			}
+			
+			
+			//ファイル先頭でSAVE
+			for(var i=0; i<nSCENARIOFLAG; i++){
+				
+				var Index = "%d".sprintf(i);
+				
+				temp_f[Index] = f[Index];
+			}
+			
+			
+			
+			if((MainWnd.LoadFlag == false) && (LogTopSave == true))
+			{//指定シナリオならJUMP用にSCENARIOフラグと選択肢をSAVEする
+				//既にシナリオフラグが保存されているならクリア
+				if(f[filename] !== void){
+					f[filename].clear();
+					invalidate f[filename];
+					f[filename] = void;
+				}
+				
+				
+				//連想配列の作成
+				f[filename] = new Array();
+				
+				//シナリオフラグ
+				for(var i=0; i<nSCENARIOFLAG; i++){
+					f[filename].add(f["%d".sprintf(i)]);
+				}
+				
+				if(MainWnd.SelObj.SelCnt){
+					//選択肢の答えを格納
+					f[ChangeFile+"_selans"] = new Array();
+					for(var i=0; i<MainWnd.SelObj.SelCnt; i++){
+						f[ChangeFile+"_selans"].add( f["selcnt%d".sprintf(i)] );
+					}
+				}
+				
+				//フラグを寝かせておく
+				LogTopSave = false;
+			}
+			
+			
+			
+			
+			//選択肢カウントをクリアする
+			MainWnd.SelObj.SelCnt = 0;
+			
+			//HITRETカウントをクリアする
+			MainWnd.MessObj.hitret_cnt = 0;
+			
+			//フラグを閉じる
+			ChangeFlag = void;
+			
+			//シナリオの読み込み
+			loadScenario(filename);
+			
+			ChangeFile = filename;
+			
+			f["scenario"] = ChangeFile;
+			
+			GetTagload();
+			
+		}else{
+		//FILE が無い
+			throw new Exception(filename+" が見つかりません。");
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	○GetTagload 関数
+	
+	引数：
+	なし
+	
+	説明：
+	取得したTAGを解析して対応した関数を呼び出す
+	
+	-----------------------------------------*/
+	function GetTagload()
+	{
+		try
+		{	//TAG関数配列の取得
+			while(1){
+				//ハンドラリストを取得
+				var Handlers = GetTagHandlers();
+				
+				//タグを取得
+				var TagObj = getNextTag();
+				
+				
+				if(TagObj != void)
+				{
+					var result = (Handlers[TagObj.tagname])(TagObj);
+					
+					if(result < 1)
+					{//イベントハンドラ待ちのタグは
+					 //ループを抜ける
+						break;
+					}
+				}
+				else
+				{//シナリオ終端
+					
+					//通常モード
+					System.inform("シナリオ終端なので終了します。");
+					System.exit();
+				}
+			}
+			
+			//ファイルチェンジ
+			if(ChangeFlag !== void)
+			{
+				//通常処理
+				ChageFile(ChangeFlag);
+			}
+		}
+		catch( e )
+		{
+			/*
+			//LOAD中は無視
+			if(!MainWnd.LoadFlag)
+			{
+				//QUICK SAVEが一つもない場合はマイナスから
+				if(!MainWnd.MessObj.QuickSave)s["quick_number"] = -1;
+				
+				//QUICKの最新番号を更新
+				++s["quick_number"];
+				
+				s["quick_number"] %= nSAVE_PAGE_NUM;
+				
+				MainWnd.MessObj.QuickSave = true;
+				
+				//HITRETカウントを1つ戻しておく
+				(0 < MainWnd.MessObj.hitret_cnt) ? (MainWnd.MessObj.hitret_cnt -= 1) : (MainWnd.MessObj.hitret_cnt = 0);
+				
+				MainWnd.SaveAction(nQ_SAVENUM+s["quick_number"]);
+				
+				//System Save
+				MainWnd.SystemSave();
+			}
+			*/
+			
+			throw new Exception(f["scenario"] + " の 行 " + curLine + " の script 部分でエラーが発生しました。\n"
+			"エラーを確認して修正してください。\n"
+			"\n( 詳細はコンソールを参照してください )\n" + e.message+"\n"+"エラーファイル："+f["scenario"]);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	○ GetTagHandlers
+	
+	引数：
+	なし
+	
+	説明：
+	TAG の内容にあたる関数の内容と連想コンテナ
+	のKEYを設定する
+	
+	-----------------------------------------*/
+	function GetTagHandlers()
+	{
+		return %[
+		
+		/*この間 に
+		
+		KEY：function(value)
+		{
+			関数の内容
+		} incontextof this,
+		
+		と記述する
+		
+		ただし、関数名が予約語の場合は、「関数名 : 」ではなく
+		「"関数名" => 」を用いる。
+		
+		*/
+		
+		////////////////////////////////////////
+		// 設定タグリスト
+		////////////////////////////////////////
+		
+		
+		
+		
+		/*-----------------------------------------
+		◆システム関連
+		-----------------------------------------*/
+		
+		//-----------------------------------------
+		//□ 式の評価
+		//与えられた式の評価
+		//-----------------------------------------
+		eval : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			Scripts.eval(value.exp);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 代入処理
+		//指定INDEXに数値を代入する
+		//-----------------------------------------
+		substitution : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//数値を代入する
+			f[value.index] = +value.val;
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ SYSTE SAVEM処理関数
+		//SYSTEM SAVE呼び出し関数
+		//-----------------------------------------
+		systemsave : function(value)
+		{
+			//SYSTEM SAVEもしておく
+			//MainWnd.SystemSave();
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ SYSTE WAITM処理関数
+		//SYSTEM WAIT呼び出し関数
+		//-----------------------------------------
+		systemwait : function(value)
+		{
+			//処理待ち
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ SYSTEM処理関数
+		//FILE CHANGE関数
+		//-----------------------------------------
+		change : function(value)
+		{
+			ChangeFlag = value.file;
+			
+			if(value.logtop === void){
+			//基本はSAVEする
+				value.logtop = true;
+			}
+			
+			//ログ先頭saveフラグ
+			LogTopSave = +value.logtop;
+			
+			//処理待ち
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ リプレイ終了コマンド
+		// リプレイを終了して選択画面に戻る
+		//-----------------------------------------
+		returnreplay : function(value)
+		{
+			MainWnd.ReturnSceneReplay();
+			
+			//処理待ち
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ エクストラ終了コマンド
+		// エクストラを終了して選択画面に戻る
+		//-----------------------------------------
+		returnextra : function(value)
+		{
+			MainWnd.ReturnSceneReplay( 1 );
+			
+			//処理待ち
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ タイトル復帰コマンド
+		// タイトルに戻る
+		//-----------------------------------------
+		room : function(value)
+		{
+			
+			//タイトルに戻る
+			MainWnd.ReturnTitleFunc();
+			
+			//処理待ち
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ ＴＩＴＬＥコマンド
+		// ＴＩＴＬＥ画面を作成する
+		//-----------------------------------------
+		titlecreate : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			MainWnd.TitleObj = new _TITLEOBJECT(MainWnd, MainWnd.CaptureLayer);
+			
+			//タイトル画面作成
+			MainWnd.TitleObj.TitleCreate();
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ ＴＩＴＬＥコマンド
+		// ＴＩＴＬＥ処理
+		//-----------------------------------------
+		titleloop : function(value)
+		{
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.TitleObj);
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//処理待ち
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ ランダムコマンド
+		// ランダム値を作成して変数に格納する
+		// 引数
+		//randomnumber file=?reg top=?top max=?max
+		//-----------------------------------------
+		randomnumber : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//TOP～MAXを数値に変換して結果を指定レジスタに格納
+			f[value.reg] = Random( +value.top, +value.max);
+			
+			//次のコマンドを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ スタッフロールコマンド
+		// エンディング用スタッフロールを表示する
+		// 引数
+		//staffrollstart
+		//-----------------------------------------
+		staffrollstart : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			MainWnd.EndingObj = new _ENDINGOBJECT(MainWnd, MainWnd.PrimaryLayer, +value.id);
+			
+			//ENDING START
+			MainWnd.EndingObj.EndingStart();
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザーの入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ セーブタイトル設定コマンド
+		// 
+		// 引数
+		//staffrollstart
+		//-----------------------------------------
+		scenetitle : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//セーブタイトルを保存しておく
+			f["savetitle"]=value.name;
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------*/
+		//右クリックの制御
+		//
+		//
+		//-----------------------------------------*/
+		rightclickctrl : function(value)
+		{
+			
+			MainWnd.RightClickCtrl = (value.flag === void) ? false : +value.flag;
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------*/
+		//JUMP格納INDEXの変更
+		//
+		//
+		//-----------------------------------------*/
+		changejumpindex : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//新しい配列を作成
+			MainWnd.LogJumpObj.CreateIndex( value.daystr);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------*/
+		//日付表示オブジェクト
+		//
+		//
+		//-----------------------------------------*/
+		setdaybord : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//新しい配列を作成
+			MainWnd.DayBordObj.SetDayBord( +value.month, +value.day, ((value.week === void) ? void : +value.week) );
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------*/
+		//日付表示オブジェクト消去関数
+		//
+		//
+		//-----------------------------------------*/
+		erasedaybord: function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//新しい配列を作成
+			MainWnd.DayBordObj.EraseData();
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------*/
+		//時間取得関数
+		//
+		//
+		//-----------------------------------------*/
+		gettimestate : function( value )
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//現在時刻の取得
+			var NowTime = new Date();
+			if(( 22 < NowTime.getHours() ) || ( NowTime.getHours() < 7 )){
+				f["midnight"] = true;
+			}else{
+				f["midnight"] = false;
+			}
+			
+			invalidate NowTime;
+			
+			
+			@if( _DEBUG == 1 )
+				if( System.getKeyState( VK_1 ) ){
+					s['CLEAR_A'] = true;
+				}
+				if( System.getKeyState( VK_2 ) ){
+					s['CLEAR_B'] = true;
+				}
+				if( System.getKeyState( VK_3 ) ){
+					s['CLEAR_C'] = true;
+				}
+				if( System.getKeyState( VK_4 ) ){
+					s['CLEAR_D'] = true;
+				}
+				if( System.getKeyState( VK_5 ) ){
+					s['ALL_CLEAR'] = s['CLEAR_A'] = s['CLEAR_B'] = s['CLEAR_C'] = s['CLEAR_D'] = false;
+				}
+				if( System.getKeyState( VK_6 ) ){
+					f.midnight = !f.midnight;
+				}
+			@endif
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		◆メッセージレイヤー関連
+		-----------------------------------------*/
+		
+		//-----------------------------------------
+		//□ 文字を取得する
+		//タグはループで次の文字を取りに行く
+		//-----------------------------------------
+		ch : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if((MainWnd.LoadFlag))return true;
+			
+			// {} は処理しきれないのでここで防ぐ‥‥
+			if((value.text == "}") || (value.text == "{") || (value.text == ";")){ return true; }
+			
+			//取得フラグがたっている間だけ
+			if(!MainWnd.PaserObj.MessageStart)return true;
+			
+			//文字を配列に格納する
+			MainWnd.MessObj.SetText(value.text);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 改行文字を取得する
+		//タグはループで次の文字を取りに行く
+		//-----------------------------------------
+		r : function(value)
+		{
+			//最初の改行は飛ばす
+			if((nIGNORE_CR == false) && (ignoreCR_start == true)){
+				ignoreCR_start = false;
+				return true;
+			}
+			
+			//取得フラグがたっている間だけ
+			if(!MainWnd.PaserObj.MessageStart)return true;
+			
+			//文字を配列に格納する
+			MainWnd.MessObj.SetText("／");
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		//-----------------------------------------
+		//□ キャラ名を取得する
+		//Bufferに貯めておく
+		//-----------------------------------------
+		talkwork : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//《？？？》を検索して存在したら消去
+			var top_x = value.name.indexOf("《");
+			
+			if(top_x != -1)value.name= value.name.substring(0, top_x);
+			
+			//Bufferに入れておく
+			MainWnd.MessObj.NameValue = value.name;
+			
+			
+			//改行を拾っていく
+			if(nIGNORE_CR == false){
+				MainWnd.PaserObj.ignoreCR       = false;
+				MainWnd.PaserObj.ignoreCR_start = true;
+			}
+			
+			//取得フラグをたてる
+			MainWnd.PaserObj.MessageStart = true;
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ ユーザーの入力待ち
+		//ループを抜けてイベントハンドラを待つ
+		//-----------------------------------------
+		hitretwork : function(value)
+		{
+			//改行を無視する
+			MainWnd.PaserObj.ignoreCR = true;
+			
+			//取得フラグを寝かせる
+			MainWnd.PaserObj.MessageStart = false;
+			
+			//タイマーを停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD フラグの場合で処理をわける
+			if(!MainWnd.LoadFlag)
+			{
+				//アクティブを変更
+				MainWnd.ChangeActive(MainWnd.MessObj);
+				
+				MainWnd.MessObj.TraceFlag = false;
+				
+				if(MainWnd.TraceArray[ChangeFile]["%d".sprintf(curLine)]){
+					MainWnd.MessObj.TraceFlag = true;
+				}
+				
+				//文字描画を開始
+				MainWnd.MessObj.DrawMessStart();
+				
+				//既読フラグを立てる
+				MainWnd.TraceArray[ChangeFile]["%d".sprintf(curLine)] = true;
+				
+				//タイマーを動かす
+				MainWnd.DefaultTimer.enabled = true;
+				
+				//処理待ち
+				return false;
+			}
+			else
+			{
+				//カウントチェック
+				if(MainWnd.MessObj.hitret_cnt == f["hitret_cnt"])
+				{
+					//アクティブを変更
+					MainWnd.ChangeActive(MainWnd.MessObj);
+					
+					MainWnd.MessObj.TraceFlag = false;
+					
+					if(MainWnd.TraceArray[ChangeFile]["%d".sprintf(curLine)]){
+						MainWnd.MessObj.TraceFlag = true;
+					}
+					
+					//画面再構築処理
+					MainWnd.ScreenRecovery();
+					
+					//処理待ち
+					return false;
+					
+				}
+				else
+				{	//カウントを上げておく
+					++MainWnd.MessObj.hitret_cnt;
+					
+					//テキストを消す
+					MainWnd.MessObj.MessClear();
+					
+					//メッセージを初期化する
+					MainWnd.MessObj.MessFormat();
+					
+					//フェイス関連
+					if((MainWnd.MessObj.FaceDrawFlag == true) && (MainWnd.MessObj.FaceDrawType == 0))MainWnd.MessObj.FaceDrawFlag   = false;
+					if((MainWnd.MessObj.FaceHiddenFlag== true)&& (MainWnd.MessObj.FaceHiddenType== 0))MainWnd.MessObj.FaceHiddenFlag= false;
+					
+					//次のタグを取りに行く
+					return true;
+				}
+			}
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ メッセージフレームを消す
+		//メッセージフレームを一時的に消す
+		//
+		//-----------------------------------------
+		windowview : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			if(value.type === void)value.type = true;
+			
+			//メッセージフレーム
+			MainWnd.MessObj.MessFrameView(+value.type);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ メッセージフレームを変更する
+		//メッセージフレームを変更する
+		//
+		//-----------------------------------------
+		frametype : function(value)
+		{
+			//LOAD中は無視
+			//if(MainWnd.LoadFlag)return true;
+			
+			//メッセージフレーム変更
+			MainWnd.MessObj.SetMessFrameType(f["MessFrameType"]);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ フォントサイズの指定
+		//-----------------------------------------
+		fontsize : function(value)
+		{
+			//描画SIZE指定
+			if(value.top == ""){
+				MainWnd.MessObj.SetTextSize(+value.size);
+			}else{
+				MainWnd.MessObj.SetTextSize(+value.size, +value.top, +value.num);
+			}
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		/*----------------------------------------------------------
+		○古いバージョンの書き方
+		----------------------------------------------------------*/
+		font : function(value)
+		{
+			//描画SIZE指定
+			if(value.top == ""){
+				MainWnd.MessObj.SetTextSize(+value.size);
+			}else{
+				MainWnd.MessObj.SetTextSize(+value.size, +value.top, +value.num);
+			}
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ フォントカラーの指定
+		//-----------------------------------------
+		fontcolor : function(value)
+		{
+			
+			if(value.color === void)value.color = scNORMALCOLOR;
+			
+			//描画色指定
+			if(value.top == ""){
+				MainWnd.MessObj.SetTextColor( +value.color, +value.subcolor);
+			}else{
+				MainWnd.MessObj.SetTextColor( +value.color, +value.subcolor, value.top, value.num);
+			}
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 描画速度の指定
+		//-----------------------------------------
+		drawmessmaxspd : function(value)
+		{
+			if(value.spd === void)value.spd = 1;
+			
+			MainWnd.MessObj.SetDrawSpeed    = +value.spd;
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		◆選択肢レイヤー関連
+		-----------------------------------------*/
+		selclr : function(value)
+		{
+			
+			//LOAD中のみ or JUMP中のみ
+			if(MainWnd.LoadFlag){
+				//カウントチェック
+				if(MainWnd.MessObj.hitret_cnt == f["hitret_cnt"])
+				{
+					//トレースフラグを立てる
+					MainWnd.MessObj.TraceFlag = false;
+					
+					if(MainWnd.TraceArray[ChangeFile]["%d".sprintf(curLine)]){
+						MainWnd.MessObj.TraceFlag = true;
+					}
+					
+					//画面再構築処理
+					MainWnd.ScreenRecovery();
+					
+					//LOAD後の復帰の為にTEMPを更新しておく
+					MainWnd.TempActive = MainWnd.SelObj;
+				}
+			}else{
+				//既読フラグを立てる
+				MainWnd.TraceArray[ChangeFile]["%d".sprintf(curLine)] = true;
+			}
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 選択肢文字設定関数
+		//選択肢で表示する文字を設定する
+		//-----------------------------------------
+		cmd : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.SelObj);
+			
+			MainWnd.SelObj.SetMessage(value.text, +value.num, value.index);
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 選択肢実行関数
+		//選択肢レイヤを作成して表示する
+		//-----------------------------------------
+		select : function(value)
+		{
+			
+			//LOAD中は無視
+			if(!MainWnd.LoadFlag)
+			{
+				//アクティブを変更
+				MainWnd.ChangeActive(MainWnd.SelObj);
+				
+				//選択肢を表示する
+				MainWnd.SelObj.CreateSelect();
+				
+				//タイマー再開
+				MainWnd.DefaultTimer.enabled = true;
+				
+				//処理待ち
+				return false;
+				
+			}else{
+				
+				//選択肢の答えをデータから呼び出す
+				f["selans"] = f["selcnt%d".sprintf(MainWnd.SelObj.SelCnt++)];
+				
+				//次のタグを取得する
+				return true;
+				
+			}
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 選択肢破棄関数
+		//選択肢レイヤを破棄する
+		//-----------------------------------------
+		selectend : function(value)
+		{
+			
+			//LOADフラグ
+			if(!MainWnd.LoadFlag)
+			{	//選択肢を削除する
+				MainWnd.SelObj.DelSelect();
+			}
+			
+			//カウントを上げておく
+			++MainWnd.MessObj.hitret_cnt;
+			
+			//次のタグを取得
+			return true;
+			
+		}  incontextof this,
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		◆画像レイヤー関連
+		-----------------------------------------*/
+		
+		//-----------------------------------------
+		//□ 画像表示コマンド
+		//-----------------------------------------
+		imagedraw : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//レイヤのデフォルト処理
+			if(value.layer === void)value.layer = 0;
+			
+			//ZOOMフラグのデフォルト処理
+			if(value.zoom === void)value.zoom = true;
+			
+			//Default Positionフラグのデフォルト処理
+			if(value.def === void)value.def = true;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.ImageObj);
+			
+			if(value.file === void)
+			{//セーブファイルINDEX
+				
+				var index  = "imagefile%d".sprintf(+value.layer);
+				
+				value.file = f[index];
+				
+				//FILEがはいっていなければ
+				if(value.file === void)
+				{
+					if(InforFlag == true){
+						DebugMess( "レイヤに画像が表示されていません");
+					}
+					
+					//file2をfileに置き換えておく
+					value.file = value.file2;
+				}
+			}
+			
+			
+			//立ち絵描画
+			MainWnd.ImageObj.ImageDraw(value);
+			
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 画像消去コマンド
+		//　
+		//-----------------------------------------
+		imagefree : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			if(value.layer === void)value.layer = 0;
+			
+			//立ち絵消去
+			MainWnd.ImageObj.ImageClear(value);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 画像塗りつぶしコマンド
+		//　
+		//-----------------------------------------
+		imagefill : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			if(value.layer === void)value.layer = 0;
+			
+			if(value.color === void)value.color = 0;
+			
+			//立ち絵塗りつぶし
+			MainWnd.ImageObj.Imagefill(value);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 画像移動設定コマンド
+		//　
+		//-----------------------------------------
+		imagemove : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			if(value.layer === void)value.layer = 0;
+			
+			//立ち絵移動設定
+			MainWnd.ImageObj.ImageMove(value);
+			
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 画像移動設定コマンド
+		//　
+		//-----------------------------------------
+		imagespmove : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			if(value.layer === void)value.layer = 0;
+			
+			//立ち絵移動設定
+			MainWnd.ImageObj.ImageSpMove(value);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ ZOOM 画像
+		//-----------------------------------------
+		imagezoom : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.ImageObj);
+			
+			if(value.layer === void)value.layer = 0;
+			
+			//ズーム処理
+			MainWnd.ImageObj.ImageZoom(value);
+			
+			//次のTAGを取る
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ ガンマ画像処理
+		-----------------------------------------*/
+		imagegamma  : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.ImageObj);
+			
+			if(value.layer === void)value.layer = 0;
+			
+			//ガンマ処理
+			MainWnd.ImageObj.ImageGamma(value);
+			
+			//次のTAGを取る
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ 明度・コントラスト画像処理
+		-----------------------------------------*/
+		imagelight  : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.ImageObj);
+			
+			if(value.layer === void)value.layer = 0;
+			
+			//ガンマ処理
+			MainWnd.ImageObj.ImageLight(value);
+			
+			//次のTAGを取る
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ 画像回転処理
+		-----------------------------------------*/
+		imageaffine  : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.ImageObj);
+			
+			if(value.layer === void)value.layer = 0;
+			
+			//Affine処理
+			MainWnd.ImageObj.ImageAffine(value);
+			
+			//次のTAGを取る
+			return true;
+			
+		} incontextof this,	
+		
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ フェイス画像描画処理
+		-----------------------------------------*/
+		facedraw : function(value)
+		{
+			//使用可能フラグを見る
+			if(nFACE_FLAG == false)return true;
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = false;
+			
+			var temp = value.file;
+			
+			if(value.file === void){
+			//解除
+				MainWnd.MessObj.FaceDrawFlag     = false;
+				
+				MainWnd.MessObj.FaceDrawFile     = void;
+				
+				MainWnd.MessObj.FaceDrawTempFile = void;
+				
+				MainWnd.MessObj.FaceForceFlag    = void;
+			}else{
+			//指定
+				MainWnd.MessObj.FaceDrawFlag     = true;
+				
+				MainWnd.MessObj.FaceDrawType     = +value.type;
+				
+				MainWnd.MessObj.FaceDrawFile     = value.file;
+				
+				MainWnd.MessObj.FaceForceFlag    = +value.force;
+				
+				//パラメータ値
+				MainWnd.MessObj.FaceGlayFlag     = value.gray;
+				
+				MainWnd.MessObj.FaceRgamma       = value.rg;
+				
+				MainWnd.MessObj.FaceGgamma       = value.gg;
+				
+				MainWnd.MessObj.FaceBgamma       = value.bg;
+				
+				MainWnd.MessObj.FaceLight        = value.light;
+				
+				MainWnd.MessObj.FaceContrast     = value.contrast;
+				
+				MainWnd.MessObj.FaceOpacity      = value.opacity;
+				
+				
+				
+				//LOAD中は遅延描画はしない
+				if((MainWnd.LoadFlag) && (value.file2 !== void)){
+					MainWnd.MessObj.FaceDrawFile     = value.file2;
+					
+				}else{
+					MainWnd.MessObj.FaceDrawTempFile = value.file2;
+					
+					MainWnd.MessObj.FaceDelayTime    = +value.time;
+					
+					MainWnd.MessObj.FaceDelayType    = +value.delaytype;
+					
+					MainWnd.MessObj.FaceDelayFade    = +value.fade;
+				}
+			}
+			
+			//次のTAGを取る
+			return true;
+			
+		} incontextof this,	
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ フェイス抑制処理
+		-----------------------------------------*/
+		facehidden : function(value)
+		{
+			//使用可能フラグを見る
+			if(nFACE_FLAG == false)return true;
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = false;
+			
+			if(+value.type == 2 ){
+			//解除
+				MainWnd.MessObj.FaceHiddenFlag = false;
+				
+			}else{
+			//指定
+				MainWnd.MessObj.FaceHiddenFlag = true;
+				
+				MainWnd.MessObj.FaceHiddenType = +value.type;
+			}
+			
+			
+			//次のTAGを取る
+			return true;
+			
+		} incontextof this,	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		◆演出レイヤー関連
+		-----------------------------------------*/
+		
+		//-----------------------------------------
+		//□ 画像をCAPTUREして表示させる
+		//-----------------------------------------
+		transset : function(value)
+		{
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//スクリプト側のオート描画処理フラグ
+			MainWnd.EffectObj.SetTransFlag = true;
+			
+			//表示画面を取得する
+			MainWnd.EffectObj.TransSetFunc();
+			
+			//次のタグを取得しに行く
+			return true;
+			
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 演出を使用した画面更新（フェード）
+		//-----------------------------------------
+		fadework : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//デフォルト処理
+			if(value.time === void)value.time = 300;
+			
+			//fade type
+			value.type = 0;
+			
+			//スクリプト側のオート描画処理フラグを寝かす
+			MainWnd.EffectObj.SetTransFlag = false;
+			
+			//トランジションを開始する
+			MainWnd.EffectObj.ActTransition(value);
+			
+			//ユーザーの入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ 演出を使用した画面更新
+		//-----------------------------------------
+		transwork : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//デフォルト処理
+			if(value.time === void)value.time = 300;
+			
+			//スクリプト側のオート描画処理フラグを寝かす
+			MainWnd.EffectObj.SetTransFlag = false;
+			
+			//TYPE
+			value.type = 1;
+			
+			//トランジションを開始する
+			MainWnd.EffectObj.ActTransition(value);
+			
+			//ユーザーの入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ FLASH関数
+		//-----------------------------------------
+		flash : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//SKIP中は無視してみる
+			
+			if(value.color === void)value.color = 0xffffff;
+			
+			if(value.num === void)value.num = 1;
+			
+			if(value.time === void)value.time = 300;
+			
+			//フラッシュ関数
+			MainWnd.EffectObj.SetFlash(value);
+			
+			//ユーザーの入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ QUAKE関数
+		//-----------------------------------------
+		quake : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//SKIP中は無視してみる
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//クエイク関数
+			MainWnd.EffectObj.doQuake(value);
+			
+			//タイマー再生
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザーの入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ ZOOM WAIT関数
+		//-----------------------------------------
+		zoomwait : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//移動監視関数
+			System.addContinuousHandler(MainWnd.EffectObj.ZoomCheck);
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザーの入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ SHAKE LOOP関数
+		//-----------------------------------------
+		shakeloop : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//Shakeloop関数
+			MainWnd.EffectObj.SetShakeLoop(value);
+			
+			//タイマー再生
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ stop shake関数
+		//-----------------------------------------
+		stopshake : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//アクティブを変更
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//SHAKE 終了監視関数
+			MainWnd.EffectObj.StopShake();
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ WAIT関数
+		//-----------------------------------------
+		hitwait : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//SKIP中は無視してみる
+			if((MainWnd.SkipCheck() || MainWnd.EffectCheck()) && ((+value.skip) == 1)){
+				//SKIP処理
+				return true;
+			}
+			
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			if(value.skip === void)value.skip = true;
+			
+			//WAIT関数
+			MainWnd.EffectObj.WaitFunc(value);
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザー入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		◆マルチメディアレイヤー関連
+		-----------------------------------------*/
+		
+		
+		//-----------------------------------------
+		//□ BGMを再生する
+		//-----------------------------------------
+		playbgm : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			
+			//SKIP中はフェードを無しにしてみる
+			if(MainWnd.SkipCheck()){
+				//SKIP処理
+				value.fade = 0;
+			}
+			
+			
+			//BGM 0 で停止
+			if((value.file == "0") || (value.file === void)){
+				//FILE名を消しておく
+				f["bgm"]    = void;
+				
+				f["bgmpan"] = void;
+				
+				//BGM FILEを停止する
+				MainWnd.BgmObj.FileStop(+value.fade);
+				
+				//次のタグを取得しに行く
+				return true;
+			}
+			
+			var save_flag = value.file;
+			
+			if(ResourceCheck(value.file + ".ogg")){
+				value.file += ".ogg";
+			}else if(ResourceCheck(value.file + ".wav")){
+				value.file += ".wav";
+			}else{
+				//リソース無し
+				if (InforFlag == true) {
+					DebugMess(value.file + "がありませんでした");
+					
+					return true;
+				}
+			}
+			
+			
+			
+			//現在再生中と同じなら鳴らさない
+			if(f["bgm"] == value.file)return true;
+			
+			
+			//フラグを立てておく
+			s[ save_flag.toLowerCase() ] = true;
+			
+			//FILE名を保存しておく
+			f["bgm"] = value.file;
+			
+			//LRの設定
+			if((+value.pan * 1000) != 0){
+				f["bgmpan"] = +value.pan * 1000;
+			}else{
+				f["bgmpan"] = void;
+			}
+			
+			//BGM OFFならここまで
+			if(s["bgm"] == false)return true;
+			
+			//BGM PAN設定
+			MainWnd.BgmObj.SetState(1, f["bgmpan"]);
+			
+			
+			//BGM FILEを再生する
+			MainWnd.BgmObj.FilePlay(value.file, true, +value.fade);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ BGMを一時停止する
+		//-----------------------------------------
+		pausebgm : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			if(value.mode === void)value.mode = false;
+			
+			//BGM 一時停止(解除)する
+			if(+value.mode == false) {
+			//解除
+				if(MainWnd.BgmObj.SetState(3) == "susppend") {
+				//一時停止状態
+					MainWnd.BgmObj.SetState(2, false);
+				} else {
+				//LOAD復帰後など
+					//ファイルが有り、BGMがONのみ
+					if(f["bgm"] !== void && s["bgm"] == true){
+						//BGM PAN設定
+						MainWnd.BgmObj.SetState(1, f["bgmpan"]);
+						
+						//BGM FILEを再生する
+						MainWnd.BgmObj.FilePlay(f["bgm"], true);
+					}
+				}
+				
+				//フラグを寝かす
+				f["bgmpause"] = false;
+				
+			} else {
+			//停止
+				//フラグを立てる
+				f["bgmpause"] = true;
+				
+				//BGM OFFならここまで
+				if(s["bgm"] == false)return true;
+				
+				//一時停止
+				MainWnd.BgmObj.SetState(2, true);
+				
+			}
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ SEを再生する
+		//-----------------------------------------
+		playse : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//INDEX
+			var index = +value.id;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//PAN
+			var pan   = +value.pan * 1000;
+			
+			//SKIP中はフェードを無しにしてみる
+			if(MainWnd.SkipCheck()){
+				//SKIP処理
+				value.fade      = 0;
+				value.delaytime = 0;
+			}
+			
+			
+			//SE 0 で停止
+			if(value.file == "0") {
+				
+				if(index == -1){
+					//SE 全停止
+					for(var i=0; i<nSE_MAXNUM; i++){
+						f["se"+i]    = void;
+						f["sepan"+i] = void;
+						f["seloop"+i]= void;
+						
+						//SE FILEを停止する
+						MainWnd.SeObj[i].FileStop();
+					}
+				}else{
+					//SE STOP
+					f["se"+index]    = void;
+					f["sepan"+index] = void;
+					f["seloop"+index]= void;
+					
+					//SE FILEを停止する
+					MainWnd.SeObj[index].FileStop(+value.fade);
+				}
+				
+				//次のタグを取得しに行く
+				return true;
+			}
+			
+			if(ResourceCheck(value.file + ".ogg")){
+				value.file += ".ogg";
+			}else if(ResourceCheck(value.file + ".wav")){
+				value.file += ".wav";
+			}else{
+				//リソース無し
+				if (InforFlag == true) {
+					DebugMess(value.file + "がありませんでした");
+					
+					return;
+				}
+			}
+			
+			//PAN設定
+			MainWnd.SeObj[index].SetState(1, pan);
+			
+			
+			//SE FILEを再生する
+			if(+value.loop == true){
+				f["seloop"+index]    = value.file;
+				f["se"+index]        = void;
+			}else{
+				f["se"+index]        = value.file;
+				f["seloop"+index]    = void;
+			}
+			
+			f["sepan"+index] = pan;
+			
+			//SE OFFの場合はここまで
+			if(s["se"] == false)return true;
+			
+			
+			//再生処理
+			MainWnd.SeObj[index].FilePlay(value.file, +value.loop, +value.fade, +value.delaytime);
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ SE 終了まで待つ
+		-----------------------------------------*/
+		sewait : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//INDEX
+			var index = +value.id;
+			
+			//SE STOP
+			f["se"+index]    = void;
+			f["sepan"+index] = void;
+			f["seloop"+index]= void;
+			
+			
+			
+			//SE FILEを停止する
+			if(MainWnd.SeObj[index].SetState(3) != "play"){
+				//再生状態では無い場合は次のタグへ
+				return true;
+			} else {
+				//SKIP中は停止して次へ
+				if(MainWnd.SkipCheck()){
+					//SKIP処理
+					
+					//SE STOP
+					f["se"+index]    = void;
+					f["sepan"+index] = void;
+					f["seloop"+index]= void;
+					
+					//SE FILEを停止する
+					MainWnd.SeObj[index].FileStop();
+					
+					return true;
+				}
+				
+				//SE OBJECTに制御を変えておく
+				MainWnd.ChangeActive(MainWnd.SeObj[index]);
+			}
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザー入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ SEを一時停止する
+		//-----------------------------------------
+		pausese : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//se index
+			var index = +value.id;
+			
+			//SE 一時停止(解除)する
+			if(+value.mode == false) {
+			//解除
+				if(MainWnd.SeObj[index].SetState(3) == "susppend") {
+				//一時停止状態
+					//SE OFFの場合は停止
+					if(s["se"] == true){
+						MainWnd.SeObj[index].SetState(2, false);
+					}else{
+						MainWnd.SeObj[index].FileStop();
+					}
+					
+					//フラグを寝かす
+					f["sepause"+index] = false;
+					
+				} else {
+				//LOAD復帰後など
+					//フラグを寝かす
+					f["sepause"+index] = false;
+					
+					//SE OFFの場合はここまで
+					if(s["se"] == false)return true;
+					
+					if(f["seloop"+index] !== void){
+						//SE PAN設定
+						MainWnd.SeObj[index].SetState(1, f["sepan"+index]);
+						
+						//SE FILEを再生する
+						MainWnd.SeObj[index].FilePlay(f["seloop"+index], true);
+					}
+				}
+				
+			} else {
+			//停止
+				//フラグを立てる
+				f["sepause"+index] = true;
+				
+				//SE OFFの場合はここまで
+				if(s["se"] == false)return true;
+				
+				//一時停止
+				MainWnd.SeObj[index].SetState(2, true);
+			}
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ VOICEを再生する
+		//-----------------------------------------
+		voice : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if((MainWnd.LoadFlag))return true;
+			
+			if(ResourceCheck(value.file + ".ogg")){
+				value.file += ".ogg";
+			}else if(ResourceCheck(value.file + ".wav")){
+				value.file += ".wav";
+			}else{
+				//リソース無し
+				if (InforFlag == true) {
+					DebugMess(value.file + "がありませんでした");
+				}
+				
+				return true;
+			}
+			
+			//ID指定が無い場合は0を使用
+			if(value.id === void)value.id = 0;
+			
+			//PAN設定
+			f["voicepan"+value.id] = +value.pan * 1000;
+			
+			MainWnd.VoiceObj[+value.id].SetState(1, +value.pan * 1000);
+			
+			if( +value.play != 0){
+			//VOICE FILEを即時再生する
+				MainWnd.MessObj.VoicePlay(value.file, +value.id);
+			}else{
+			//通常はフラグとファイル名をセットするだけ
+				MainWnd.MessObj.VoicePlayFlag[+value.id] = true;
+				f["voiceplay"+value.id] = value.file;
+			}
+			
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ VOICEを停止する
+		//-----------------------------------------
+		voicestop : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//ID指定が無い場合は-1を使用
+			if(value.id === void)value.id = -1;
+			
+			//VOICE FILEを停止する
+			if(value.id == -1){
+			//全停止
+				for(var i=0; i<nVOICE_MAXNUM; i++){
+					MainWnd.VoiceObj[i].FileStop();
+					f["voiceplay"+i] = void;
+					f["voicepan" +i] = void;
+				}
+			}else{
+			//個別停止
+				MainWnd.VoiceObj[+value.id].FileStop();
+				f["voiceplay"+value.id] = void;
+				f["voicepan" +value.id] = void;
+			}
+			
+			
+			//次のタグを取得しに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ VOICE 終了まで待つ
+		-----------------------------------------*/
+		voicewait : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//ID指定が無い場合は0を使用
+			if(value.id === void)value.id = 0;
+			
+			
+			//VOICE FILEを停止する
+			if(MainWnd.VoiceObj[+value.id].SetState(3) != "play"){
+				//再生状態では無い場合は次のタグへ
+				return true;
+			} else {
+				
+				//レジスタはクリアしておく
+				f["voiceplay"+value.id] = void;
+				f["voicepan" +value.id] = void;
+				
+				if(MainWnd.SkipCheck()){
+					//次のタグへ
+					return true;
+				}else{
+					//VOICE OBJECTに制御を変えておく
+					MainWnd.ChangeActive(MainWnd.VoiceObj[+value.id]);
+				}
+			}
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザー入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ EyeCatchBgm 再生
+		-----------------------------------------*/
+		eyecatchbgm : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			
+			//LOAD中は無視
+			if((MainWnd.LoadFlag))return true;
+			
+			if(ResourceCheck(value.file + ".ogg")){
+				value.file += ".ogg";
+			}else if(ResourceCheck(value.file + ".wav")){
+				value.file += ".wav";
+			}else{
+				//リソース無し
+				if (InforFlag == true) {
+					DebugMess(value.file + "がありませんでした");
+					
+					return;
+				}
+			}
+			
+			//IDを取得する
+			var str = (value.file.substr(6, 1)).toLowerCase();
+			
+			var vol = 0;
+			
+			if(str == "a"){
+				vol = (s["system_vol"] * s["char_1_vol"]) \ 100;
+			}else if(str == "b"){
+				vol = (s["system_vol"] * s["char_2_vol"]) \ 100;
+			}else if(str == "c"){
+				vol = (s["system_vol"] * s["char_3_vol"]) \ 100;
+			}else if(str == "d"){
+				vol = (s["system_vol"] * s["char_4_vol"]) \ 100;
+			}else if(str == "e"){
+				vol = (s["system_vol"] * s["char_5_vol"]) \ 100;
+			}else if(str == "f"){
+				vol = (s["system_vol"] * s["char_6_vol"]) \ 100;
+			}else if(str == "g"){
+				vol = (s["system_vol"] * s["char_7_vol"]) \ 100;
+			}else if(str == "h"){
+				vol = (s["system_vol"] * s["char_8_vol"]) \ 100;
+			}
+			
+			//EYECATCH SE VOLUMEの変更
+			MainWnd.EyeCatchBgmObj.SetState(5, vol);
+			
+			//EYECATCH FILEを再生する
+			MainWnd.EyeCatchBgmObj.FilePlay(value.file,0,0,0);
+			
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ SYSTEM SE 終了まで待つ
+		-----------------------------------------*/
+		systemsewait : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//SYSTEM SE FILEを停止する
+			if(MainWnd.SystemObj.SetState(3) != "play"){
+				//再生状態では無い場合は次のタグへ
+				return true;
+			} else {
+				//SYSTEM SE OBJECTに制御を変えておく
+				MainWnd.ChangeActive(MainWnd.SystemObj);
+			}
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザー入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		/*-----------------------------------------
+		■ EYECATCH BGM 終了まで待つ
+		-----------------------------------------*/
+		eyecatchbgmwait : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			
+			//SYSTEM SE FILEを停止する
+			if(MainWnd.EyeCatchBgmObj.SetState(3) != "play"){
+				//再生状態では無い場合は次のタグへ
+				return true;
+			} else {
+				//SYSTEM SE OBJECTに制御を変えておく
+				MainWnd.ChangeActive(MainWnd.EyeCatchBgmObj);
+			}
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザー入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ MOVIEを再生する
+		//-----------------------------------------
+		playmovie : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//アクティブ変更
+			MainWnd.ChangeActive(MainWnd.MovieObj);
+			
+			var playmode = 0;
+			
+			if(value.mode !== void){
+				playmode = (int)value.mode;
+			}
+			
+			if(ResourceCheck(value.file + ".mpg")){
+				value.file += ".mpg";
+			}else if(ResourceCheck(value.file + ".wmv")){
+				value.file += ".wmv";
+			}else if(!ResourceCheck(value.file )){
+				//リソース無し
+				if (InforFlag == true) {
+					DebugMess(value.file + "がありませんでした");
+					
+					return;
+				}
+			}
+			
+			
+			//キャンセルＩＤ (エンディングムービー用)
+			if(value.cancel === void){
+			//通常MOVIE処理はSKIPでキャンセル
+				//SKIPは飛ばすよ
+				if((MainWnd.SkipCheck())|| (MainWnd.EffectCheck()))return true;
+			}
+			
+			//ONしか再生しない
+			if(s["movie"] == true){
+				//MOVIE を再生する
+				MainWnd.MovieObj.PlayFile(value.file, +value.loop , playmode, +value.cursor,+value.cancel, +value.layer);
+			}else{
+				//次の入力を待つ
+				return true;
+			}
+			
+			//アクティブオブジェクトを変更するか
+			if((+value.loop == true) && (+value.wait == true))value.wait = 0;
+			
+			
+			if(+value.wait == true){
+			//ユーザーの入力を待つ
+				return false;
+			}else{
+			//次の入力を待つ
+				return true;
+			}
+			
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ MOVIE の後始末をする
+		//　close()を呼び出すと一瞬黒くなるので
+		//　別処理にしてみた
+		//-----------------------------------------
+		closemovie : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//OFFも無視
+			if(s["movie"] == false)return true;
+			
+			//アクティブ変更
+			MainWnd.ChangeActive(MainWnd.MovieObj);
+			
+			//MOVIEをCloseする
+			MainWnd.MovieObj.CloseMovie();
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ MOVIEを停止する
+		//※ SWF用 SWFは停止を関知することができないので
+		//-----------------------------------------
+		stopmovie : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//アクティブ変更
+			MainWnd.ChangeActive(MainWnd.MovieObj);
+			
+			//MOVIEを停止する
+			MainWnd.MovieObj.EndMovie();
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ MOVE WAIT
+		//-----------------------------------------
+		waitmove : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//CANCELフラグは反転させて使用する
+			MainWnd.EffectObj.EffectCancelFlag = !(+value.skip);
+			
+			//移動監視関数
+			System.addContinuousHandler(MainWnd.EffectObj.MoveCheck);
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザーの入力を待つ
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ STOP MOVE
+		//-----------------------------------------
+		stopmove : function(value)
+		{
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			MainWnd.EffectObj.EffectType = 6;
+			
+			//CANCELフラグは解除しておく
+			MainWnd.EffectObj.EffectCancelFlag = false;
+			
+			MainWnd.EffectObj.LeftMouseUpAction();
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ Anime 設定
+		//-----------------------------------------
+		setanime : function(value)
+		{
+			/* ※使用停止
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			if(value.layer === void)value.layer = 0;
+			
+			var layer = +value.layer;
+			
+			if(MainWnd.ImageObj.ImgObj[layer] === void){
+				MainWnd.ImageObj.ImageDraw(%["layer"=>layer]);
+			}
+			
+			layer = MainWnd.ImageObj.ImgObj[layer];
+			
+			//アニメーションオブジェクトを作成する
+			MainWnd.EffectObj.AnimeObject.add(new _ANIMATIONOBJECT(MainWnd, layer, value.storage));
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//SKIP 中はすぐ終了
+			if(MainWnd.SkipCheck()|| MainWnd.EffectCheck()){
+				MainWnd.EffectObj.AnimeStop();
+			}
+			
+			*/
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ Anime Wait 設定
+		//-----------------------------------------
+		waitanime : function(value)
+		{
+			return true;
+			/* ※使用停止
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			//移動監視関数
+			System.addContinuousHandler(MainWnd.EffectObj.AnimeCheck);
+			
+			//タイマー開始
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//ユーザーの入力を待つ
+			return false;
+			*/
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ STOP ANIME
+		//-----------------------------------------
+		stopanime : function(value)
+		{
+			/*■使用停止
+			
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			//EFFECT OBJECTに制御を変えておく
+			MainWnd.ChangeActive(MainWnd.EffectObj);
+			
+			MainWnd.EffectObj.AnimeStop();
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			*/
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ spline shake
+		//-----------------------------------------
+		sppath : function(value)
+		{
+			//LOAD中は無視
+			if(MainWnd.LoadFlag)return true;
+			
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			if(value.layer === void)value.layer = 0;
+			
+			var layer = +value.layer;
+			
+			var temppath  = "";
+			
+			var temppath2 = "";
+			
+			var path      = "";
+			
+			var cnt       = +value.cnt;
+			
+			var basepos   = "";
+			
+			if(value.x === void)value.x = 0;
+			
+			if(value.y === void)value.y = 0;
+			
+			
+			
+			if((value.type === void) || (value.type == "s")){
+				
+				//レイヤが存在してない場合はここまで
+				if(MainWnd.ImageObj.ImgObj[layer] === void)return true;
+				
+				//画像レイヤ
+				temppath  = "(" + (MainWnd.ImageObj.ImgObj[layer].left + +value.x) + "," + (MainWnd.ImageObj.ImgObj[layer].top + +value.y) + "," + MainWnd.ImageObj.ImgObj[layer].opacity + ")";
+				basepos   = "(" + MainWnd.ImageObj.ImgObj[layer].left + "," + MainWnd.ImageObj.ImgObj[layer].top + "," + MainWnd.ImageObj.ImgObj[layer].opacity + ")";
+				
+				for(var i=0; i<cnt; i++){
+					if(!i){
+						path = temppath + "," + basepos;
+					}else{
+						path = path + temppath + "," + basepos + ",";
+					}
+				}
+				
+				
+			}else{
+			//双方向
+				//レイヤが存在してない場合はここまで
+				if(MainWnd.ImageObj.ImgObj[layer] === void)return true;
+				
+				//画像レイヤ
+				temppath  = "(" + (MainWnd.ImageObj.ImgObj[layer].left + +value.x) + "," + (MainWnd.ImageObj.ImgObj[layer].top + +value.y) + "," + MainWnd.ImageObj.ImgObj[layer].opacity + ")";
+				temppath2 = "(" + (MainWnd.ImageObj.ImgObj[layer].left - +value.x) + "," + (MainWnd.ImageObj.ImgObj[layer].top - +value.y) + "," + MainWnd.ImageObj.ImgObj[layer].opacity + ")";
+				basepos   = "(" + MainWnd.ImageObj.ImgObj[layer].left + "," + MainWnd.ImageObj.ImgObj[layer].top + "," + MainWnd.ImageObj.ImgObj[layer].opacity + ")";
+				
+				for(var i=0; i<cnt; i++){
+					
+					if(!i){
+						path = temppath + "," + temppath2;
+					}else{
+						path = path + "," + temppath + "," + temppath2;
+					}
+				}
+			}
+			
+			path = path + "," + basepos;
+			
+			f["path"] = path;
+			
+			
+			
+			//タイマー再開
+			MainWnd.DefaultTimer.enabled = true;
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ DEBUG MESSAGE
+		//-----------------------------------------
+		dm : function(value)
+		{
+			DebugMess(value.m);
+			
+			//次のタグを取りに行く
+			return true;
+			
+		} incontextof this,
+		
+		
+		
+		
+		//-----------------------------------------
+		//□ DEBUG LOAD
+		//-----------------------------------------
+		debugload : function(value)
+		{
+			//タイマー停止
+			MainWnd.DefaultTimer.enabled = false;
+			
+			MainWnd.DebugLoad();
+			
+			//ユーザーの入力待ち
+			return false;
+			
+		} incontextof this,
+		
+		
+		
+		
+		
+		
+		
+		////////////////////////////////////////
+		// ここまで
+		////////////////////////////////////////
+		
+		interrupt : function(value) {  return -2; } incontextof this
+		
+		];
+	}
+	
+}
+
+
+@endif

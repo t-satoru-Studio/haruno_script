@@ -1,0 +1,800 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2011/09/30
+// File : affine.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Affine Function
+//------------------------------------------------------------------------------
+@if (__AFFINE_TJS__== 0)
+@set(__AFFINE_TJS__ = 1)
+
+/*
+	背景/前景画像の拡大縮小効果による表示を行うプラグインver.1.1
+*/
+
+class AffinePlugin
+{
+	/*-----------------------------------------
+	■ メンバオブジェクト
+	-----------------------------------------*/
+	
+	var pluginName = "affine";		// プラグインの名前
+
+	var cx, cy;						// 回転中心
+
+	var srot, smag, sx, sy;			// 初期位置
+	var drot, dmag, dx, dy;			// 最終位置
+
+	var time;						// 描画時間
+	var accel;						// 加速度的な動きを行うか ( 負 : 0 : 正 )
+
+	var storage;					// 画像名
+	var index;						// 重ね合わせ順序
+	var type;						// 描画レイヤータイプ
+	var targetLayerName;			// 対象レイヤー名
+	var targetLayer;				// 対象レイヤー
+	
+	var opa;						// 不透明度
+	var flipud;						// 上下反転
+	var fliplr;						// 左右反転
+	var blur;						// ブラーをかけるか
+	var blur_x, blur_y;				// ブラーの強さ
+
+	var blur_inout;					// blur_inoutモード
+	var fade;						// fadeモード
+
+	var path;						// 移動位置
+
+	var tempLayer;					// テンポラリレイヤ
+
+	var actionFunc;					// 移動位置計算関数
+
+	var moving = false;				// 動作中フラグ
+	var nextstop;					// 次回停止フラグ
+
+	var startTick;					// 開始ティック
+	var processTime;				// affine開始から終了までの時間
+	var lastTick = 0;				// 前回ハンドラが描画開始した時間
+	
+	var window;						// ウィンドウオブジェクト
+	
+	var PriLayer;					//プライマリレイヤ
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function AffinePlugin(window, pri)
+	{
+		this.window   = window;
+		
+		this.PriLayer = pri;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		// finalize メソッド
+		// このクラスの管理するすべてのオブジェクトを明示的に破棄
+		stop();
+
+		invalidate tempLayer if tempLayer !== void;
+
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ スタート関数
+	-----------------------------------------*/
+	function startaffine(elm)
+	{
+		//layer : 対象レイヤ
+		//storage : 表示画像
+		//time : 描画を行っている時間
+		//accel : 加速をつけるかどうか
+		//cx : 注視点X座標
+		//cy : 注視点Y座標
+		//smag : 初期倍率
+		//dmag : 最終倍率
+		//srot : 初期角度
+		//drot : 最終角度
+		//path : 移動位置
+		//opacity : 不透明度
+		//flipud : 上下反転するか
+		//fliplr : 左右反転するか
+		//fade : fadeモード(画像が徐々に消えていくor現れる)
+		//blur : 画像をぼかすか
+		//blur_inout : blur_inoutモード(画像が徐々にぼやけるor徐々にはっきりする)
+		//blur_x : ブラーの横方向の強さ
+		//blur_y : ブラーの縦方向の強さ
+		
+		
+		//現在の時間を取得しておく
+		this.processTime = System.getTickCount();
+		
+		
+		// 対象レイヤーの設定
+		this.targetLayer = elm.layer;
+		
+		
+		// ブラーの強さの設定
+		this.blur_x = elm.blur_x;
+		this.blur_y = elm.blur_y;
+		
+		// テンポラリレイヤを確保
+		{
+			// 元画像の設定
+			this.storage = elm.storage;
+			
+			if(tempLayer === void)
+			{
+				tempLayer = new Layer(window, PriLayer);
+				
+				//storageが指定されていない時は、対象レイヤーの画像を使用
+				if(storage == "")
+				{
+					tempLayer.assignImages(elm.layer);
+				}
+				else
+				{
+					tempLayer.loadImages(this.storage, clNone);
+				}
+				
+				
+				
+				// 上下左右反転、ブラーの設定
+				if(elm.flipud == ""){
+					this.flipud = false;
+				}else{
+					this.flipud = elm.flipud;
+				}
+				
+				
+				if(elm.fliplr == ""){
+					this.fliplr = false;
+				}else{
+					this.fliplr = elm.fliplr;
+				}
+				
+				
+				if(elm.blur == ""){
+					this.blur = false;
+				}else{
+					this.blur = elm.blur;
+				}
+				
+				
+				if(flipud){
+					tempLayer.flipUD();
+				}
+				
+				
+				if(fliplr){
+					tempLayer.flipLR();
+				}
+				
+				
+				if(blur){
+					tempLayer.doBoxBlur(blur_x, blur_y);
+				}
+			
+			}
+			
+			tempLayer.setSizeToImageSize();
+		}
+		
+		
+		
+		
+		{
+			// 不透明度の設定
+			this.opa = (elm.opacity !== void) ? +elm.opacity : 255;
+			targetLayer.opacity = +opa;
+			
+			
+			// fadeモードの設定
+			if(elm.fade == ""){
+				this.fade = false;
+			}else{
+				this.fade = elm.fade;
+			}
+			
+			
+			
+			// ブラーイン・アウトモードの設定
+			if(elm.blur_inout == ""){
+				this.blur_inout = false;
+			}else{
+				this.blur_inout = elm.blur_inout;
+			}
+			
+			
+			
+			// pathを分解
+			this.path = elm.path;
+			var array = [].split("(), ", path, , true);
+			
+			this.sx = array[0];
+			this.sy = array[1];
+			this.dx = array[2];
+			this.dy = array[3];
+			
+			// 回転中心の設定
+			if(elm.cx == "" || elm.cx == 'c'){
+				this.cx = tempLayer.imageWidth \ 2;
+			}else if( typeof +elm.cx == 'Real'){
+				this.cx = tempLayer.imageWidth * +elm.cx;
+			}else{
+				this.cx = (int)elm.cx;
+			}
+			
+			
+			if(elm.cy == "" || elm.cy == 'c'){
+				this.cy = tempLayer.imageHeight \ 2;
+			}else if( typeof +elm.cy == 'Real'){
+				this.cy = tempLayer.imageHeight * +elm.cy;
+			}else{
+				this.cy = (int)elm.cy;
+			}
+			
+			
+			// 初期位置の設定
+			if(elm.srot == ""){
+				this.srot = (real)0;
+			}else if( typeof +elm.srot == 'Real'){
+				this.srot = Math.PI * +elm.srot;
+			}else{
+				this.srot = +elm.srot;
+			}
+			
+			
+			//初期倍率
+			if(elm.smag == ""){
+				this.smag = (int)1;
+			}else{
+				this.smag = (real)elm.smag;
+			}
+			
+			
+			if(sx == "" || sx == 'c'){
+				sx = targetLayer.imageWidth / 2;
+			}else if( typeof +sx == 'Real'){
+				sx = targetLayer.imageWidth * +sx;
+			}else{
+				sx = (int)sx;
+			}
+			
+			
+			if(sy == "" || sy == 'c'){
+				sy = targetLayer.imageHeight / 2;
+			}else if( typeof +sy == 'Real'){
+				sy = targetLayer.imageHeight * +sy;
+			}else{
+				sy = (int)sy;
+			}
+			
+			
+			// 最終位置の設定
+			if(elm.drot == ""){
+				this.drot = (real)0;
+			}else if( typeof +elm.drot == 'Real'){
+				this.drot = Math.PI * +elm.drot;
+			}else{
+				this.drot = +elm.drot;
+			}
+			
+			
+			if(elm.dmag == ""){
+				this.dmag = (int)1;
+			}else{
+				this.dmag = (real)elm.dmag;
+			}
+			
+			
+			if(dx == ""){
+				dx = sx;
+			}else if(dx == 'c'){
+				dx = targetLayer.imageWidth / 2;
+			}else if( typeof +dx == 'Real'){
+				dx = targetLayer.imageWidth * +dx;
+			}else{
+				dx = (int)dx;
+			}
+			
+			
+			if(dy == ""){
+				dy = sy;
+			}else if(dy == 'c'){
+				dy = targetLayer.imageHeight / 2;
+			}else if( typeof +dy == 'Real'){
+				dy = targetLayer.imageHeight * +dy;
+			}else{
+				dy = (int)dy;
+			}
+			
+			
+			// 描画時間の設定
+			if(elm.time == ""){
+				this.time = 1000;
+			}else{
+				this.time = (int)elm.time;
+			}
+			
+			
+			// 加速度の設定
+			if(elm.accel == ""){
+				this.accel = 0;
+			}else{
+				this.accel = (real)elm.accel;
+			}
+		}
+		
+		
+		@if(_DEBUG == 1)
+		// コンソールにaffineの情報を出力
+		//System.inform("■affine : layer = " + targetLayerName + ";" + "; storage = " + storage + ";
+		//time = " + time + ";
+		//(cx,cy) = " + "("+cx+","+cy+")");
+		@endif
+		
+		
+		// 移動位置計算関数の設定
+		if(srot == 0 && drot == 0)// 回転しないならoperateStretchを使用
+		{
+			actionFunc = stretchMover;
+			
+			@if(_DEBUG == 1)
+			//dm("■operateStretch");
+			@endif
+		}
+		else
+		{
+			actionFunc = affineMover;
+			
+			@if(_DEBUG == 1)
+			//System.inform("■operateAffine : srot = " + srot + "; drot =" + drot);
+			@endif
+		}
+		
+		
+		// 描画の開始
+		// timeが0以下ならすぐに終了処理へ
+		if(time <= 0){
+			targetLayer.visible = true;
+			finish();
+		}else{
+			// 初期位置に表示
+			actionFunc(0);
+			targetLayer.visible = true;
+			
+			// 開始
+			startTick = System.getTickCount();
+			System.addContinuousHandler(continuousHandler);
+			moving = true;
+			nextstop = false;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	// 通常用、移動位置計算関数
+	-----------------------------------------*/
+	function affineMover(tm)
+	{
+		// 位置計算
+		// tm は 0.0(開始点) ～ 1.0(終了点) の間で変化する変数なので、
+		// これを元にして位置を計算する
+		var r = (drot - srot) * tm + srot;
+		var s = (dmag - smag) * tm + smag;
+		var tx = (dx - sx) * tm + sx;
+		var ty = (dy - sy) * tm + sy;
+
+		var rc = Math.cos((Math.PI/180) * r);
+		var rs = Math.cos((Math.PI / 2) - (Math.PI/180) * r);
+
+		var m00, m01, m10, m11, mtx, mty;  // アフィン変換行列パラメータ
+		m00 = s * rc;
+		m01 = s * -rs;
+		m10 = s * rs;
+		m11 = s * rc;
+		mtx = (m00*-cx) + (m10*-cy) + tx;
+		mty = (m01*-cx) + (m11*-cy) + ty;
+
+		// fadeモード用不透明度の計算
+		var opa2;
+
+		if(fade == 'in')
+		{
+			opa2 = int(( 255 * tm));
+		}
+		else if(fade == 'out')
+		{
+			opa2 = int(255 - ( 255 * tm));
+		}
+		else
+		{
+			opa2 = 255;
+		}
+
+		// blur_inoutモード用ブラーの強さの計算
+		var bx, by;
+
+		if(blur_inout == 'in' || blur_inout == 'out')
+		{
+			if(blur_inout == 'in')
+			{
+				bx = int(blur_x - (blur_x * tm));
+				by = int(blur_y - (blur_y * tm));
+			}
+			else
+			{
+				bx = int(blur_x * tm);
+				by = int(blur_y * tm);
+			}
+		}
+		
+		// m00 m01 m10 m11 mtx mty 位置に移動
+		targetLayer.visible = true;
+		
+		// レイヤーを一度クリアする
+		targetLayer.fillRect( 0,0, targetLayer.imageWidth,targetLayer.imageHeight, 0 );
+
+		// アフィン変換転送
+		if(targetLayer.type == ltOpaque)// レイヤータイプがltOpaqueならstFastLinear(線形補間)
+		{
+			//dm("stFastLinear");
+			
+			targetLayer.operateAffine(
+			tempLayer,
+			0, 0,
+			tempLayer.imageWidth, tempLayer.imageHeight,
+			'true',
+			m00, m01,
+			m10, m11,
+			mtx, mty,
+			omOpaque,
+			opa2,
+			stFastLinear
+			);
+		}
+		else
+		{
+			targetLayer.operateAffine(
+			tempLayer,
+			0, 0,
+			tempLayer.imageWidth, tempLayer.imageHeight,
+			'true',
+			m00, m01,
+			m10, m11,
+			mtx, mty,
+			omAuto,
+			opa2,
+			stNearest
+			);
+		}
+		
+		
+		// blur_inoutモードなら、ブラーを実行
+		if(blur_inout == 'in' || blur_inout == 'out'){
+			targetLayer.doBoxBlur(bx, by);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	// 無回転用、移動位置計算関数
+	-----------------------------------------*/
+	function stretchMover(tm)
+	{
+		// 位置計算
+		// tm は 0.0(開始点) ～ 1.0(終了点) の間で変化する変数なので、
+		// これを元にして位置を計算する
+		var s = (dmag - smag) * tm + smag;
+		var tx = (dx - sx) * tm + sx;
+		var ty = (dy - sy) * tm + sy;
+
+		var m00, m01, mtx, mty;
+
+		m00 = tempLayer.imageWidth * s;
+		m01 = tempLayer.imageHeight * s;
+		mtx = (-cx) * s + tx;
+		mty = (-cy) * s + ty;
+
+		// fadeモード用不透明度の計算
+		var opa2;
+
+		if(fade == 'in')
+		{
+			opa2 = int(( 255 * tm));
+		}
+		else if(fade == 'out')
+		{
+			opa2 = int(255 - ( 255 * tm));
+		}
+		else
+		{
+			opa2 = 255;
+		}
+		
+		// blur_inoutモード用ブラーの強さの計算
+		var bx, by;
+
+		if(blur_inout == 'in' || blur_inout == 'out')
+		{
+			if(blur_inout == 'in')
+			{
+				bx = int(blur_x - (blur_x * tm));
+				by = int(blur_y - (blur_y * tm));
+			}
+			else
+			{
+				bx = int(blur_x * tm);
+				by = int(blur_y * tm);
+			}
+		}
+
+		// m00 m01 mtx mty 位置に移動
+		targetLayer.visible = true;
+		
+		// レイヤーを一度クリアする
+		targetLayer.fillRect( 0,0, targetLayer.imageWidth,targetLayer.imageHeight, 0 );
+
+		// 拡大縮小転送
+		if(targetLayer.type == ltOpaque)
+		{
+			//dm("stFastLinear");
+			
+			targetLayer.operateStretch(
+			mtx, mty,
+			m00, m01,
+			tempLayer,
+			0, 0,
+			tempLayer.imageWidth, tempLayer.imageHeight,
+			omOpaque,
+			255,
+			stFastLinear
+			);
+		}
+		else
+		{
+			targetLayer.operateStretch(
+			mtx,mty,
+			m00,m01,
+			tempLayer,
+			0, 0, 
+			tempLayer.imageWidth, tempLayer.imageHeight, 
+			omAuto, 
+			255, 
+			stNearest
+			);
+		}
+		
+		
+		// blur_inoutモードなら、ブラーを実行
+		if(blur_inout == 'in' || blur_inout == 'out'){
+			targetLayer.doBoxBlur(bx, by);
+		}
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 移動関数
+	-----------------------------------------*/
+	function continuousHandler(tick)
+	{
+		// ハンドラ
+		if(nextstop)
+		{
+			// 終了
+			finish();
+			return;
+		}
+
+		// 時間を得る
+		var tm = tick - startTick;
+		tm /= time;
+		if(tm >= 1)
+		{
+			// 描画終了フラグON
+			nextstop = true;
+			tm = 1;
+			return;
+		}
+		else
+		{
+			var intervalTime = System.getTickCount() - lastTick;
+
+			if(intervalTime > 15)// ハンドラが15ms以内に呼ばれたら、描画しない
+			{
+				// 加速計算
+				if(accel < 0)
+				{
+					// 上弦 ( 最初が動きが早く、徐々に遅くなる )
+					tm = 1.0 - tm;
+					tm = Math.pow(tm, -accel);
+					tm = 1.0 - tm;
+				}
+				else if(accel > 0)
+				{
+					// 下弦 ( 最初は動きが遅く、徐々に早くなる )
+					tm = Math.pow(tm, accel);
+				}
+
+				lastTick = System.getTickCount();
+				
+				// 移動
+				actionFunc(tm);
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 終了関数
+	-----------------------------------------*/
+	function finish()
+	{
+		// 最終位置に移動
+		actionFunc(1.0);
+
+		// 回転ズームの終了
+		stop(); // 停止
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 回転停止関数
+	-----------------------------------------*/
+	function stop()
+	{
+		// 停止
+		if(moving)
+		{
+			System.removeContinuousHandler(continuousHandler);
+			moving = false;
+			//System.inform("■affine実行時間 :"+ (System.getTickCount() - processTime) +"ms■");
+		}
+		
+		
+		if(tempLayer !== void){
+			invalidate tempLayer ;
+		}
+		
+		tempLayer   = void;
+		targetLayer = void;
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	// レイヤの画像を回転・拡大・縮小します
+	// (指定できる属性)
+	// elm.scale : 縦・横方向共通拡大率(%)
+	// elm.xscale : 横方向拡大率(%)
+	// elm.yscale : 縦方向拡大率(%)
+	// elm.angle : 回転する角度
+	-----------------------------------------*/
+	function rotateImage( layer, elm )
+	{
+		var base_w = layer.width;
+		var base_h = layer.height;
+		
+		var tmpLayer = new Layer(window, layer); // 一時レイヤを作ります
+		
+		tmpLayer.assignImages(layer); // 一時レイヤに操作対象のレイヤの画像をコピーします
+		
+		// アフィン変換のパラメータを計算します ※詳細は割愛します
+		var angle = +elm.angle * Math.PI / 180;
+		
+		var xscale = (elm.xscale !== void ? +elm.xscale : (elm.scale !== void ? +elm.scale : 100)) / 100;
+		
+		var yscale = (elm.yscale !== void ? +elm.yscale : (elm.scale !== void ? +elm.scale : 100)) / 100;
+		
+		var sin = Math.sin(angle), cos = Math.cos(angle);
+		
+		var xw = xscale * tmpLayer.imageWidth, xh = xscale * tmpLayer.imageHeight;
+		
+		var yw = yscale * tmpLayer.imageWidth, yh = yscale * tmpLayer.imageHeight;
+		
+		var ofsx, ofsy;
+		
+		if(sin >= 0.0)
+		{
+			if(cos >= 0.0)
+			{
+				ofsx = yh * sin;
+				ofsy = 0.0;
+			}
+			else
+			{
+				ofsx = -xw * cos + yh * sin;
+				ofsy = -yh * cos;
+			}
+		}
+		else
+		{
+			if(cos < 0.0)
+			{
+				ofsx = -xw * cos;
+				ofsy = -xw * sin - yh * cos;
+			}
+			else
+			{
+				ofsx = 0.0;
+				ofsy = -xw * sin;
+			}
+		}
+
+		var width = (int)(xw * Math.abs(cos) + yh * Math.abs(sin)); // 変換後の幅を計算します
+		
+		var height = (int)(xw * Math.abs(sin) + yh * Math.abs(cos)); // 変換後の高さを計算します
+		
+		width = 1 if width < 1; // 幅は必ず 1 ピクセル以上になるようにします
+		
+		height = 1 if height < 1; // 高さも必ず 1 ピクセル以上になるようにします
+		
+		layer.setImageSize(width, height); // 操作対象のレイヤのサイズを変更します
+		
+		layer.setSizeToImageSize(); // 操作対象のレイヤのサイズを画像のサイズに合わせます
+		
+		// 操作対象のレイヤの中性色を一時的に透明色(0x00000000)に設定します
+		var neutralColor = layer.neutralColor;
+		
+		layer.neutralColor = 0x00000000;
+
+		// 一時レイヤの画像を回転・拡大・縮小して操作対象のレイヤにコピーします
+		layer.affineCopy(tmpLayer, 0, 0, tmpLayer.imageWidth, tmpLayer.imageHeight, true, xscale * cos, xscale * sin, -yscale * sin, yscale * cos, ofsx, ofsy, stFastLinear, true);
+
+		// 操作対象のレイヤの中性色を元に戻します
+		layer.neutralColor = neutralColor;
+
+		invalidate tmpLayer; // 一時レイヤはもう必要ないので無効化します
+		
+		//座標を戻す
+		//Debug.message("w:"+width+" h:"+height);
+		
+		layer.left -= ((layer.width - base_w)) \ 2;
+		
+		layer.top  -= ((layer.height - base_h))\ 2;
+		
+	}
+}
+
+@endif
+

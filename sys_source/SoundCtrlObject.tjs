@@ -1,0 +1,109 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/05/15
+// File : SoundCtrlObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Base Wave class
+//------------------------------------------------------------------------------
+@if (__SOUNDCTRLOBJECT_TJS__== 0)
+@set(__SOUNDCTRLOBJECT_TJS__ = 1)
+
+
+
+/*-----------------------------------------
+■SOUND CTRL クラス
+
+説明：
+音量などを一括管理する
+
+-----------------------------------------*/
+class _SOUND_CTRL {
+	/*-----------------------------------------
+	■ パラメータ
+	-----------------------------------------*/
+	var BgmVolume;		//BGM音量
+	
+	var BgmPan;			//BGM PAN
+	
+	var BgmSwitch;		//BGM ON/OFF
+	
+	var Bgmfile;		//BGM FILE
+	
+	
+	var SeVolume;		//SE音量
+	
+	var SePan;			//SE PAN
+	
+	var SeSwitch;		//SE ON/OFF
+	
+	var Sefile;			//SE FILE
+	
+	
+	var SystemVolume;	//SYSTEM音量
+	
+	var SystemSwitch;	//SYSTEM ON/OFF
+	
+	
+	var VoiceVolume;	//Voice音量
+	
+	var VoicePan;		//Voice PAN
+	
+	var VoiceSwitch;	//Voice ON/OFF
+	
+	
+	var MovieVolume;	//Movie音量
+	
+	var MoviePan;		//Movie PAN
+	
+	var MovieSwitch;	//Movie ON/OFF
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function _SOUND_CTRL()
+	{
+		BgmVolume = s["bgm_vol"];	//BGM音量
+		
+		BgmPan = void;				//BGM PAN
+		
+		BgmSwitch = s["bgm"];		//BGM ON/OFF
+		
+		
+		SeVolume = s["se_vol"];		//SE音量
+		
+		SePan = 0;					//SE PAN
+		
+		SeSwitch = s["se"];			//SE ON/OFF
+		
+		
+		VoiceVolume = s["voice_vol"];	//Voice音量
+		
+		VoicePan = 0;					//Voice PAN
+		
+		VoiceSwitch = s["voice"];		//Voice ON/OFF
+		
+		
+		MovieVolume = s["movie_vol"];	//Movie音量
+		
+		MoviePan = 0;					//Movie PAN
+		
+		MovieSwitch = s["movie"];		//Movie ON/OFF
+		
+		
+		SystemVolume= s["system_vol"];	//System Se音量
+		
+		SystemSwitch= s["system_se"];	//System Se Switch
+		
+		
+		
+		
+		//SYSTEM SAVEが存在するならここで入れ替えるのも有りか……
+		
+	}
+}
+
+
+@endif
+
