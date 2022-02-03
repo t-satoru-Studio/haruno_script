@@ -2,3 +2,5 @@
 .DS_Store
 movie/opening.mpg
 image00/Thumbs.db
+*.db
+KR/movie/opening.mpg

@@ -1,0 +1,31 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2008/04/03
+// File : startup.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Startup File
+//------------------------------------------------------------------------------
+// startup.tjs - スタートアップスクリプト
+// このスクリプトは一番最初に実行されるスクリプトです
+
+// load kr2compat
+@if (kirikiriz)
+{
+	var base = "k2compat/";
+	Scripts.execStorage("k2compat/k2compat.tjs");
+    // System.inform("Loaded k2compat.");
+	Krkr2CompatUtils.scriptBase = base;
+
+	// fix * 2
+	Layer.pileRect = function(dleft, dtop, src, sleft, stop, swidth, sheight, opa=255) {
+    	this.operateRect(dleft, dtop, src, sleft, stop, swidth, sheight, omAuto, opa);
+	};
+}
+@endif
+
+// sys_source/Init.tjs を実行
+Scripts.execStorage("sys_source/Init.tjs");
+
+
+
+
