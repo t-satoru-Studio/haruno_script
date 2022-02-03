@@ -1,0 +1,1176 @@
+; ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ
+; ¡õ¡ºÓÀßh¤Ë¤¢¤ä¤Ê¤·Áµ¤ÎÈA£¨¢£©¡»
+; ¡õ£Ã£°£³£±£²£Ã£ß£Ã£°£±
+; ¡õ¡¸²Ê²Ë¤Î‰ô¡¹
+; ¡õµÇˆö¥­¥ã¥é£½²Ê²Ë
+; ¡õµ£µ±Õß£ººá¾®
+; ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ¡õ
+; ¡á¤Ïºá¾®¤Î•ø¤¤¤¿¥³¥á¥ó¥È¤Ç¤¹¡£
+; ¡á¹²Í¨ÔO¶¨Òª´_ÕJ£¨ÇçÕæ¤Î²Ê²Ë¤Ëév¤¹¤ëÓ›‘›È«°ã9§9Ã¬¶ÜµãÒª×¢Òâ£©
+; //£ªÁ¢¤Á½}•régÖ¸¶¨£¨0:Í¨³£ 1:Ï¦·½ 2:Ò¹-°µ 3:Ò¹-ÆÕ 4:Ò¹-Ã÷£©
+[macSetBustUpTime timeid=0]
+
+; //¡î¡²¡¡£Ó£Å¡¡¡³¥É¥¢9§9é_¤±¤ë
+[macPlaySe file=SE001]
+; //£ª¥Õ¥§©`¥É¥¤¥ó
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+[transSet]
+;¡ý¤³¤ÎÏÂ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ý
+; //¡ï¡²¡¡±³¾°¡¡¡³ÌÙŒm¼Ò9§9ÇçÕæ¤Î²¿ÎÝ9§9Ò¹£±ÕÕÃ÷
+[ImageDraw file=BG_04C_01]
+;¡ü¤³¤ÎÉÏ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ü
+[macFade time=1500]
+; //¡î¡²¡¡£Ó£Å¡¡¡³¥É¥¢9§9é]¤á¤ë
+[macPlaySe file=SE006]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³±¯¤·¤ß£±9§9¾Ü½~
+[macPlayBgm file=BGM010]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¡­¡­¡¹
+[Hitret]
+; //¡î¡²¡¡£Ó£Å¡¡¡³Í£Ö¹
+[macPlaySe file=0]
+[Talk name=ÐÄ¤ÎÉù]
+ÔÚ»¨ÀæÀë¿ªÒÔºó¡­¡­ÎÒ²»¼ÇµÃÎÒÊÇÔõÑù»Øµ½¼ÒµÄÁË¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÎÒµ½¼ÒµÄÊ±ºò£¬ÒÑ¾­±»ÏÂÆðÀ´µÄÓêÁÜÁË¸öÍ¸¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ä¾ÄËÊµºÍ²ËÄË»¨¶¼ºÜµ£ÐÄÎÒ·¢ÉúÁËÊ²Ã´ÊÂ¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+È»¶øÎÒÊ²Ã´Ò²Ã»ÓÐËµ£¬¾Í°Ñ×Ô¼º¹ØÔÚÁË·¿¼äÀï¡­¡­
+[Hitret]
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+; //£ª¥È¥é¥ó¥¸¥·¥ç¥óÏû¤·£¨É«¤È•régÖ¸¶¨¿ÉÄÜ£©
+[macTransOut file=tra032c time=700]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡±³¾°¡¡¡³ÌÙŒm¼Ò9§9ÇçÕæ¤Î²¿ÎÝ9§9Ò¹£±ÕÕÃ÷
+[ImageDraw file=BG_04C_01]
+; //£ª¥Õ¥§©`¥É±íÊ¾¡¡¡ü¤³¤ÎÉÏ¤Þ¤Ç¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨
+[macFade time=700]
+
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+²Á¸ÉÉíÌå£¬»»ÉÏÒÂ·þ¡­¡­Ò»Í·ÔÔµ¹ÔÚ´²ÉÏ¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÎÒ¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¸ÃÔõÃ´×ö£¬²ÅºÃ¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÎÒµÄ¼ÇÒäÉ¥Ê§¡£
+»¨ÀæÍ»ÈçÆäÀ´µÄ×Ô°×¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+»¹ÓÐ¡­¡­¼¸ºõºÍÎÒÒÑ¾­ÊÇÁµÈË¹ØÏµµÄ£¬½ã½ã¡­¡­
+Ö»ÓÐ×Å²ÐËé¼ÇÒäµÄÅ®ÐÔ¡£
+[Hitret]
+
+; //£ª»ØÏë9§9Œ§Èë
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+[macFadeOut time=1000 color=0xffffff]
+[transSet]
+;¡ý¤³¤ÎÏÂ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ý
+; //¡ï¡²¡¡¥¤¥Ù¥ó¥È¡¡¡³›Q„e9§9Å­¤ê½Ð¤Ó
+[ImageDraw file=EV_C07_02]
+;¡ü¤³¤ÎÉÏ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ü
+[ImageDraw file=EF_01 layer=9]
+[macTrans file=tra034o time=1000]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+; ¡ò¡¸C0312B_C02¡¹¤ËÍ¬¤¸Ì¨Ô~¤¬¤¢¤ê¤Þ¤¹¡£
+[Voice file=C0312_C01479]
+[Talk name=»¨Àæ]
+¡¸Äã¸ù±¾Ê²Ã´¶¼²»Ã÷°×£¡
+ÄãÊÇ¶àÃ´µØ°®×Å¡°Ëý¡±¡¹
+[Hitret]
+; ¡ò¡¸C0312B_C02¡¹¤ËÍ¬¤¸Ì¨Ô~¤¬¤¢¤ê¤Þ¤¹¡£
+[Voice file=C0312_C01480]
+[Talk name=»¨Àæ]
+¡¸»¹ÓÐ£¬ÔÚÄãÊ§È¥ËýµÄÊ±ºòµÄ±¯Í´¡ª¡ªÊÇ¶àÃ´µÄ
+¿Ì¹ÇÃúÐÄ¡­¡­£¡£¡¡¹
+[Hitret]
+
+; //£ª»ØÏë9§9½â³ý
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+[macTransOut file=tra034c color=0xffffff time=1000]
+[transSet]
+;¡ý¤³¤ÎÏÂ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ý
+; //¡ï¡²¡¡±³¾°¡¡¡³ÌÙŒm¼Ò9§9ÇçÕæ¤Î²¿ÎÝ9§9Ò¹£±ÕÕÃ÷
+[ImageDraw file=BG_04C_01]
+;¡ü¤³¤ÎÉÏ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ü
+[macFade time=1000]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÎÒÊÇ¡¢Èç´ËµØË¼Äî×Å¡­¡­ÄÇ¸öÈËÂð¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÄÇ¸ö¡°Ëý¡±£¬´Ë¿Ì²¢²»´æÔÚÓÚÎÒµÄ¼ÇÒäÀï¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¿ÉÊÇ£¬Ê±²»Ê±µØ¡­¡­ÔÚÎÒµÄÄÔº£ÖÐÒ»ÉÁ¶ø¹ýµÄ¡­¡­
+ÃÕÖ®Å®ÐÔµÄ¼ÇÒä¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­ÕâÁ½Õß£¬ÊÇ¡­¡­Í¬Ò»¸öÈËÂð¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+²»£¬ÊÇ²»ÊÇÍ¬Ò»¸öÈËÕâ¼þÊÂ¡­¡­ÏÈ·ÅÔÚÒ»±ß¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸Ê×ÏÈÊÇ¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÔÚÐÓÁå½´µÄ»°ÖÐ³öÏÖµÄ£¬ÄÇ¸ö½ã½ã¡­¡­
+°´»¨ÀæµÄ»°À´Ëµ£¬ºÍÎÒ¼¸ºõÒÑ¾­ÊÇÔÚ½»ÍùµÄ×´Ì¬ÁË¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¼ÈÈ»ÕâÑù£¬ÄÇÃ´¡­¡­ÓÐ¹ØÄÇ¸öµÄºÛ¼££¬»òÕßÏßË÷Ö®ÀàµÄ£¬
+Àíµ±Ó¦¸Ã´æÔÚ¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­È¥ÕÒÕÒ¿´°É¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¾ÍËãÈ¥ÕÒÁË£¬¿ÖÅÂ¡­¡­Ò²²»»áÓÐÊ²Ã´¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÎÒµÄ¼ÇÒäÒ²²»Ò»¶¨»á»ØÀ´¡­¡­¾ÍËã¼ÙÉèÕÒµ½ÁËÊ²Ã´
+ÄÃ¸ø»¨Àæ¿´µÄ»°¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+»¨ÀæÒ²Ò»¶¨»á·ñÈÏµÄ°É¡£
+¶Ô»¨ÀæÀ´Ëµ¡­¡­ÄÇÖ»»áÊÇÎ¬Ïµ×ÅÎÒºÍÄÇ¸ö½ã½ã
+µÄ¶«Î÷°É¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¿ÉÊÇ¡­¡­Õâ¼þÊÂ£¬²»µÃ²»×ö¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÏÖÔÚµÄÎÒ¡­¡­»òÐí»á¶Ô²»ÆðÄ³Ð©ÈË£¬¿ÉÊÇÎÒ±ÈË­¶¼Òª¸ü
+Ï²»¶»¨Àæ¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+±ÈÆðÒÑ¾­Íü¼ÇµÄ¡­¡­ÒÑ¾­È¥ÊÀµÄÅ®º¢×Ó£¬
+¸ü¼ÓµÄ¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÕýÒòÎªÕâÑù£¬ÎÒÒ²ÊÇ£¬»¨ÀæÒ²ÊÇ¡­¡­ÎªÁËÓëËý×ö³ö¾÷±ð¡£
+ÎªÁË´Ó×çÖäÖÐ½âÍÑ³öÀ´¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÎªÁË½«Ò»ÇÐ»Ö¸´Ô­Ñù¡­¡­£¡
+[Hitret]
+; //£ª¥Õ¥§©`¥É¥¢¥¦¥È£¦¥¤¥ó
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³Í£Ö¹£¨¥Õ¥§©`¥É£©
+[macPlayBgm file=0 fade=1000]
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+[macFadeOut time=1000]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³±¯¤·¤ß£´9§9ß^¤Á
+[macPlayBgm file=BGM013]
+[transSet]
+;¡ý¤³¤ÎÏÂ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ý
+; //¡ï¡²¡¡±³¾°¡¡¡³ÌÙŒm¼Ò9§9ÇçÕæ¤Î²¿ÎÝ9§9Ò¹£±ÕÕÃ÷
+[ImageDraw file=BG_04C_01]
+;¡ü¤³¤ÎÉÏ¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨¡ü
+[macFade time=5000]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+; //¡î¡²¡¡£Ó£Å¡¡¡³¥Ù¥Ã¥É¤Ë¥À¥¤¥Ö
+[macPlaySe file=SE069]
+
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¡­¡­¡­¡­ºÃÀÛ¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+»¨ÁË½«½üÒ»¸öÐ¡Ê±°Ñ·¿¼äÖÐ·­ÁË¸öµ×³¯Ìì¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ã»ÓÐÕÒµ½Ê²Ã´³öºõÎÒÏëÏóµÄÒÔÇ°µÄÎïÆ·¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+±ðËµºÍÄÇ¸ö½ã½ãµÄ»ØÒäÎïÁË¡­¡­
+²»ÖªµÀÎªÊ²Ã´£¬¾ÍÁ¬ÒÔÇ°ÉÏ¹ýµÄÑ§Ð£µÄÏà²á¶¼Ã»ÓÐ¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­Õâ¹ûÈ»£¬ÊÇÓÐµãÆæ¹Ö°É£¿¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ËäÈ»ÎÒÊÇ¸ö²»ÔõÃ´ÅÄÕÕÆ¬µÄÈË£¬¿ÉÊÇÓÃÊÖ»úÖ®ÀàµÄ
+ËæÊÖÅÄÒ»ÕÅÒ²ÊÇºÜÈÝÒ×µÄÊÂ¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÈË£¬Ö»Òª»î×Å¡­¡­ÎïÀí´æ´¢Ò²ºÃÊýÂë´æ´¢Ò²ºÃ£¬
+×Ü»áÓÐÒ»Á½ÕÅÕÕÆ¬ÒÔÄ³ÖÖÐÎÊ½Áô´æÏÂÀ´¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+È»¶ø£¬ÍêÈ«ÕÒ²»µ½¡­¡­¾ÍºÃÏñ£¬±»¹ÚÒÔÄ³ÖÖÒâÍ¼°ãÈ«²¿
+Ä¨É±µôÁËÒ»Ñù¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­ÊÇ¼ÇÒäÉ¥Ê§µÄÖÎÁÆ·½·¨Ö®ÀàµÄÊ²Ã´Ô­ÒòÂð¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+±ÈÈçËµ²»ÄÜ°Ú·ÅÒ»Ð©¶Ô¼ÇÒäÓÐ´Ì¼¤×÷ÓÃµÄÎïÆ·Ö®ÀàµÄ¡­¡­
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸²»£¬Õý³£À´ËµÓ¦¸ÃÊÇ·´¹ýÀ´µÄ°É¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ó¦¸ÃÊÇÒÔÊ²Ã´ÎªÆõ»ú£¬Ê¹Íü¼ÇµÄÊÂÇé»ØÏëÆðÀ´²Å¶Ô¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+²»¹ý£¬²»Ïë¸øÓè´Ì¼¤ÕâÑùµÄÏë·¨£¬Ò²²»ÊÇ²»ÄÜÀí½â¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÒòÎªÏÖÔÚµÄÎÒ£¬ÕýºÃ´¦ÔÚÕâÖÖ×´Ì¬°¡¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+´Ì¼¤¼ÇÒäµÄ½á¹û£¬µ½µ×»á·¢Õ¹³ÉÊ²Ã´ÑùÄØ¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÄÇ¸öÅ¼¶û»á³öÏÖµÄÅ®ÐÔµÄÃÎ¾³Ò»ÑùµÄ¶«Î÷£¬
+Ò²»á°éËæ×ÅÁèÀ÷µÄÍ·Í´¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÕâÑùÒ»À´¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¸¸Ç×ÄÇ±ß¹ËÂÇ×ÅÕâÖÖÊÂÇéµÄ·¢Éú¡­¡­ÔÚÎÒ¿´²»µ½µÄµØ·½
+±£¹Ü×Å¡­¡­ÕâÑùµÄ¿ÉÄÜÐÔ·Ç³£µÄ¸ß¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­È¥ÎÊÎÊ¸¸Ç×°É¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÄÑµÀËµ£¬²»¹ÜÔõÑùÒ²²»ÖÁÓÚ¶ªµôÁË°É¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÕâÃ´Ïë×Å£¬ÎÒÕý´òËã³¯¸¸Ç×ÄÇÀïÈ¥µÄÊ±ºò¡£
+[Hitret]
+; //¡î¡²¡¡£Ó£Å¡¡¡³¥É¥¢9§9é_¤±¤ë
+[macPlaySe file=SE001]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9Ï²¤ÓÐ¦¤¤£Á
+[ImageDraw file=CH_A300L_01A layer=1 pos=c]
+[Voice file=C0312_A01008]
+[Talk name=²ËÄË»¨]
+¡¸Çç¡ª¡ªÕæ¡ª¡ª¾ý¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÎØÍÛ£¡£¿¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+´ò¿ªÃÅµÄÒ»Ë²¼ä£¬²ËÄË»¨¾ÍÕ¾ÔÚÎÒÃæÇ°¡£
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9ó@¤­£Á
+[ImageDraw file=CH_A300L_04A layer=1 pos=c]
+; //£ª¥Õ¥§©`¥É±íÊ¾
+[macFade]
+; //£ª¥ì¥¤¥ä“e¤é¤·£¨Ò»·½Ïò£©•régÖ¸¶¨
+[macImageShake type=s layer=1 cnt=1 x=0 y=-20 time=100]
+[Voice file=C0312_A01009]
+[Talk name=²ËÄË»¨]
+¡¸ßÞÑ½£¡£¿ Îª¡¢ÎªÎªÎªÎªÊ²Ã´£¿ ÄÑµÀÇçÕæ¾ýÊÇ³¬ÄÜÁ¦Õß
+Âð£¿¡¹
+[Hitret]
+; //£ªÑÝ³ö½KÁË´ý¤Á
+[macWaitMove]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­²»²»£¬Ö»ÊÇÅ¼È»µØÔÚÎÒ³öÃÅµÄÊ±ºò£¬²ËÄË»¨Ò²ÕýÏë
+Òª½øÀ´ÕâÃ´Ò»»ØÊÂ°É¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9Ï²¤ÓÐ¦¤¤£Â
+[ImageDraw file=CH_A300L_01B layer=1 pos=c]
+[Voice file=C0312_A01010]
+[Talk name=²ËÄË»¨]
+¡¸°¡¡ª¡ª£¬ÚÀºÙºÙ¡­¡­Ò²ÊÇ°¡9¤1¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÄÇÃ´£¬ÓÐÊ²Ã´ÊÂÂð£¿¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9À§¤ê£Á
+[ImageDraw file=CH_A300L_06A layer=1 pos=c]
+[Voice file=C0312_A01011]
+[Talk name=²ËÄË»¨]
+¡¸¡­¡­ÇçÕæ¾ý±»ÁÜ³ÉÁËÂäÌÀ¼¦»ØÀ´£¬ÎÒÉÔÎ¢ÓÐµãµ£ÐÄ°¡¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ßÀ¡­¡­Ð»¡­¡­Ð»Ð»¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9ó@¤­£Á
+[ImageDraw file=CH_A300L_04A layer=1 pos=c]
+[Voice file=C0312_A01012]
+[Talk name=²ËÄË»¨]
+¡¸»°Ëµ»ØÀ´ºÃÀ÷º¦°¡£¬Õâ¸öÎÝÀï¡­¡­
+ÔõÃ´ÁË£¿ ÕâÀïÃæÊÇ·¢ÉúÁËµØÕðÂð~£¿¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¥ì¥¤¥äÏûÈ¥
+[ImageFree layer=1]
+[Talk name=ÇçÕæ]
+¡¸°¦¡­¡­Õâ¡¢Õâ¸ö¡­¡­°¡£¡¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+±¾À´ÒÔÎª²ËÄË»¨Ö»ÊÇÔ½¹ýÎÒ³¯ÀïÃæ¿´¿´¡­¡­
+½á¹ûÖ±½Ó´ÓÎÒÉíÅÔ×êÁË½øÈ¥¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­ËäÈ»Ã»ÓÐÊ²Ã´Î£ÏÕµÄ¶«Î÷£¬Ò²ÒªÐ¡ÐÄ°¡¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9ó@¤­£Á
+[ImageDraw file=CH_A300S_04A layer=1 pos=c]
+[Voice file=C0312_A01013]
+[Talk name=²ËÄË»¨]
+¡¸àÅ¡­¡­ÔÚÕÒÊ²Ã´¶«Î÷Âð£¿¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+²ËÄË»¨ÈÄÓÐÐËÈ¤µØ°ÑÉ¢ÂäÔÚµØÉÏµÄ¶«Î÷¼ñÆðÀ´£¬¿´ÁË¿´ºó
+ÓÖ·Å»ØÔ­´¦¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­ÊÇ°¡¡£ÉÔÎ¢ÏëÕÒÕÒ´ÓÇ°µÄ¶«Î÷¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9ó@¤­£Á
+[ImageDraw file=CH_A310S_04A layer=1 pos=c]
+[Voice file=C0312_A01014]
+[Talk name=²ËÄË»¨]
+¡¸Å¶¡­¡­ÒªÎÒ°ïÃ¦Âð£¿¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸°¡°¡£¬²»ÓÃÁË£¬Ã»¹ØÏµµÄ¡£¿´Ñù×ÓÊÇÍêÈ«ÕÒ²»µ½ÁË£¬
+ÕýÏë×ÅÒª²»ÒªÈ¥Ò»ÌË¸¸Ç×ÄÇÀï¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9Ï²¤ÓÐ¦¤¤£Á
+[ImageDraw file=CH_A300S_01A layer=1 pos=c]
+[Voice file=C0312_A01015]
+[Talk name=²ËÄË»¨]
+¡¸°¡£¬ËùÒÔ²ÅÕýºÃ×²ÉÏÁË°¡9¤1¡£
+Ë³±ãÎÊÒ»ÏÂ£¬´ÓÇ°µÄ¶«Î÷ÊÇÖ¸Ê²Ã´£¿¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­Ò²²»ÊÇÊ²Ã´ÌØ¶¨µÄ¶«Î÷¡­¡­»òÐíÊÇ³ýÁËÄ¾ÄËÊµºÍ
+»¨ÀæÒÔÍâµÄ£¬Ä³¸öÅ®ÐÔµÄÊ²Ã´¡­¡­°É¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9Ï²¤ÓÐ¦¤¤£Â
+[ImageDraw file=CH_A310S_01B layer=1 pos=c]
+[Voice file=C0312_A01016]
+[Talk name=²ËÄË»¨]
+¡¸ÚÀ£¿ °¡£¬ÄÑµÀÊÇÒÔÇ°µÄÅ®ÅóÓÑ£¿ Í¦ÄÜ¸ÉµÄÂï
+ÇçÕæ¾ý£¬Å¶Ñ½Å¶Ñ½¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¹þ¹þ¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ò»Èç¼ÈÍùµÄ£¬²ËÄË»¨ÌìÕæÀÃÂþµÄÍÂ²Û¡­¡­
+ÕýÒòÎªÌìÕæ£¬²Å¸üÈÃÎÒ¸Ðµ½ÐÄËá¡£
+[Hitret]
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³Í£Ö¹£¨¥Õ¥§©`¥É£©
+[macPlayBgm file=0 fade=1000]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9Ï²¤ÓÐ¦¤¤£Á
+[ImageDraw file=CH_A310S_01A layer=1 pos=c]
+[Voice file=C0312_A01017]
+[Talk name=²ËÄË»¨]
+¡¸²»¹ý¡­¡­¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸àÅ¡­¡­£¿¡¹
+[Hitret]
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³ÛÇé£±9§9ƒž¤·¤µ
+[macPlayBgm file=BGM015]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9±¯¤·¤ß£Ã
+[ImageDraw file=CH_A310S_03C layer=1 pos=c]
+[Voice file=C0312_A01018]
+[Talk name=²ËÄË»¨]
+¡¸ÓëÄ³ÈËµÄåâåËºÍ·Ö±ð£¬ÎÒ¾õµÃ¾ÍÊÇÕâÃ´Ò»»ØÊÂÅ¶~¡­¡­¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÚÀ¡­¡­¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9±¯¤·¤ß£Â
+[ImageDraw file=CH_A310S_03B layer=1 pos=c]
+[Voice file=C0312_A01019]
+[Talk name=²ËÄË»¨]
+¡¸²»¹ÜÊÇÊ²Ã´ÑùµÄÈË£¬ÏÖÔÚ¡­¡­ÓëÄãÔÚÒ»ÆðµÄÈË£¬²ÅÊÇ
+×îÖØÒªµÄ²»ÊÇÂð¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸²ËÄË»¨¡­¡­¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9±¯¤·¤ß£Ã
+[ImageDraw file=CH_A300S_03C layer=1 pos=c]
+[Voice file=C0312_A01020]
+[Talk name=²ËÄË»¨]
+¡¸ÄÇÒ»µã£¬²»¹ÜÊÇÏÖÊµÒ²ºÃ¡­¡­ÐÄÖÐÒ²ºÃ¡­¡­Ò»¶¨¶¼
+²»»á±ä¡­¡­¶¼ÊÇÒ»ÑùµÄ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­ÊÇ°¡¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9À§¤ê£Â
+[ImageDraw file=CH_A300S_06B layer=1 pos=c]
+[Voice file=C0312_A01021]
+[Talk name=²ËÄË»¨]
+¡¸ÚÀºÙºÙ¡­¡­ºÃÏñ£¬ËµÁËÐ©²»ÏñÎÒ»áËµµÄ»°ÄØ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸²»¡£ÎÒÒ²¾õµÃÊÇÕâÑùµÄ¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9Ï²¤ÓÐ¦¤¤£Ä
+[ImageDraw file=CH_A310S_01D layer=1 pos=c]
+[Voice file=C0312_A01022]
+[Talk name=²ËÄË»¨]
+¡¸¡­¡­àÅ¡£
+ºÃàÏ¡­¡­ÄÇ£¬ÎÒÒ²»ØÈ¥°É¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸àÅ£¿ °¡¡¢°¡°¡¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¥ì¥¤¥äÏûÈ¥
+[ImageFree layer=1]
+[Talk name=ÐÄ¤ÎÉù]
+²ËÄË»¨°ÑÊÖÀïÕýÔÚ°ÚÅªµÄÎïÆ··Åµ½Ò»±ß¡­¡­³¯×ÅÃÅÄÇÀï
+×ß¹ýÈ¥¡­¡­
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9À§¤ê£Á
+[ImageDraw file=CH_A310S_06A layer=1 pos=c]
+[Voice file=C0312_A01023]
+[Talk name=²ËÄË»¨]
+¡¸ÄÅ£¬ÇçÕæ¾ý¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Í»È»»Ø¹ýÍ·À´¡­¡­ËýÎÊ³öÁË³å»÷ÐÔµÄÒ»¾ä»°¡£
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9±¯¤·¤ß£Á
+[ImageDraw file=CH_A300S_03A layer=1 pos=c]
+[Voice file=C0312_A01024]
+[Talk name=²ËÄË»¨]
+¡¸¡­¡­ºÍ»¨Àæ£¬·¢ÉúÁËÊ²Ã´Âð£¿¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ßÀ¡­¡­Îª¡¢ÎªÊ²Ã´¡­¡­¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9±¯¤·¤ß£Ã
+[ImageDraw file=CH_A300S_03C layer=1 pos=c]
+[Voice file=C0312_A01025]
+[Talk name=²ËÄË»¨]
+¡¸Ö®Ç°£¬ÔÚÎÂÊÒµÄÄÇ´Î¡­¡­ÔÚÄÇÖ®ºó£¬ÄãÃÇÁ½¸ö¡­¡­ºÃÏñ
+ÓÐÐ©Ææ¹Ö¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­°¡°¡¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÊÇÂð£¬²ËÄË»¨ÔÚÄÇ¸öÊ±ºò¡­¡­×¢Òâµ½ÁËÎÒºÍ»¨ÀæµÄÑù×Ó
+ÓÐÐ©Ææ¹Ö°¡¡­¡­
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9À§¤ê£Á
+[ImageDraw file=CH_A300S_06A layer=1 pos=c]
+[Voice file=C0312_A01026]
+[Talk name=²ËÄË»¨]
+¡¸¡­¡­ÄÜ¹»£¬ºÍºÃÂð¡­¡­£¿¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¡­¡­¡­¡­Ëµ²»×¼ÄÅ¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9±¯¤·¤ß£Ã
+[ImageDraw file=CH_A300S_03C layer=1 pos=c]
+[Voice file=C0312_A01027]
+[Talk name=²ËÄË»¨]
+¡¸ÊÇÂð¡­¡­¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÁÕýÃæ)9§9Ï²¤ÓÐ¦¤¤£Á
+[ImageDraw file=CH_A300S_01A layer=1 pos=c]
+[Voice file=C0312_A01028]
+[Talk name=²ËÄË»¨]
+¡¸àÅ¡ª¡ª£¬²»¹ý£¬¿Ï¶¨Ã»ÎÊÌâµÄ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÚÀ£¿¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9Ï²¤ÓÐ¦¤¤£Ã
+[ImageDraw file=CH_A310S_01C layer=1 pos=c]
+[Voice file=C0312_A01029]
+[Talk name=²ËÄË»¨]
+¡¸ÎûÎû¡­¡­ÎÒÓÐÕâÖÖ¸Ð¾õ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­ÊÇÂð¡£²ËÄË»¨ÕâÃ´ËµµÄ»°£¬Ëµ²»×¼¾ÍÊÇÕâÑù
+µÄÄØ¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¥ì¥¤¥äÏûÈ¥
+[ImageFree layer=1]
+[Talk name=ÐÄ¤ÎÉù]
+ÎÞÂÛÄÄ¾ä¶¼ÊÇ»á´¥Åöµ½ÎÒÉñ¾­µÄ»°Óï¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¿ÉÊÇ£¬Èç¹û´Ó²ËÄË»¨ÄÇËµ³öÀ´µÄ¡­¡­×Ü¾õµÃ£¬×ÔÈ»¶øÈ»µØ
+¾ÍÓÐÐØÖÐµÄ´óÊ¯Í·ÂäµØµÄ¸Ð¾õ¡­¡­
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9À§¤ê£Á
+[ImageDraw file=CH_A310S_06A layer=1 pos=c]
+[Voice file=C0312_A01030]
+[Talk name=²ËÄË»¨]
+¡¸±§Ç¸ÄØ£¬¸Ð¾õÎÒ¾»ÌíÂé·³ÁË¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­Ã»ÓÐµÄÊÂ£¬°ïµ½ÎÒÁËÅ¶¡£Ð»Ð»¡¹
+[Hitret]
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾
+[transSet]
+; //¡ï¡²¡¡Á¢¤Á½}¡¡¡³²ËÄË»¨9§9²¿ÎÝ×Å(£ÂÓÒÐ±¤á)9§9Ï²¤ÓÐ¦¤¤£Á
+[ImageDraw file=CH_A310S_01A layer=1 pos=c]
+[Voice file=C0312_A01031]
+[Talk name=²ËÄË»¨]
+¡¸ÊÇÂð¡­¡­£¿ ÄÇ¾ÍÍí°²ÁË¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸°¡°¡£¬Íí°²¡¹
+[Hitret]
+; //£ª¥­¥ã¥éÏûÈ¥9§9ÏÂÒÆ„ÓÏû¤·
+; //£ªÒÆ„Ó£¦Í¸ß^¶È£¨ÏàŒÖ¸¶¨£©
+[macImageMove layer=1 x=0 y=150 time=1000 opacity=0 accel=-2]
+[macWaitMove]
+[ImageFree layer=1]
+[Talk name=ÐÄ¤ÎÉù]
+²ËÄË»¨µÍÍ·ÐÐÁËÒ»Àñ¾Í»ØÈ¥ÁË¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¸Ð¾õ£¬ÒÑ¾­´í¹ýÁËÎÊµÄÊ±»úÁË¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+±¾À´ÏëÈ¥ÕÒ¸¸Ç×µÄ¡­¡­ÒÔºóÔÙËµ°É¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+±ÈÆðÄÇ¸ö¡­¡­
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÎØ¡­¡­ºô°¡¡­¡­°¡°¡¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+½ñÌì»ýÐîÏÂÀ´µÄÆ£ÀÍ¡­¡­Ò»ÏÂ×Ó¶¼±¬·¢ÁË³öÀ´¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­ËãÁË£¬¾ÍÕâÑù¡­¡­Ö±½ÓË¯°É¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ò»Í·ÔÔµ¹ÔÚ´²ÉÏ¡£²»Ò»»á£¬
+Ë¯Òâ¾ÍÏ®À´ÁË¡£
+[Hitret]
+
+; //¦Õáá¤ÇÕ{Õû
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³Í£Ö¹£¨¥Õ¥§©`¥É£©
+[macPlayBgm file=0 fade=1000]
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+[macFadeOut time=2000]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+[Talk name=ÐÄ¤ÎÉù]
+¡­¡­¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¡­¡­¡­¡­¡­¡­¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­¡­
+[Hitret]
+
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+; //£ª¥Õ¥§©`¥É¥¢¥¦¥È£¨°×¤Ç•régÖ¸¶¨£©
+[macFadeOut color=0xffffff time=700]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=500]
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³»ØÏë£²9§9±¯¤·¤ß
+[macPlayBgm file=BGM021]
+; ¦ÕÃèÐ´×·¼Ó
+[Talk name=ÐÄ¤ÎÉù]
+ÄÇÀïÊÇÒ»Æ¬´¿°×µÄÊÀ½ç¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ê²Ã´Ò²²»´æÔÚµÄ£¬Ö»ÊÇÎÞÏÞÑÓÉì×ÅµÄ´¿°×¡­¡­
+ÉõÖÁ¶¼·Ö²»Çå¶þ´ÎÔª»¹ÊÇÈý´ÎÔªµÄÊÀ½ç¡£ 
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÔÚÄÇÀï¾ÍÁ¬×ÔÉíµÄ´æÔÚ£¬¶¼ÊÇëüëüëÊëÊ¡­¡­
+·Â·ðÖ»ÒªËÉÐ¸Ò»Ë²¼ä¾Í»áÃÔÊ§×ÔÎÒ£¬ÈâÌåÏûÈÚ´ù¾¡¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Óë¹¹³ÉÕâÒ»ÊÀ½çµÄ°×É«ÏàÍ¬»¯°ã£¬Ã£È»£¬
+Í¬Ê±È´Ò²¿Ì¹ÇÃúÐÄµÄ¿Ö²ÀÓë²»°²ÏòÎÒÏ®À´¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÕâÊÇÃÎ¾³»¹ÊÇ»Ã¾õ²»µÃ¶øÖª£¬À´µ½ÕâºÁÎÞÖÊ¸ÐµÄ´¿°×ÊÀ½çÖÐ
+µÄÎÒ£¬¹ÂÁãÁãµØÕ¾×Å¡£
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹£¨ÒôÁ¿Ð¡¤µ¤á£©
+; ¡ò¥ª¥Õ¥Þ¥¤¥¯¤Ç¤ªîŠ¤¤¤·¤Þ¤¹¡£
+[Voice file=C0312_E00002]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸¡­¡­¡­¡­¾ý¡­¡­¡­¡­¾ý¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÎØ¡­¡­ÎØÎØ¡­¡­¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹£¨ÒôÁ¿Ð¡¤µ¤á£©
+; ¡ò¥ª¥Õ¥Þ¥¤¥¯¤Ç¤ªîŠ¤¤¤·¤Þ¤¹¡£
+[Voice file=C0312_E00003]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸¡­¡­¡­¡­Çç¾ý¡­¡­¡­¡­Çç¾ý¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÎØ¡­¡­ÎØÎØ¡­¡­ÊÇ¡¢ÊÇË­¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÔÚ¡­¡­½ÐÎÒ¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¶ú±ß´«À´µÄÎ¢ÈõµÄ¡°Ëý¡±µÄÉùÒô¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¾¡¹ÜÊÇ¶úÓïÒ»°ãÎ¢ÈõµÄÉùÒô£¬È´ÔÚÄÔÖÐµÄ¸÷¸ö½ÇÂä»ØÏì×ÅµÄ
+£¬ÒýÆðÕë´ÌÒ»°ãµÄÍ·Í´¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Í·ºÃÌÛ¡£ºÃÄÑÊÜ¡£²»¹ý£¬ÄÜÃãÇ¿ÔÚÕâ¸öÊÀ½çÖÐ
+ÈÏÊ¶µ½×Ô¼º£¬Ö¤Ã÷×Ô¼º´æÔÚ¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ò²ÊÇÍÐÕâÁîÈËÄÑÊÜµÄ¡°Ëý¡±µÄºôº°ÉùµÄ¸£¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸Ëý¡­¡­ÊÇ¡­¡­Ëý¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÎÒµÄ¡­¡­×îÕäÊÓµÄ¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ã¿´í£¬ÕâºÁÎÞÒÉÎÊÊÇ¡°Ëý¡±µÄÉùÒô¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ºô»½×ÅÎÒµÄÉùÒô£¬¼È²»ÊÇ²ËÄË»¨Ò²²»ÊÇÄ¾ÄËÊµ£¬
+¶øÀ´Ô´ÓÚ¡°Ëý¡±£¬ÔÚÎÒÈÏÊ¶µ½ÕâÒ»µãµÄË²¼ä¡£
+[Hitret]
+
+; //£ª¬FÔÚ±íÊ¾¤µ¤ì¤Æ¤¤¤ë»­Ãæ¤ò¥­¥ã¥×¥Á¥ã©`¤·¤Æ×îÇ°Ãæ¤Ë±íÊ¾¡¡¡ý¤³¤ÎÏÂ¤«¤é²î¤·Ìæ¤¨»­ÏñÖ¸¶¨
+[transSet]
+; //¡ï¡²¡¡¥¤¥Ù¥ó¥È¡¡¡³Ò»ÄêÇ°¤ÎÊÂ¹Ê9§9¤Ü¤«¤·
+[ImageDraw file=EV_E01_01]
+; //£ª¥È¥é¥ó¥¸¥·¥ç¥ó±íÊ¾¡¡¡ü¤³¤ÎÉÏ¤Þ¤Ç¤Ë²î¤·Ìæ¤¨»­ÏñÖ¸¶¨
+[macTrans file=tra023o time=1000]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òƒž¤·¤¯ÕZ¤ê¤«¤±¤ë¸Ð¤¸¤Ç
+[Voice file=C0312_E00004]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸Çç¾ý¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸°¡¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡ª¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÔÚÊ²Ã´¶¼¸Ã²»´æÔÚµÄ¡¢´¿°×µÄÊÀ½çÖÐ£¬¡°Ëý¡±ÏÖÉíÁË¡£
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òƒž¤·¤¯ÕZ¤ê¤«¤±¤ë¸Ð¤¸¤Ç
+[Voice file=C0312_E00005]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸Çç¾ý¡­¡­ºÃ¾Ã²»¼û¡¢ÁËÄØ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸°¡¡¢°¡°¡¡¢°¡°¡¡­¡­ÕæµÄÊÇºÃ¾Ã²»¼û¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÒÀ¾ÉÏë²»ÆðËýµÄÃû×Ö£¬
+ËýµÄÁ³Ò²ÒòÕÖ×ÅÒ»²ã±¡ÎíÎÞ·¨¿´Çå¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ö»ÊÇ£¬ÄÇ³äÂú´È°®µÄÎÂÈáµÄÉùÒô£¬
+ÈçÍ¬ÔÚÎÒÄÔÄÚ»½ÆðÒ»ÕóÇåË¬µÄÎ¢·ç¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¸Õ²Å»¹ÓÐµÄÍ·Í´ÈçË®²¨Ò»°ãÁ÷×ß£¬
+È¡¶ø´úÖ®±»ÊæÊÊµÄÎÂÅ¯Ëù°üÎ§ÁË¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+°¡°¡£¬Õâ·ÝÎÂÅ¯¡­¡­Õâ²ÅÊÇ¡°Ëý¡±µÄ¡­¡­ 
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+µ±Ö®ÎÞÀ¢µÄ¡ºÎÒ×î°®µÄÅ®ÐÔ¡»µÄ¼ÇÒä¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¡°Ëý¡±ÔÚÎÂÈáµØÏòÎÒÎ¢Ð¦×Å¡£
+ËäÈ»ÎÞ·¨¿´µ½ËýµÄ±íÇé£¬¿ÉÊÇÎÒÃ÷°×£¬ÎÒÄÜÃ÷°×¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+ÒòÎª£¬ÄÜÔÚ×î½üµÄ¾àÀë×î¶àµØÏíÊÜµ½ÄÇÐ¦ÈÝµÄ²»ÊÇ±ðÈË
+ÕýÊÇÎÒ¡£
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÔÙ¡¢ÔÙÓÐÒ»µã¡­¡­ÔÙÒ»µã¾Í¡­¡­¡­¡­¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+¾Í¿ÉÒÔ°ÑÊ§È¥µÄ¼ÇÒä£¬ÍüÈ´µÄ¹ýÈ¥È¡»ØÀ´£¡
+ÎªÁË×¥×¡¡°Ëý¡±ÎÒ·Ü¾¡È«Á¦µØÉì³öÊÖ¡­¡­
+[Hitret]
+; £ªÎÄ×Ö¥µ¥¤¥º‰ä¸ü¡¡´ó
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òáá°ë¡¢¥Ô¥·¥ã¤È¥«¥Ä¤òÈë¤ì¤ë¸Ð¤¸¤Ç
+; //£ªÎÄ×Ö¥µ¥¤¥º‰ä¸ü¡¡È«ÎÄ×Ö
+[font size=34]
+[Voice file=C0312_E00006]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸²»ÐÐÅ¶¡­¡­ÌÙ¹¬ÇçÕæ£¬¸øÎÒÕñ×÷µã£¡£¡¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÚÀÚÀ£¡£¿¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+´È°®µÄÎ¢Ð¦Í»È»Ò»±ä£¬³ÉÁËÀ×Ãù°ãµÄ¼âÈñÓë±©ÁÒ£¬
+Ê¹ÎÒÖØÊ°ÐÄÖÇ¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+»°Ëµ¡­¡­ÊÇ¶ÔÎÒ·¢»ðÁË°É£¿
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÚÀ£¿ ÚÀÚÀ£¿ ÚÀÚÀÚÀÚÀ£¿¡¹
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+Ô­±¾ËÁÒâµØÍýÏë£¬ÃÀ»¯×Å¿´²»¼ûµÄ¶Ô·½µÄÎÒ£¬
+¶ÙÊ±ÂúÊÇÒÉ»ó¡£
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+²¢Ã»ÓÐÔÚÒâ¿ÉÁ¯°Í°ÍµØÕ¾ÄÇÄÇÀïµÄÎÒ£¬ÃÎÖÐµÄ¡°Ëý¡±¼ÌÐø
+ËµÁËÏÂÈ¥¡£
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+[Voice file=C0312_E00007]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸Çç¾ý¡­¡­ÌýÎÒËµ¡­¡­¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸ÚÀ¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òÒÔ½µ¡¢²Ê²Ë¤Ïß³ßå¼¤Àø¤¹¤ë¸Ð¤¸¤Ç
+[Voice file=C0312_E00008]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸ÎÒÒªÎÊÄãÒ»¼þ£¬ÖØÒªµÄÊÂÇé¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡ò¡ºÅ®ÐÔ¡»¡ú¡º¤Ò¤È¡»¤Ç
+[Voice file=C0312_E00009]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸¡­¡­¶ÔÇç¾ýÀ´Ëµ£¬ÏÖÔÚ×îÖØÒªµÄÈË¡­¡­ÊÇË­£¿¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸Ê²¡­¡­Ê²Ã´¡¢°¡¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+[Voice file=C0312_E00010]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸ÎÒ£¿ ²»¶Ô¡­¡­²»ÊÇÄÇÑùµÄ°É¡­¡­£¿¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+[Voice file=C0312_E00011]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸»áÀ´µ½Õâ¸öµØ·½£¬Ò²ÕýÊÇÆäÖ¤Ã÷¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+[Voice file=C0312_E00012]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸²»¿ìµãÐÑ¹ýÀ´»Øµ½ÏÖÊµÊÀ½ç¡­¡­²»ÐÐ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸µÈ¡¢µÈÏÂ£¬µÈÒ»ÏÂ°¡¡£ÎÒÒªÊÇ²»ÄÜÈ¡»Ø¼ÇÒä£¬
+²»ÄÜ»ØÒäÆðÄãµÄ»°Ê²Ã´¶¼½â¾ö²»ÁË¡ª¡ª¡ª¡ª¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òÀä¤¿¤¯Í»¤­·Å¤¹¸Ð¤¸¤Ç
+[Voice file=C0312_E00013]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸ºÇºÇ¡­¡­Ã»ÓÐÀ²¡£»òÐíÎÒ²¢²»Ï£ÍûÏÖÔÚµÄÇç¾ýÏëÆðÀ´
+ÄØ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸Ôõ¡¢ÔõÃ´ÕâÑù£¡£¿ ÄÇ£¬ÎÒ¾¿¾¹¸ÃÔõÃ´×ö¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òƒž¤·¤¯êÔ®¤¹¤ë¸Ð¤¸¤Ç
+; ¡ò¡ºÅ®ÐÔ¡»¡ú¡º¤Ò¤È¡»¤Ç
+[Voice file=C0312_E00014]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸½ô½ôµØ×¥×¡Äã×îÖØÒªµÄÈË²»ÒªÀë¿ªËý¡£
+Çç¾ýµÄ»°¿ÉÒÔ×öµ½µÄ¡­¡­àÅ£¬Ò»¶¨¿ÉÒÔµÄ¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¿É¡¢¿ÉÊÇ£¬ÎÒ¶ÔÄãÒ²¡ª¡ª¡ª¡ª¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òƒž¤·¤¯êÔ®¤¹¤ë¸Ð¤¸¤Ç
+[Voice file=C0312_E00015]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸ÎÒÕâÑù±»Íü¼Ç¾ÍºÃ¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òƒž¤·¤¯êÔ®¤¹¤ë¸Ð¤¸¤Ç
+[Voice file=C0312_E00016]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸ÎÒÏ£ÍûÄãÄÜÕäÏ§ÄãÏÖÔÚÏ²»¶µÄÈË¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òÐ¦î†¤ÇÈßÕ„¤Ã¤Ý¤¤¸Ð¤¸¤Ç
+; ¡ò¡ºÅ®ÐÔ¡»¡ú¡º¤Ò¤È¡»¤Ç
+[Voice file=C0312_E00017]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸Èç¹ûÇç¾ýÄÜÆ½°²µÄºÍËýÑ°»ñÐÒ¸££¬ÄÇÊ±ºòÎÒ»¹
+»áÀ´¼ûÄã£¬ËùÒÔÒ»¶¨Òª¼ÓÓÍÅ¶¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¡­¡­¡­¡­¡­¡­¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+[Voice file=C0312_E00018]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸Çç¾ý£¿¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸¹ûÈ»µÐ²»¹ýÄã°¡¡­¡­
+¾ÍºÃÏñ¿´Í¸ÁËÎÒµÄÒ»ÇÐÒ»Ñù¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òÐ¦î†¤Ç˜S¤·¤½¤¦¤Ê¸Ð¤¸¤Ç
+[Voice file=C0312_E00019]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸ºÇºÇ£¬ÒªÊÇ¶®ÁËµÄ»°¾Í¿ìµãÐÑ¹ýÀ´°É¡¹
+[Hitret]
+[Talk name=ÇçÕæ]
+¡¸°¡°¡£¬Ò»¶¨¡­¡­Ò»¶¨»¹ÒªÔÙÀ´¼ûÎÒ°¡£¡¡¹
+[Hitret]
+; 6Ñ6ÐÄ¤ÎÉù¤Î¥¨¥³©`¼Ó¹¤¤ò¤ªîŠ¤¤¤·¤Þ¤¹¡£
+; ¡òÐ¦î†¤Ç´ð¤¨¤ë¸Ð¤¸¤Ç
+[Voice file=C0312_E00020]
+[Talk name=£¿£¿£¿¡¶²Ê²Ë¡·]
+¡¸¡­¡­àÅ£¬ÎÒµÈ×Å¡­¡­£¡¡¹
+[Hitret]
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+; //£ª¥Õ¥§©`¥É¥¢¥¦¥È£¨°×¤Ç•régÖ¸¶¨£©
+[macFadeOut color=0xffffff time=1500]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+; //£ª¥È¥é¥ó¥¸¥·¥ç¥óÏû¤·£¨É«¤È•régÖ¸¶¨¿ÉÄÜ£©
+[macTransOut file=tra035c time=300]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=500]
+[Talk name=ÐÄ¤ÎÉù]
+Ä¿ËÍ×Å×îºó¶ÔÎÒÂ¶³öÂúÁ³Ð¦ÈÝµÄ¡°Ëý¡±£¬
+ÎÒ³¯×ÅÏÖÊµÊÀ½ç¡­¡­
+[Hitret]
+[Talk name=ÐÄ¤ÎÉù]
+»Øµ½ÁËÎÒ×îÖØÒªµÄËýËùÔÚµÄÊÀ½ç¡£
+[Hitret]
+
+; //¡î¡²¡¡£Â£Ç£Í¡¡¡³Í£Ö¹£¨¥Õ¥§©`¥É£©
+[macPlayBgm file=0 fade=1000]
+; //£ª¥Õ¥§©`¥É¥¢¥¦¥È
+; //£ª¥á¥Ã¥»©`¥¸¥¦¥£¥ó¥É¥¦·Ç±íÊ¾
+[macWindowView type=0]
+[macFadeOut time=1500]
+; //£ª¥¦¥§¥¤¥È
+[macWait time=250]
+; ¡ï¥Û¥ï¥¤¥È¥¢¥¦¥È
+[Change file=C0313A_C01.ks]€
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+åœ¨ä»€ä¹ˆéƒ½è¯¥ä¸å­˜åœ¨çš„ã€çº¯ç™½çš„ä¸–ç•Œä¸­ï¼Œâ€œå¥¹â€çŽ°èº«äº†ã€‚
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žå„ªã—ãèªžã‚Šã‹ã‘ã‚‹æ„Ÿã˜ã§
+[Voice file=C0312_E00005]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œæ™´å›â€¦â€¦å¥½ä¹…ä¸è§ã€äº†å‘¢ã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œå•Šã€å•Šå•Šã€å•Šå•Šâ€¦â€¦çœŸçš„æ˜¯å¥½ä¹…ä¸è§ã€
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+ä¾æ—§æƒ³ä¸èµ·å¥¹çš„åå­—ï¼Œ
+å¥¹çš„è„¸ä¹Ÿå› ç½©ç€ä¸€å±‚è–„é›¾æ— æ³•çœ‹æ¸…ã€‚
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+åªæ˜¯ï¼Œé‚£å……æ»¡æ…ˆçˆ±çš„æ¸©æŸ”çš„å£°éŸ³ï¼Œ
+å¦‚åŒåœ¨æˆ‘è„‘å†…å”¤èµ·ä¸€é˜µæ¸…çˆ½çš„å¾®é£Žâ€¦â€¦
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+åˆšæ‰è¿˜æœ‰çš„å¤´ç—›å¦‚æ°´æ³¢ä¸€èˆ¬æµèµ°ï¼Œ
+å–è€Œä»£ä¹‹è¢«èˆ’é€‚çš„æ¸©æš–æ‰€åŒ…å›´äº†ã€‚
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+å•Šå•Šï¼Œè¿™ä»½æ¸©æš–â€¦â€¦è¿™æ‰æ˜¯â€œå¥¹â€çš„â€¦â€¦ 
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+å½“ä¹‹æ— æ„§çš„ã€Žæˆ‘æœ€çˆ±çš„å¥³æ€§ã€çš„è®°å¿†ã€‚
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+â€œå¥¹â€åœ¨æ¸©æŸ”åœ°å‘æˆ‘å¾®ç¬‘ç€ã€‚
+è™½ç„¶æ— æ³•çœ‹åˆ°å¥¹çš„è¡¨æƒ…ï¼Œå¯æ˜¯æˆ‘æ˜Žç™½ï¼Œæˆ‘èƒ½æ˜Žç™½ã€‚
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+å› ä¸ºï¼Œèƒ½åœ¨æœ€è¿‘çš„è·ç¦»æœ€å¤šåœ°äº«å—åˆ°é‚£ç¬‘å®¹çš„ä¸æ˜¯åˆ«äºº
+æ­£æ˜¯æˆ‘ã€‚
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œå†ã€å†æœ‰ä¸€ç‚¹â€¦â€¦å†ä¸€ç‚¹å°±â€¦â€¦â€¦â€¦ã€
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+å°±å¯ä»¥æŠŠå¤±åŽ»çš„è®°å¿†ï¼Œå¿˜å´çš„è¿‡åŽ»å–å›žæ¥ï¼
+ä¸ºäº†æŠ“ä½â€œå¥¹â€æˆ‘å¥‹å°½å…¨åŠ›åœ°ä¼¸å‡ºæ‰‹â€¦â€¦
+[Hitret]
+; ï¼Šæ–‡å­—ã‚µã‚¤ã‚ºå¤‰æ›´ã€€å¤§
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žå¾ŒåŠã€ãƒ”ã‚·ãƒ£ã¨ã‚«ãƒ„ã‚’å…¥ã‚Œã‚‹æ„Ÿã˜ã§
+; //ï¼Šæ–‡å­—ã‚µã‚¤ã‚ºå¤‰æ›´ã€€å…¨æ–‡å­—
+[font size=34]
+[Voice file=C0312_E00006]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œä¸è¡Œå“¦â€¦â€¦è—¤å®«æ™´çœŸï¼Œç»™æˆ‘æŒ¯ä½œç‚¹ï¼ï¼ã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œè¯¶è¯¶ï¼ï¼Ÿã€
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+æ…ˆçˆ±çš„å¾®ç¬‘çªç„¶ä¸€å˜ï¼Œæˆäº†é›·é¸£èˆ¬çš„å°–é”ä¸Žæš´çƒˆï¼Œ
+ä½¿æˆ‘é‡æ‹¾å¿ƒæ™ºã€‚
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+è¯è¯´â€¦â€¦æ˜¯å¯¹æˆ‘å‘ç«äº†å§ï¼Ÿ
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œè¯¶ï¼Ÿ è¯¶è¯¶ï¼Ÿ è¯¶è¯¶è¯¶è¯¶ï¼Ÿã€
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+åŽŸæœ¬è‚†æ„åœ°å¦„æƒ³ï¼Œç¾ŽåŒ–ç€çœ‹ä¸è§çš„å¯¹æ–¹çš„æˆ‘ï¼Œ
+é¡¿æ—¶æ»¡æ˜¯ç–‘æƒ‘ã€‚
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+å¹¶æ²¡æœ‰åœ¨æ„å¯æ€œå·´å·´åœ°ç«™é‚£é‚£é‡Œçš„æˆ‘ï¼Œæ¢¦ä¸­çš„â€œå¥¹â€ç»§ç»­
+è¯´äº†ä¸‹åŽ»ã€‚
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+[Voice file=C0312_E00007]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œæ™´å›â€¦â€¦å¬æˆ‘è¯´â€¦â€¦ã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œè¯¶â€¦â€¦ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žä»¥é™ã€å½©èœã¯å±å’¤æ¿€åŠ±ã™ã‚‹æ„Ÿã˜ã§
+[Voice file=C0312_E00008]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œæˆ‘è¦é—®ä½ ä¸€ä»¶ï¼Œé‡è¦çš„äº‹æƒ…â€¦â€¦ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žã€Žå¥³æ€§ã€â†’ã€Žã²ã¨ã€ã§
+[Voice file=C0312_E00009]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œâ€¦â€¦å¯¹æ™´å›æ¥è¯´ï¼ŒçŽ°åœ¨æœ€é‡è¦çš„äººâ€¦â€¦æ˜¯è°ï¼Ÿã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œä»€â€¦â€¦ä»€ä¹ˆã€å•Šã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+[Voice file=C0312_E00010]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œæˆ‘ï¼Ÿ ä¸å¯¹â€¦â€¦ä¸æ˜¯é‚£æ ·çš„å§â€¦â€¦ï¼Ÿã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+[Voice file=C0312_E00011]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œä¼šæ¥åˆ°è¿™ä¸ªåœ°æ–¹ï¼Œä¹Ÿæ­£æ˜¯å…¶è¯æ˜Žâ€¦â€¦ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+[Voice file=C0312_E00012]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œä¸å¿«ç‚¹é†’è¿‡æ¥å›žåˆ°çŽ°å®žä¸–ç•Œâ€¦â€¦ä¸è¡Œã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œç­‰ã€ç­‰ä¸‹ï¼Œç­‰ä¸€ä¸‹å•Šã€‚æˆ‘è¦æ˜¯ä¸èƒ½å–å›žè®°å¿†ï¼Œ
+ä¸èƒ½å›žå¿†èµ·ä½ çš„è¯ä»€ä¹ˆéƒ½è§£å†³ä¸äº†â€”â€”â€”â€”ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žå†·ãŸãçªãæ”¾ã™æ„Ÿã˜ã§
+[Voice file=C0312_E00013]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œå‘µå‘µâ€¦â€¦æ²¡æœ‰å•¦ã€‚æˆ–è®¸æˆ‘å¹¶ä¸å¸Œæœ›çŽ°åœ¨çš„æ™´å›æƒ³èµ·æ¥
+å‘¢ã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œæ€Žã€æ€Žä¹ˆè¿™æ ·ï¼ï¼Ÿ é‚£ï¼Œæˆ‘ç©¶ç«Ÿè¯¥æ€Žä¹ˆåšâ€¦â€¦ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žå„ªã—ãå¿œæ´ã™ã‚‹æ„Ÿã˜ã§
+; â—Žã€Žå¥³æ€§ã€â†’ã€Žã²ã¨ã€ã§
+[Voice file=C0312_E00014]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œç´§ç´§åœ°æŠ“ä½ä½ æœ€é‡è¦çš„äººä¸è¦ç¦»å¼€å¥¹ã€‚
+æ™´å›çš„è¯å¯ä»¥åšåˆ°çš„â€¦â€¦å—¯ï¼Œä¸€å®šå¯ä»¥çš„ã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œå¯ã€å¯æ˜¯ï¼Œæˆ‘å¯¹ä½ ä¹Ÿâ€”â€”â€”â€”ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žå„ªã—ãå¿œæ´ã™ã‚‹æ„Ÿã˜ã§
+[Voice file=C0312_E00015]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œæˆ‘è¿™æ ·è¢«å¿˜è®°å°±å¥½â€¦â€¦ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žå„ªã—ãå¿œæ´ã™ã‚‹æ„Ÿã˜ã§
+[Voice file=C0312_E00016]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œæˆ‘å¸Œæœ›ä½ èƒ½çæƒœä½ çŽ°åœ¨å–œæ¬¢çš„äººâ€¦â€¦ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žç¬‘é¡”ã§å†—è«‡ã£ã½ã„æ„Ÿã˜ã§
+; â—Žã€Žå¥³æ€§ã€â†’ã€Žã²ã¨ã€ã§
+[Voice file=C0312_E00017]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œå¦‚æžœæ™´å›èƒ½å¹³å®‰çš„å’Œå¥¹å¯»èŽ·å¹¸ç¦ï¼Œé‚£æ—¶å€™æˆ‘è¿˜
+ä¼šæ¥è§ä½ ï¼Œæ‰€ä»¥ä¸€å®šè¦åŠ æ²¹å“¦ã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œâ€¦â€¦â€¦â€¦â€¦â€¦ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+[Voice file=C0312_E00018]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œæ™´å›ï¼Ÿã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œæžœç„¶æ•Œä¸è¿‡ä½ å•Šâ€¦â€¦
+å°±å¥½åƒçœ‹é€äº†æˆ‘çš„ä¸€åˆ‡ä¸€æ ·ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žç¬‘é¡”ã§æ¥½ã—ãã†ãªæ„Ÿã˜ã§
+[Voice file=C0312_E00019]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œå‘µå‘µï¼Œè¦æ˜¯æ‡‚äº†çš„è¯å°±å¿«ç‚¹é†’è¿‡æ¥å§ã€
+[Hitret]
+[Talk name=æ™´çœŸ]
+ã€Œå•Šå•Šï¼Œä¸€å®šâ€¦â€¦ä¸€å®šè¿˜è¦å†æ¥è§æˆ‘å•Šï¼ã€
+[Hitret]
+; âˆ€å¿ƒã®å£°ã®ã‚¨ã‚³ãƒ¼åŠ å·¥ã‚’ãŠé¡˜ã„ã—ã¾ã™ã€‚
+; â—Žç¬‘é¡”ã§ç­”ãˆã‚‹æ„Ÿã˜ã§
+[Voice file=C0312_E00020]
+[Talk name=ï¼Ÿï¼Ÿï¼Ÿã€Šå½©èœã€‹]
+ã€Œâ€¦â€¦å—¯ï¼Œæˆ‘ç­‰ç€â€¦â€¦ï¼ã€
+[Hitret]
+; //ï¼Šãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦éžè¡¨ç¤º
+[macWindowView type=0]
+; //ï¼Šãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆï¼ˆç™½ã§æ™‚é–“æŒ‡å®šï¼‰
+[macFadeOut color=0xffffff time=1500]
+; //ï¼Šã‚¦ã‚§ã‚¤ãƒˆ
+[macWait time=250]
+; //ï¼Šãƒˆãƒ©ãƒ³ã‚¸ã‚·ãƒ§ãƒ³æ¶ˆã—ï¼ˆè‰²ã¨æ™‚é–“æŒ‡å®šå¯èƒ½ï¼‰
+[macTransOut file=tra035c time=300]
+; //ï¼Šã‚¦ã‚§ã‚¤ãƒˆ
+[macWait time=500]
+[Talk name=å¿ƒã®å£°]
+ç›®é€ç€æœ€åŽå¯¹æˆ‘éœ²å‡ºæ»¡è„¸ç¬‘å®¹çš„â€œå¥¹â€ï¼Œ
+æˆ‘æœç€çŽ°å®žä¸–ç•Œâ€¦â€¦
+[Hitret]
+[Talk name=å¿ƒã®å£°]
+å›žåˆ°äº†æˆ‘æœ€é‡è¦çš„å¥¹æ‰€åœ¨çš„ä¸–ç•Œã€‚
+[Hitret]
+
+; //â˜†ã€”ã€€ï¼¢ï¼§ï¼­ã€€ã€•åœæ­¢ï¼ˆãƒ•ã‚§ãƒ¼ãƒ‰ï¼‰
+[macPlayBgm file=0 fade=1000]
+; //ï¼Šãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆ
+; //ï¼Šãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦éžè¡¨ç¤º
+[macWindowView type=0]
+[macFadeOut time=1500]
+; //ï¼Šã‚¦ã‚§ã‚¤ãƒˆ
+[macWait time=250]
+; â˜…ãƒ›ãƒ¯ã‚¤ãƒˆã‚¢ã‚¦ãƒˆ
+[Change file=C0313A_C01.ks]
