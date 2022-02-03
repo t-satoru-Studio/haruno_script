@@ -1,0 +1,247 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2011/10/03
+// File : DelayDrawObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Delay Draw Object
+//------------------------------------------------------------------------------
+
+@if(__DELAYDRAWOBJECT_TJS__ == 0)
+@set(__DELAYDRAWOBJECT_TJS__ = 1)
+
+class _DELAYDRAW {
+	
+	
+	
+	/*-----------------------------------------
+	¡ö ¥Ñ¥é¥á©`¥¿
+	-----------------------------------------*/
+	var front;		//¥á¥¤¥ó
+	
+	var back;		//¥Æ¥ó¥Ý¥é¥ê
+	
+	var time;		//ßWÑÓ•rég
+	
+	var drawtype;	//Í¬•r¤«•rég²î¤«
+	
+	var fadetype;	//Ãè»­¥¿¥¤¥×(1:fade 0:…g¼ƒ)
+	
+	var delaystart;	//ßWÑÓévÊý
+	
+	var EndFlag;	//½KÁË¥Õ¥é¥°
+	
+	var fadeval_1;	//¥Õ¥§©`¥É‚Ž
+	
+	var fadeval_2;	//¥Õ¥§©`¥É‚Ž
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	¡ö ¥³¥ó¥¹¥È¥é¥¯¥¿
+	-----------------------------------------*/
+	function _DELAYDRAW(f, b, t, ftype, dtype)
+	{
+		front    = f;
+		
+		back     = b;
+		
+		time     = t;
+		
+		fadetype = ftype;
+		
+		drawtype = dtype;
+		
+		back.visible = false;
+		
+		if(time != 0){
+		//¥¿¥¤¥Þ©`é_Ê¼
+			StartTimer();
+		}else{
+		//¼´ŒgÐÐ
+			DrawStart();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	¡ö ¥Ç¥¹¥È¥é¥¯¥¿
+	-----------------------------------------*/
+	function finalize()
+	{
+		if(delaystart !== void)
+		{
+			delaystart.enabled = false;
+			
+			invalidate delaystart;
+		}
+		
+		delaystart = void;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	¡ö ¥¿¥¤¥Þ©`é_Ê¼
+	-----------------------------------------*/
+	function StartTimer()
+	{
+		delaystart = new Timer(DrawStart,"");
+		
+		delaystart.interval = time;
+		
+		delaystart.enabled  = true;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	¡ö Ãè»­é_Ê¼évÊý
+	-----------------------------------------*/
+	function DrawStart()
+	{
+		if(delaystart !== void)
+		{
+			delaystart.enabled = false;
+			
+			invalidate delaystart;
+		}
+		
+		delaystart = void;
+		
+		if(fadetype == true)
+		{//FADE„IÀí
+			
+			if(drawtype == 0){
+				fadeval_1 = 0;
+				
+				fadeval_2 = nDELAY_FADE_0;
+			}else{
+				fadeval_1 = nDELAY_FADE_1;
+				
+				fadeval_2 = nDELAY_FADE_2;
+				
+			}
+			
+			back.opacity        = 0;
+			
+			back.visible        = true;
+			
+			delaystart = new Timer(LayerDraw,"");
+			
+			delaystart.interval = nDELAY_FADE_SPD;
+			
+			delaystart.enabled  = true;
+		}else{
+		 //…g¼ƒÜžËÍ
+		 	EndWork();
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	¡ö ½KÁË„IÀí
+	-----------------------------------------*/
+	function EndWork()
+	{
+		if(delaystart !== void)
+		{
+			delaystart.enabled = false;
+			
+			invalidate delaystart;
+			
+			delaystart = void;
+		}
+		
+		//±í¤ÈÑY¤Î»­Ïñ¤òÈë¤ìÌæ¤¨¤Æ¤ª¤¯
+		front.setSize(back.width, back.height);
+		
+		front.copyRect(0,0,back,0,0,back.width, back.height);
+		
+		front.opacity  = 255;
+		
+		front.visible  = true;
+		
+		back.visible   = false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	¡ö Ãè»­évÊý
+	-----------------------------------------*/
+	function LayerDraw()
+	{
+		if(0 < (front.opacity - fadeval_1)){
+			front.opacity -= fadeval_1;
+		}else{
+			front.opacity = 0;
+		}
+		
+		if ((back.opacity + fadeval_2) < 255){
+			back.opacity += fadeval_2;
+		}else{
+			back.opacity = 255;
+		}
+		
+		
+		if(
+			((drawtype == 0) && (254 < (back.opacity+fadeval_2))) ||
+			((drawtype != 0) && (((front.opacity - fadeval_1) < 5) && (254 < (back.opacity+fadeval_2))))
+		){//½KÁË„IÀí
+			
+			back.opacity  = 255;
+			
+			front.opacity = 0;
+			
+			delaystart.enabled = false;
+			
+			//½KÁËévÊý¤òºô¤Ö
+			EndWork();
+			
+			return;
+		}
+		
+		front.update();
+		back.update();
+	}
+	
+	
+}
+
+@endif
+
+		//çµ‚äº†é–¢æ•°ã‚’å‘¼ã¶
+			EndWork();
+			
+			return;
+		}
+		
+		front.update();
+		back.update();
+	}
+	
+	
+}
+
+@endif
+

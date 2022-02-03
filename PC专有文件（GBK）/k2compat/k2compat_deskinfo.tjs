@@ -1,4 +1,4 @@
-// System.desktop{Left,Top,Width,Height}ã®ä»•æ§˜ã‚’å¤‰æ›´ã™ã‚‹
+// System.desktop{Left,Top,Width,Height}¤ÎÊË˜”¤ò‰ä¸ü¤¹¤ë
 
 Krkr2CompatUtils.requireWindowEx();
 
@@ -32,7 +32,7 @@ function _System_primary_getMonitorInfo(tag, ref1, ref2) {
 }
 function _System_mainwin_getMonitorInfo(tag, ref1, ref2) {
 	//with (Krkr2CompatUtils) .trace("mainwin_getMonitorInfo", tag, ref1, ref2);
-	// ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒç„¡ã„å ´åˆã¯ãƒ—ãƒ©ã‚¤ãƒãƒªã‚’è¿”ã™
+	// ¥á¥¤¥ó¥¦¥£¥ó¥É¥¦¤¬Ÿo¤¤ˆöºÏ¤Ï¥×¥é¥¤¥Ş¥ê¤ò·µ¤¹
 	if (!global.Window.mainWindow) return _System_primary_getMonitorInfo(...);
 
 	var err;
@@ -51,5 +51,8 @@ function _System_mainwin_getMonitorInfo(tag, ref1, ref2) {
 		err = typeof e == "String" ? e : e.message;
 	}
 	Krkr2CompatUtils.error(@"System.${tag}: ${err}");
+}
+
+@"System.${tag}: ${err}");
 }
 

@@ -2,7 +2,7 @@ Krkr2CompatUtils.require("modeless");
 
 //=============================================================
 
-// ãƒ†ã‚­ã‚¹ãƒˆç·¨é›†ï¼ˆã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ï¼‰ã®ã‚ã‚‹ãƒ¢ãƒ¼ãƒ‰ãƒ¬ã‚¹ãƒ€ã‚¤ã‚¢ãƒ­ã‚°æ±ç”¨
+// ¥Æ¥­¥¹¥È¾¼¯£¨¥¨¥Ç¥£¥Ã¥È¥³¥ó¥È¥í©`¥ë£©¤Î¤¢¤ë¥â©`¥É¥ì¥¹¥À¥¤¥¢¥í¥°šøÓÃ
 class        TextContentModelessDialog extends WIN32ModelessDialogEX {
 	function TextContentModelessDialog { super.WIN32ModelessDialogEX(...); }
 	function finalize {
@@ -54,12 +54,12 @@ class        TextContentModelessDialog extends WIN32ModelessDialogEX {
 		if (_bottomContentSize > 0) _addAutoMapRect("edit", 0, 0, 0, _bottomContentSize);
 	}
 
-	// æœ€ä¸‹è¡Œã«ä½•ã‹è¡¨ç¤ºã•ã›ã‚‹å ´åˆã®æ‹¡å¼µç”¨
+	// ×îÏÂĞĞ¤ËºÎ¤«±íÊ¾¤µ¤»¤ëˆöºÏ¤Î’ˆˆÓÃ
 	/*virtual*/function getBottomContentSize() { return 0; } //fontSize + 4, etc.
 	/*virtual*/function setBottomContent(elm, add, rect) {}
 	/*virtual*/function  onBottomContentResized(w, h, bh) {}
 
-	// ç¾åœ¨ã®çŠ¶æ…‹ã‹ã‚‰ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®STYLEã‚’æ±ºå®š
+	// ¬FÔÚ¤Î×´‘B¤«¤é¥¨¥Ç¥£¥Ã¥È¥³¥ó¥È¥í©`¥ë¤ÎSTYLE¤ò›Q¶¨
 	function getEditStyle(style = ES_LEFT|ES_MULTILINE|ES_WANTRETURN|ES_NOHIDESEL|WS_BORDER|WS_TABSTOP) {
 		style = getWordWrapStyle (style);
 		style = getScrollBarStyle(style);
@@ -174,19 +174,19 @@ class        TextContentModelessDialog extends WIN32ModelessDialogEX {
 		if (msg == EN_CHANGE) _modified = true;
 	}
 
-	// ãƒ†ã‚­ã‚¹ãƒˆï¼èƒŒæ™¯è‰²å¤‰æ›´ã«é–¢ã™ã‚‹ç´°å·¥
+	// ¥Æ¥­¥¹¥È£¯±³¾°É«‰ä¸ü¤Ëév¤¹¤ë¼š¹¤
 	var _brush, _brushColor;
 	function onCtrlColorEdit   { return onCtrlColor(...); }
 	function onCtrlColorStatic { return onCtrlColor(...); }
 	function onCtrlColor(id) {
 		if (id == _editID) {
 			if (_brush !== void && _brushColor !== _color) {
-				// å¤ã„ãƒ–ãƒ©ã‚·ã‚’ç ´æ£„
+				// ¹Å¤¤¥Ö¥é¥·¤òÆÆ—‰
 				invalidate _brush if (typeof _brush == "Object");
 				_brush = void;
 			}
 			if (_brush === void) {
-				// èƒŒæ™¯è‰²ãƒ–ãƒ©ã‚·ã‚’ä½œæˆ(ç™½,é»’ã¯StockObjectä½¿ç”¨)
+				// ±³¾°É«¥Ö¥é¥·¤ò×÷³É(°×,ü\¤ÏStockObjectÊ¹ÓÃ)
 				_brush = !_color ? BLACK_BRUSH :
 				/**/     (_color == 0xFFFFFF) ? WHITE_BRUSH :
 				/**/     new global.WIN32Dialog.SolidBrush(_color);
@@ -198,9 +198,9 @@ class        TextContentModelessDialog extends WIN32ModelessDialogEX {
 	//-------------------------------------------------------------
 
 	// default props.
-	var _fontFace = "ï¼­ï¼³ ã‚´ã‚·ãƒƒã‚¯";
+	var _fontFace = "£Í£Ó ¥´¥·¥Ã¥¯";
 	var _fontSize = 9;
-	var _fontBold = false; // â€»boldã®ã¿weightå€¤ã§å‚ç…§ã•ã‚Œã‚‹
+	var _fontBold = false; // ¡ùbold¤Î¤ßweight‚¤Ç²ÎÕÕ¤µ¤ì¤ë
 	var _fontItalic = false; // unsupported
 	var _fontUnderline = false; // unsupported
 	var _fontStrikeOut = false; // unsupported
@@ -265,12 +265,12 @@ class        DebugPadCompatDialog extends TextContentModelessDialog {
 	var _width  = 640;
 	var _height = 480;
 	var _borderStyle = bsSizeable;
-	var _fontFace = "ï¼­ï¼³ æ˜æœ";
+	var _fontFace = "£Í£Ó Ã÷³¯";
 
 	//-------------------------------------------------------------
-	// æœ€ä¸‹éƒ¨ãƒ©ã‚¤ãƒ³è¡¨ç¤ºå¯¾å¿œ
+	// ×îÏÂ²¿¥é¥¤¥ó±íÊ¾Œê
 
-	var _execMark = $9654; /* &#9654 (U+25B6): å³å‘ãä¸‰è§’ */
+	var _execMark = $9654; /* &#9654 (U+25B6): ÓÒÏò¤­Èı½Ç */
 	var _execEnabled = true;
 	var _execName = "exec";
 	var _lineName = "status";
@@ -290,7 +290,7 @@ class        DebugPadCompatDialog extends TextContentModelessDialog {
 	}
 
 	function addExecButtonParts(elm, add, rect) {
-		with (rect) add(PushButton(_execMark, _execName, .x, .y, .h, .h,  BS_FLAT)); // â€»BS_FLATã¯VisualStyleé©ç”¨æ™‚ã¯åŠ¹ã‹ãªã„ã£ã½ã„
+		with (rect) add(PushButton(_execMark, _execName, .x, .y, .h, .h,  BS_FLAT)); // ¡ùBS_FLAT¤ÏVisualStyleßmÓÃ•r¤Ï„¿¤«¤Ê¤¤¤Ã¤İ¤¤
 	}
 	function resizeExecButtonParts(w, h, rects, bh) {
 		setItemPos(_execName, 0, h-bh);
@@ -335,7 +335,7 @@ class        DebugPadCompatDialog extends TextContentModelessDialog {
 	}
 
 	//-------------------------------------------------------------
-	// Padäº’æ›ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ç¾¤
+	// Pad»¥“Q¥×¥í¥Ñ¥Æ¥£Èº
 
 	var      _statusText = "";
 	property  statusText {
@@ -346,6 +346,16 @@ class        DebugPadCompatDialog extends TextContentModelessDialog {
 	property  showStatusBar {
 		getter { return _showStatusBar; }
 		setter(v) {     _showStatusBar = !!v; _updateStatusText(); }
+	}
+
+	var     _fileName;
+	property fileName {
+		getter { return _fileName; }
+		setter(v) {     _fileName = v; unsupport("fileName prop not implemented."); }
+	}
+
+}
+); }
 	}
 
 	var     _fileName;

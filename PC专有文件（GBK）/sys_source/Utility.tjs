@@ -1,0 +1,371 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2008/01/02
+// File : Utility.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Utility Function
+//------------------------------------------------------------------------------
+@if (__UTILITY_TJS__== 0)
+@set(__UTILITY_TJS__ = 1)
+
+//¡ù¥°¥í©`¥Ð¥ë¤ÇÊ¹ÓÃ¤¹¤ë±ãÀûévÊý¤ò¼¯¤á¤¿¥Õ¥¡¥¤¥ë
+
+/*-----------------------------------------
+¡ô¥ê¥½©`¥¹¥Á¥§¥Ã¥¯évÊý
+
+ÒýÊý:
+
+file	´æÔÚ´_ÕJ¤¹¤ë¥ê¥½©`¥¹¥Õ¥¡¥¤¥ë
+
+ÕhÃ÷
+¥í©`¥«¥ë¤ËÖ¸¶¨¤·¤¿¥Õ¥¡¥¤¥ë¤¬´æÔÚ¤¹¤ë¤«
+¤«¤Î´_ÕJ
+
+-----------------------------------------*/
+function ResourceCheck(file)
+{
+	if((file === void) || (file == ""))return false;
+	
+	return (Storages.isExistentStorage(file));
+}
+
+
+
+
+
+/*-----------------------------------------
+¡ôWAITévÊý
+
+ÒýÊý:
+
+time	Í£Ö¹¤¹¤ë•rég
+
+ÕhÃ÷
+System¤òÍ£Ö¹¤¹¤ë•rég
+
+-----------------------------------------*/
+function Wait(time)
+{
+	var BeforTime = System.getTickCount();
+	
+	var AfterTime = 0;
+	
+	while(1){
+		
+		AfterTime = System.getTickCount();
+		
+		if((BeforTime + time) < AfterTime){ break; }
+	}
+}
+
+
+
+
+
+/*-----------------------------------------
+¡ôrandomévÊý
+
+ÒýÊý£º
+top , max
+
+
+ÕhÃ÷£º
+¥é¥ó¥À¥àÊý‚Ž¤òÈ¡µÃ¤¹¤ë
+
+-----------------------------------------*/
+function Random(top, max)
+{
+	var random_obj = new Math.RandomGenerator();
+	
+	//¥é¥ó¥À¥à‚Ž×÷³É
+	var result = random_obj.random32();
+	
+	//¹ ‡ì‰ä¸ü¤ò¤¹¤ë
+	result %= ((max+1)-top);
+	
+	result += top;
+	
+	invalidate random_obj;
+	
+	random_obj = null;
+	
+	return result;
+}
+
+
+
+
+
+
+
+
+/*-----------------------------------------
+¡ö¥é¥ó¥À¥à¥Á¥§¥Ã¥¯
+
+ÒýÊý£º
+ÏÈî^Êý:top
+×î´óÊý:max
+
+¡ù×î´óÊýÒÔÏÂ¤ÎÊý‚Ž¤¬µÃ¤é¤ì¤ë
+
+-----------------------------------------*/
+function RamdomCheck(top, max)
+{
+	var random_obj = new Math.RandomGenerator();
+	
+	//¥é¥ó¥À¥à‚Ž×÷³É
+	var result = random_obj.random32();
+	
+	//TOP¡«MAX¤òÊý‚Ž¤Ë‰ä“Q
+	var top_num    = (real)top;
+	
+	var max_num    = (real)max;
+	
+	
+	//¹ ‡ì‰ä¸ü¤ò¤¹¤ë
+	result %= ((max_num+1)-top_num);
+	
+	result += top_num;
+	
+	//¥ª¥Ö¥¸¥§¥¯¥È¤ÎÆÆ—‰
+	invalidate random_obj;
+	
+	random_obj = null;
+	
+	return result;
+}
+
+
+
+
+
+/*-----------------------------------------
+¡ôdebugInfoévÊý
+
+ÒýÊý£º
+message
+
+
+ÕhÃ÷£º
+¥Ç¥Ð¥Ã¥°ÓÃ¥á¥Ã¥»©`¥¸¤ò±íÊ¾¤¹¤ë
+
+-----------------------------------------*/
+function DebugMess(message)
+{
+	//¥¿¥¤¥Þ©`Í£Ö¹
+	if(MainObj !== void && MainObj.DefaultTimer !== void)MainObj.DefaultTimer.enabled = false;
+	
+	System.inform(message);
+	
+	if(MainObj !== void && MainObj.DefaultTimer !== void)MainObj.DefaultTimer.enabled = true;
+	
+}
+
+
+
+
+
+/*-----------------------------------------
+¡ôÉ«¶¨ÊýÈ¡µÃévÊý
+
+ÒýÊý£º
+name
+
+
+ÕhÃ÷£º
+É«ÎÄ×Ö¤«¤é¶¨Êý¤òÈ¡µÃ¤¹¤ë
+
+-----------------------------------------*/
+function getColor(name)
+{
+	if (name === void) return 0;
+
+	switch (name) {
+		case "coBLACK":		return 0x000000;
+		case "coWHITE":		return 0xffffff;
+		case "coRED":		return 0xff0000;
+		case "coGREEN":		return 0x00ff00;
+		case "coBLUE":		return 0x0000ff;
+		case "coAQUA":		return 0x00ffff;
+		case "coPURPLE":	return 0xff00ff;
+		case "coYELLOW":	return 0xffff00;
+		default : return 0;
+	}
+}
+
+
+
+
+
+/*-----------------------------------------
+¡ôÉ«¶¨ÊýÈ¡µÃévÊý
+
+ÒýÊý£º
+name
+
+
+ÕhÃ÷£º
+É«ÎÄ×Ö¤«¤é¶¨Êý¤òÈ¡µÃ¤¹¤ë
+
+-----------------------------------------*/
+function getDrawLayerType(name)
+{
+	if (name === void) return ltAlpha;
+
+	switch (name) {
+		case "ltAlpha":			return ltAlpha;
+		case "ltAddAlpha":		return ltAddAlpha;
+		case "ltAdditive":		return ltAdditive;
+		case "ltSubtractive":	return ltSubtractive;
+		case "ltMultiplicative":return ltMultiplicative;
+		case "ltDodge":			return ltDodge;
+		case "ltDarken":		return ltDarken;
+		case "ltLighten":		return ltLighten;
+		case "ltScreen":		return ltScreen;
+		default : return name;
+	}
+}
+
+
+
+
+
+
+
+
+/*-----------------------------------------
+¡ôIDÈ¡µÃévÊý
+
+ÒýÊý£º
+id
+
+
+ÕhÃ÷£º
+ID¤«¤éÎÄ×Ö¤ò«@µÃ¤¹¤ë
+
+-----------------------------------------*/
+function getCharID(id) {
+
+	//var strid = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	//"ELM" ¤Ï¥Õ¥é¥°¤Ç×·¼Ó
+	
+	var strid = "ABCDFGK";
+	
+	if(s["CHAR_E_OPEN"] == true)strid += "E";
+	if(s["CHAR_L_OPEN"] == true)strid += "L";
+	if(s["CHAR_M_OPEN"] == true)strid += "M";
+	
+	if(9 < id ){
+	//¤½¤ÎËû ¤â ¥é¥ó¥À¥à¤Ë¤·¤Æ¤ª¤¯
+		
+		id = RamdomCheck(0, (strid.length-1));
+		
+	}
+	
+	//ÇçÄË
+	if( (id == 8) && (s["CHAR_L_OPEN"] == true) ){
+		return "L";
+	}else if( (id == 9) && (s["CHAR_M_OPEN"] == true) ){
+	//šêÓê
+		return "M";
+	}
+	
+	
+	return strid[id];
+}
+
+
+
+
+
+
+/*-----------------------------------------
+¡ô¥Ñ¥¹ÔO¶¨évÊý
+
+ÒýÊý:
+
+path µÇåh¤¹¤ë¥Ñ¥¹
+
+ÕhÃ÷
+—ÊË÷¤¹¤ë¥ê¥½©`¥¹¥Ñ¥¹¤òÔO¶¨¤¹¤ë
+-----------------------------------------*/
+function SetPath( path )
+{
+	Storages.addAutoPath(System.exePath + path);
+}
+
+
+
+
+
+
+/*-----------------------------------------
+¡ôCSV FILEºô¤Ó³ö¤·évÊý
+
+ÒýÊý:
+
+
+ÕhÃ÷
+CSV FILE¤«¤é¥Ç©`¥¿¤òÕi¤ßÞz¤à
+È¡µÃ¤·¤¿CSV¤ÏÐÐ¤´¤È¤ËÅäÁÐ¤ÎÐÎ¤ÇÈ¡µÃ¤µ¤ì¤ë
+
+-----------------------------------------*/
+function LoadCSVFile( csvfile )
+{
+	//file check
+	if( !ResourceCheck(csvfile) )return void;
+	
+	//¸ñ¼{ÓÃÅäÁÐ
+	var ResultArray = new Array();
+	
+	//CSV File¤«¤é¥ê¥½©`¥¹Ãû¤òºô¤Ó³ö¤¹
+	var CSV = new CSVParser();
+	//CSV¤«¤é¥Õ¥¡¥¤¥ë¤òÕi¤ß¤È¤ë
+	CSV.initStorage( csvfile );
+	
+	while(1)
+	{
+		var csv_line = CSV.getNextLine();
+		if(csv_line === void)break;
+		
+		ResultArray.add( csv_line );
+	}
+	
+	return ResultArray;
+}
+
+
+
+
+
+
+@endif
+
+rceCheck(csvfile) )return void;
+	
+	//æ ¼ç´ç”¨é…åˆ—
+	var ResultArray = new Array();
+	
+	//CSV Fileã‹ã‚‰ãƒªã‚½ãƒ¼ã‚¹åã‚’å‘¼ã³å‡ºã™
+	var CSV = new CSVParser();
+	//CSVã‹ã‚‰ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿ã¨ã‚‹
+	CSV.initStorage( csvfile );
+	
+	while(1)
+	{
+		var csv_line = CSV.getNextLine();
+		if(csv_line === void)break;
+		
+		ResultArray.add( csv_line );
+	}
+	
+	return ResultArray;
+}
+
+
+
+
+
+
+@endif
+

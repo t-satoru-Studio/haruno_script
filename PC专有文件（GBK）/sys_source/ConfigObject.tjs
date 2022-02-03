@@ -1,0 +1,6698 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/06/04
+// File : ConfigObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo :Config Object
+//------------------------------------------------------------------------------
+
+@if (__CONFIGOBJECT_TJS__== 0)
+@set(__CONFIGOBJECT_TJS__ = 1)
+
+class _CONFIGOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	◆ パラメータ
+	-----------------------------------------*/
+	var TitleBg;			//タイトル用背景
+	
+	var PartsFrame;			//パーツレイヤ
+	
+	var ConfigBg;			//マップレイヤ
+	
+	var ButtonLayer = [];	//ボタンレイヤ
+	
+	var MapRes;				//MAP REG
+	
+	var TempRes;			//MAP TEMPREG
+	
+	var TempActive;			//PRE ACTIVE
+	
+	var DeleteObject;		//DELETE OBJECT
+	
+	var ExitObject;			//終了確認OBJECT
+	
+	var VoiceTest;			//VOICE TEST
+	
+	var VoiceTestflag;		//VOICE TEST FLAG
+	
+	var SystemTest;			//SYSTEM TEST
+	
+	var SystemTestflag;		//SYSTEM TEST FLAG
+	
+	var SystemTestChar;		//SYSTEM CHAR ID
+	
+	var SeTest;				//SE TEST
+	
+	var SeTestflag;			//SE TEST FLAG
+	
+	var BgmTest;			//BGM TEST
+	
+	var BgmTestflag;		//BGM TEST FLAG
+	
+	var CharVoiceTest;		//個別キャラテスト音声
+	
+	var CharVoiceTestflag;	//個別キャラテスト音声フラグ
+	
+	var TempCharVoiceTestflag;	//個別キャラテスト音声保存フラグ
+	
+	var MovieTest;			//MOVIE TEST
+	
+	var MovieTestflag;		//MOVIE TESTフラグ
+	
+	var DragFlag;			//DRAG FLAG
+	
+	var DragType;			//DRAG TYPE
+	
+	var CharVoiceObj;		//個別音声オブジェクト
+	
+	var ScreenType;			//画面状態フラグ
+	
+	var TitleFlag;			//タイトルフラグ
+	
+	var ReplayFlag;			//リプレイフラグ
+	
+	var ExtraFlag;			//EXTRAフラグ
+	
+	var MessDrawTimer;		//メッセージタイマー
+	
+	var sample_index;		//サンプルインデックス
+	
+	var text_x;				//サンプル座標
+	
+	var AutoDrawTimer;		//オート用メッセージタイマー
+	
+	var auto_index;			//サンプルインデックス
+	
+	var auto_x;				//サンプル座標
+	
+	var StartApendUseFlag;	//裸パッチの初期値
+	
+	var StartFaceFlag;		//CONFIG画面表示時のフェイス状態
+	
+	var CommonParts;		//共通ボタンパーツ
+	
+	var CommentLayer;		//コメントレイヤ
+	
+	var CommentArray;		//コメント配列
+	
+	var ParamParts;			//カーソルパーツ
+	
+	var mess_spd_bord;		//テキストサンプル台紙
+	
+	var auto_spd_bord;		//AUTOサンプル台紙
+	
+	var mess_spd_density;	//フレーム濃度
+	
+	var auto_spd_density;	//フレーム濃度
+	
+	var mess_spd_layer;		//テキストレイヤ
+	
+	var auto_spd_layer;		//テキストレイヤ
+	
+	var mess_density_val;	//濃度値レイヤ
+	
+	var mess_spd_val;		//テキスト速度値レイヤ
+	
+	var auto_spd_val;		//AUTO速度値レイヤ
+	
+	var sound_bg;			//SOUND背景
+	
+	var sound_parts;		//SOUNDパーツ
+	
+	var sound_parts2;		//SOUNDパーツ2
+	
+	var CursorVoice;		//カーソル音声レイヤ
+	
+	var CursorVoiceflag;	//カーソル音声レイヤフラグ
+	
+	var CursorVoiceId;		//再生しているカーソル音声のキャラID
+	
+	var CharVoiceSystem;	//音声：SYSTEMの切り替え時に使用するレイヤ
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ コンストラクタ
+	-----------------------------------------*/
+	function _CONFIGOBJECT(win, pri, titleflag = false, replayflag = false, extraflag = false)
+	{
+		TempActive = win.ActiveObj;
+		
+		super.BaseObject(win, pri);
+		
+		TitleFlag = titleflag;
+		
+		ReplayFlag= false;
+		
+		ExtraFlag = false;
+		
+		//リプレイかエクストラからの復帰はフラグを立てる
+		if((replayflag) || (extraflag)){
+			ReplayFlag= true;
+			
+			//EXTRAフラグを立てる
+			if(extraflag)ExtraFlag = true;
+		}
+		
+		
+		TitleBg = void;
+		
+		if(TitleFlag == true){
+			TitleBg = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_config00.png");
+		}
+		
+		
+		//パーツレイヤ
+		PartsFrame = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_config04.png");
+		
+		PartsFrame.visible = false;
+		
+		//共通パーツ
+		CommonParts= new BaseLayer(win, pri, 0, 0, 0, 0, "frm_common.png");
+		
+		CommonParts.visible = false;
+		
+		//カーソルパーツ
+		ParamParts = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_config05.png");
+		
+		ParamParts.visible = false;
+		
+		//コメント
+		CommentLayer= new BaseLayer(win, pri, nCOMMENT_XPOS, 688, win.width, nCOMMENT_FONTSIZE+5);
+		
+		CommentLayer.font.height = nCOMMENT_FONTSIZE;
+		CommentLayer.font.face   = stFONTNAME;
+		CommentLayer.font.bold   = nFONTBOLD;
+		CommentLayer.visible = true;
+		
+		CommentArray = new Array();
+		
+		//配列の参照を代入しておく
+		CommentArray.add([
+			stCOMMENT01,stCOMMENT02,stCOMMENT03,stCOMMENT04,stCOMMENT05,stCOMMENT06,stCOMMENT07,stCOMMENT08,stCOMMENT09,stCOMMENT10,
+			stCOMMENT11,stCOMMENT12,stCOMMENT13,stCOMMENT14,stCOMMENT15,stCOMMENT16,stCOMMENT17,stCOMMENT18,stCOMMENT19,stCOMMENT20,
+			stCOMMENT21,stCOMMENT22,stCOMMENT23,stCOMMENT24,stCOMMENT25,stCOMMENT26,stCOMMENT27,stCOMMENT28,stCOMMENT29,stCOMMENT30,
+			stCOMMENT31,stCOMMENT32,stCOMMENT33,stCOMMENT34,stCOMMENT35
+		]);
+		
+		CommentArray.add([
+			stCOMMENT01,stCOMMENT02,stCOMMENT03,stCOMMENT04,stCOMMENT05,stCOMMENT06,stCOMMENT07,stCOMMENT08,
+			stCOMMENT36,stCOMMENT37,stCOMMENT38,stCOMMENT39,stCOMMENT40,stCOMMENT41,stCOMMENT42,stCOMMENT43,stCOMMENT44,stCOMMENT45,
+			stCOMMENT46,stCOMMENT47,stCOMMENT48,stCOMMENT49,stCOMMENT50
+		]);
+		
+		CommentArray.add([
+			stCOMMENT01,stCOMMENT02,stCOMMENT03,stCOMMENT04,stCOMMENT05,stCOMMENT06,stCOMMENT07,stCOMMENT08,
+			stCOMMENT51,stCOMMENT52,stCOMMENT53,stCOMMENT54,stCOMMENT55,stCOMMENT56,stCOMMENT57,stCOMMENT58,stCOMMENT59,stCOMMENT60,
+			stCOMMENT61,stCOMMENT62,stCOMMENT63,stCOMMENT64,stCOMMENT65,stCOMMENT66,stCOMMENT67,stCOMMENT68,stCOMMENT69,stCOMMENT70,
+			stCOMMENT71,stCOMMENT72,stCOMMENT73,stCOMMENT74,stCOMMENT75,stCOMMENT76,stCOMMENT77,stCOMMENT78,stCOMMENT79,stCOMMENT80,
+			stCOMMENT81,stCOMMENT82,stCOMMENT83,stCOMMENT84,stCOMMENT85,stCOMMENT86,stCOMMENT87,stCOMMENT88,stCOMMENT89,stCOMMENT90,
+			stCOMMENT91,stCOMMENT92,stCOMMENT93,stCOMMENT94,stCOMMENT95,stCOMMENT96,stCOMMENT97,stCOMMENT98,stCOMMENT99,stCOMMENT100,
+			stCOMMENT101,stCOMMENT102,stCOMMENT103,stCOMMENT104,stCOMMENT105,stCOMMENT106,stCOMMENT107,stCOMMENT108,stCOMMENT109,stCOMMENT110,
+			stCOMMENT111,stCOMMENT112,stCOMMENT113,stCOMMENT114,stCOMMENT115,stCOMMENT116,stCOMMENT117
+		]);
+		
+		
+		
+		
+		//SOUND背景
+		sound_bg   = void;
+		
+		//SOUNDパーツ
+		sound_parts  = new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config23.png");
+		
+		sound_parts2 = new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config24.png");
+		
+		sound_parts.visible = false;
+		
+		sound_parts2.visible = false;
+		
+		
+		//VOICE TEST
+		VoiceTest  = new _SOUNDOBJECT("voice", win);
+		
+		VoiceTestflag = false;
+		
+		
+		//個別キャラテスト
+		CharVoiceTest= new _SOUNDOBJECT("voice", win);
+		
+		CharVoiceTestflag     = false;
+		
+		TempCharVoiceTestflag = false;
+		
+		//SYSTEM
+		SystemTest  = new _SOUNDOBJECT("system_se", win);
+		
+		SystemTestflag        = false;
+		
+		//ＩＤを入れておく
+		SystemTestChar = getCharID(s["sys_char_id"]);
+		
+		
+		//SE
+		SeTest  = new _SOUNDOBJECT("se", win);
+		
+		SeTestflag = false;
+		
+		//BGM
+		BgmTest = new _SOUNDOBJECT("bgm", win);
+		
+		BgmTestflag= false;
+		
+		
+		//BGM FADE STOP中なら強制停止
+		if(MainWnd.BgmObj.FadeStopflag == true){
+			MainWnd.BgmObj.FileStop();
+		}
+		
+		//SE FADE STOP中なら強制停止
+		for(var i=0; i<nSE_MAXNUM; i++){
+			if(MainWnd.SeObj[i].FadeStopflag == true){
+				MainWnd.SeObj[i].FileStop();
+			}
+		}
+		
+		//MOVIE TEST
+		MovieTest = new _SOUNDOBJECT("movie", win);
+		
+		MovieTestflag = false;
+		
+		
+		//CursorVoice TEST
+		CursorVoice= new _SOUNDOBJECT("voice", win);
+		
+		CursorVoiceflag = false;
+		
+		CursorVoiceId=void;
+		
+		//ON・OFFレイヤ
+		CharVoiceSystem= new _SOUNDOBJECT("system_se", win);
+		
+		
+		
+		
+		//裸パッチの初期値
+		StartApendUseFlag = s["ApendUse"];
+		
+		//フェイスの状態
+		StartFaceFlag     = MainWnd.MessObj.FaceViewFlag;
+		
+		//SCREEN FLAGセットしておく
+		//0:SYSTEM1 1:SYSTEM2 2:SOUND
+		
+		//スクリーンチェンジ
+		ScreenChange( s["config_type"] );
+		
+		//ScreenChange( 2 );
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		if(TitleBg !== void)invalidate TitleBg;
+		
+		invalidate PartsFrame;
+		
+		invalidate ConfigBg;
+		
+		invalidate VoiceTest;
+		
+		invalidate SystemTest;
+		
+		invalidate SeTest;
+		
+		invalidate BgmTest;
+		
+		invalidate CharVoiceTest;
+		
+		invalidate MovieTest;
+		
+		invalidate CursorVoice;
+		
+		invalidate CommonParts;
+		
+		invalidate CommentLayer;
+		
+		invalidate ParamParts;
+		
+		invalidate sound_parts;
+		
+		invalidate sound_parts2;
+		
+		invalidate CharVoiceSystem;
+		
+		if(sound_bg !== void)invalidate sound_bg;
+		
+		if(mess_density_val !== void)invalidate mess_density_val;
+		
+		if(MessDrawTimer !== void){
+			MessDrawTimer.enabled  = false;
+			invalidate MessDrawTimer;
+		}
+		
+		if(AutoDrawTimer !== void){
+			AutoDrawTimer.enabled  = false;
+			invalidate AutoDrawTimer;
+		}
+		
+		//サンプル系の削除
+		invalidate mess_spd_bord;
+		invalidate auto_spd_bord;
+		invalidate mess_spd_density;
+		invalidate auto_spd_density;
+		invalidate mess_spd_layer;
+		invalidate auto_spd_layer;
+		invalidate mess_density_val;
+		invalidate auto_spd_val;
+		invalidate mess_spd_val;
+		
+		
+		for(var i=0; i<ButtonLayer.count; i++){
+			invalidate ButtonLayer[i];
+			ButtonLayer[i] = void;
+		}
+		
+		for(var i=0; i<CommentArray.count; i++){
+			invalidate CommentArray[i];
+		}
+		
+		MessDrawTimer = void;
+		
+		VoiceTest     = void;
+		
+		SystemTest    = void;
+		
+		SeTest        = void;
+		
+		BgmTest       = void;
+		
+		CharVoiceTest = void;
+		
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Default Func
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		//if(ScreenType)return;
+		
+		if(DragFlag){
+			
+			DragParam();
+			
+			return;
+		}
+		
+		
+		for(var i=0; i<ButtonLayer.count; i++)
+		{
+			if((ButtonLayer[i] === void) || (!ButtonLayer[i].visible))continue;
+			
+			if(ButtonLayer[i].PaintFlag){
+				
+				ButtonLayer[i].PaintFlag = false;
+				
+				Wait(nBUTTON_WAIT);
+				
+				ButtonWork();
+				
+				return;
+			}
+		}
+		
+		
+		
+		//MAPを取得する
+		MapRes = ConfigBg.GetProvincePixel();
+		
+		if(MapRes != TempRes)
+		{
+			CursorFunc();
+			
+			ClearFunc();
+		}
+		
+		TempRes = MapRes;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		if((ScreenType == 2) && (DragFlag)){
+			CursorVoicePlay( 0, false, 0 );
+			DragFlag = false;
+			return;
+		}
+		
+		DragFlag = false;
+		
+		if(MapRes)ClickWork();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Downを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseDownAction()
+	{
+		DragFlag = false;
+		
+		if(
+			//system 2 画面
+			((ScreenType == 1) && ((MapRes == 9) || (MapRes == 10) || (MapRes == 11))) ||
+			//sound画面
+			((ScreenType == 2) && ( (51 < MapRes) && (MapRes < 68) ))
+		){	
+			if(ScreenType == 2){
+			//SOUNDのみ
+				var i = MapRes -1;
+				if(
+					((i == 63) && (s["CHAR_E_OPEN"] == false)) || ((i == 64) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 65) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+			}
+			
+			//Dragフラグを立てる
+			DragFlag = true;
+			DragType = MapRes;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Upを処理するハンドラ
+	
+	-----------------------------------------*/
+	function RightMouseUpAction(forceend = false)
+	{
+		if(ScreenType == 2)
+		{
+			if(forceend == true){
+				TestSoundStopWork();
+			}else{
+				if(TestSoundStopWork())return;
+			}
+		}
+		
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		//裸パッチの適応
+		if(StartApendUseFlag != s["ApendUse"]){
+		//パッチ用再描画
+			//MainWnd.ApendRedraw();
+		}
+		
+		
+		//FACEレイヤの変更
+		//使用時のみ
+		if(nFACE_FLAG == true)
+		{
+			if(StartFaceFlag && s["face"] == false)
+			{//非表示
+				MainWnd.MessObj.FaceLayer.visible     = false;
+				MainWnd.MessObj.FaceTempLayer.visible = false;
+			}
+			else if(StartFaceFlag && s["face"] == true)
+			{//表示
+				MainWnd.MessObj.FaceLayer.visible     = true;
+			}
+		}
+		
+		//削除処理
+		DeleteWork( ConfigDeleteFunc );
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ KEY UP
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		switch(key){
+			case VK_RETURN:{
+			//return
+			if(shift & ssAlt)
+			{//フルスクリーン処理
+				if(MainWnd.ScreenSizeType == 5)return;
+				
+				if(ScreenType == false)
+				{//通常画面設定
+					//画面モード
+					if(s["screen"] == false){
+					//window
+						ButtonLayer[7].copyRect(0,0, PartsFrame,0,256+(38*2),144,38);
+						
+						ButtonLayer[8].copyRect(0,0, PartsFrame,144,256,144,38);
+					}else{
+					//full
+						ButtonLayer[7].copyRect(0,0, PartsFrame,0,256,144,38);
+						
+						ButtonLayer[8].copyRect(0,0, PartsFrame,144,256+(38*2),144,38);
+					}
+					
+					ParamSetFunc();
+				}
+			}else{
+				LeftMouseUpAction();
+			}
+			
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ カーソルON関数
+	
+	引数：
+	
+	説明：
+	カーソル点灯関数
+	-----------------------------------------*/
+	function CursorFunc()
+	{
+		//コメント表示
+		if(
+			(MapRes == 0)                                ||
+			(((MapRes-1) == 4) && (ReplayFlag == false)) ||
+			(((MapRes-1) == 6) && (TitleFlag  == true))
+		){	//コメント消去
+			CommentLayer.fillRect(0,0,CommentLayer.width,CommentLayer.height,0);
+			return;
+		}
+		
+		//if(ScreenType)return;
+		
+		var i = MapRes-1;
+		
+		//コメント描画
+		CommentLayer.fillRect(0,0,CommentLayer.width,CommentLayer.height,0);
+		
+		if( ScreenType == 2 ){
+		//SOUNDは登場フラグを見る
+			if( !(
+					((i == 25) && (s["CHAR_E_OPEN"] == false)) || ((i == 26) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 27) && (s["CHAR_M_OPEN"] == false)) ||
+					
+					((i == 36) && (s["CHAR_E_OPEN"] == false)) || ((i == 37) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 38) && (s["CHAR_M_OPEN"] == false)) ||
+					
+					((i == 47) && (s["CHAR_E_OPEN"] == false)) || ((i == 48) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 49) && (s["CHAR_M_OPEN"] == false)) ||
+					
+					((i == 63) && (s["CHAR_E_OPEN"] == false)) || ((i == 64) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 65) && (s["CHAR_M_OPEN"] == false))
+				)
+			){
+				var comment_mes = CommentArray[ScreenType][MapRes-1];
+				
+				//花売りの少女判定
+				if(
+					(s["CHAR_G_OPEN"] == true) && (ScreenType == 2) && 
+					( ((MapRes-1) == 23) || ((MapRes-1) == 34) || ((MapRes-1) == 45) || ((MapRes-1) == 61) )
+				){
+					if(((MapRes-1) == 23)){
+						comment_mes = stCOMMENT110;
+					}else if(((MapRes-1) == 34)){
+						comment_mes = stCOMMENT111;
+					}else if(((MapRes-1) == 45)){
+						comment_mes = stCOMMENT112;
+					}else if(((MapRes-1) == 61)){
+						comment_mes = stCOMMENT113;
+					}
+				}
+				
+				
+				
+				MainWnd.MessObj.TextDraw(CommentLayer, 0, 0, comment_mes);
+			}
+		}else{
+		//SYSTEM 1 or 2
+			MainWnd.MessObj.TextDraw(CommentLayer, 0, 0, CommentArray[ScreenType][MapRes-1]);
+		}
+		
+		
+		
+		
+		if( ScreenType == 0 )
+		{//SYSTEM 1
+			
+			switch(MapRes-1){
+				case 0://SYSTEM 1
+					return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,0,ButtonLayer[i].height);
+				break;
+				case 1://SYSTEM 2
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width,ButtonLayer[i].height);
+				break;
+				case 2://SOUND
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 3://FORMAT
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 4://RETURN REPLAY
+					if(ReplayFlag == false)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 5://RETURN GAME
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 6://TITLE
+					if(TitleFlag)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 7://GAME END
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 8://full screen
+					if(s["screen"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*0,ButtonLayer[i].height);
+				break;
+				case 9://WINDOW
+					if(s["screen"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*1,ButtonLayer[i].height);
+				break;
+				case 10://1280*720
+					if((s["scsize"] == 0) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*2,ButtonLayer[i].height);
+				break;
+				case 11://1024*576
+					if((s["scsize"] == 1) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*3,ButtonLayer[i].height);
+				break;
+				case 12://960*540
+					if((s["scsize"] == 2) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*4,ButtonLayer[i].height);
+				break;
+				case 13://800*450
+					if((s["scsize"] == 3) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*5,ButtonLayer[i].height);
+				break;
+				case 14://640*360
+					if((s["scsize"] == 4) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*6,ButtonLayer[i].height);
+				break;
+				case 15://effect on
+					if(s["effect"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*7,ButtonLayer[i].height);
+				break;
+				case 16://effect off
+					if(s["effect"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*8,ButtonLayer[i].height);
+				break;
+				case 17://face on
+					if(s["face"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*7,ButtonLayer[i].height);
+				break;
+				case 18://face off
+					if(s["face"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*8,ButtonLayer[i].height);
+				break;
+				case 19://dialog save
+					if(s["dlg_save"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*9,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*10,ButtonLayer[i].height);
+					}
+				break;
+				case 20://dialog copy
+					if(s["dlg_copy"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*11,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*12,ButtonLayer[i].height);
+					}
+				break;
+				case 21://dialog move
+					if(s["dlg_move"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*13,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*14,ButtonLayer[i].height);
+					}
+				break;
+				case 22://dialog erase
+					if(s["dlg_erase"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*15,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*16,ButtonLayer[i].height);
+					}
+				break;
+				case 23://dialog load
+					if(s["dlg_load"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*17,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*18,ButtonLayer[i].height);
+					}
+				break;
+				case 24://dialog jump
+					if(s["dlg_jump"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*19,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*20,ButtonLayer[i].height);
+					}
+				break;
+				case 25://dialog end
+					if(s["dlg_end"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*21,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*22,ButtonLayer[i].height);
+					}
+				break;
+				case 26://dialog format
+					if(s["dlg_format"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*23,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*24,ButtonLayer[i].height);
+					}
+				break;
+				case 27://dialog title
+					if(s["dlg_title"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*25,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*26,ButtonLayer[i].height);
+					}
+				break;
+				case 28://dialog replay
+					if(s["dlg_replay"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*27,ButtonLayer[i].height);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*28,ButtonLayer[i].height);
+					}
+				break;
+				case 29://mouse on
+					if(s["mouse"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*7,ButtonLayer[i].height);
+				break;
+				case 30://mouse off
+					if(s["mouse"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*8,ButtonLayer[i].height);
+				break;
+				case 31://space key left click
+					if(s["space_key"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*29,ButtonLayer[i].height);
+				break;
+				case 32://space key right click
+					if(s["space_key"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*30,ButtonLayer[i].height);
+				break;
+				case 33://esc key 緊急回避
+					if(s["esc_key"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*31,ButtonLayer[i].height);
+				break;
+				case 34://esc key right click
+					if(s["esc_key"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*42,ButtonLayer[i].height);
+				break;
+			}
+			
+		}
+		else if( ScreenType == 1 )
+		{//SYSTEM 2
+			
+			
+			switch( MapRes-1 )
+			{
+				case 0://SYSTEM 1
+					ButtonLayer[i].copyRect(0,0, CommonParts,0,ButtonLayer[i].height);
+				break;
+				case 1://SYSTEM 2
+					return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width,ButtonLayer[i].height);
+				break;
+				case 2://SOUND
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 3://FORMAT
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 4://RETURN REPLAY
+					if(ReplayFlag == false)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 5://RETURN GAME
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 6://TITLE
+					if(TitleFlag)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				case 7://GAME END
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+				break;
+				
+				case 8://wnd bar
+					mess_density_val.visible = true;
+					ValueDrawFunction( mess_density_val, 0 );
+					ButtonLayer[i].copyRect(0,0, ParamParts,ButtonLayer[i].width,0);
+				break;
+				case 9://mes speed
+					mess_spd_val.visible = true;
+					ValueDrawFunction( mess_spd_val, 1 );
+					ButtonLayer[i].copyRect(0,0, ParamParts,ButtonLayer[i].width,0);
+				break;
+				case 10://auto bar
+					auto_spd_val.visible = true;
+					ValueDrawFunction( auto_spd_val, 2 );
+					ButtonLayer[i].copyRect(0,0, ParamParts,ButtonLayer[i].width,0);
+				break;
+				
+				case 11://select log on
+					if(s["selectlog"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*32,ButtonLayer[i].height);
+				break;
+				case 12://select log off
+					if(s["selectlog"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*33,ButtonLayer[i].height);
+				break;
+				case 13://既読skip
+					if(s["skipmode"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*34,ButtonLayer[i].height);
+				break;
+				case 14://skip ALL
+					if(s["skipmode"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*35,ButtonLayer[i].height);
+				break;
+				case 15://select skip on
+					if(s["selectskip"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*36,ButtonLayer[i].height);
+				break;
+				case 16://select skip off
+					if(s["selectskip"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*37,ButtonLayer[i].height);
+				break;
+				case 17://select auto on
+					if(s["selectauto"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*36,ButtonLayer[i].height);
+				break;
+				case 18://select auto off
+					if(s["selectauto"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*37,ButtonLayer[i].height);
+				break;
+				case 19://auto window 表示
+					if(s["mess_view"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*38,ButtonLayer[i].height);
+				break;
+				case 20://auto window 非表示
+					if(s["mess_view"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*39,ButtonLayer[i].height);
+				break;
+				case 21://voiceskip on
+					if(s["voiceskip"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*40,ButtonLayer[i].height);
+				break;
+				case 22://voiceskip off
+					if(s["voiceskip"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*41,ButtonLayer[i].height);
+				break;
+				
+			}
+		}
+		else
+		{
+		//音楽設定画面
+			switch(MapRes-1){
+			case 0://SYSTEM 1
+				ButtonLayer[i].copyRect(0,0, CommonParts,0,ButtonLayer[i].height);
+			break;
+			case 1://SYSTEM 2
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width,ButtonLayer[i].height);
+			break;
+			case 2://SOUND
+				return;
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+			break;
+			case 3://FORMAT
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+			break;
+			case 4://RETURN REPLAY
+				if(ReplayFlag == false)return;
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+			break;
+			case 5://RETURN GAME
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+			break;
+			case 6://TITLE
+				if(TitleFlag)return;
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+			break;
+			case 7://GAME END
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,ButtonLayer[i].height);
+			break;
+			
+			case 8://BGM ON/OFF
+				if(s["bgm"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,ButtonLayer[i].height);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,ButtonLayer[i].height);
+				}
+			break;
+			case 9://SE ON/OFF
+				if(s["se"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,ButtonLayer[i].height);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,ButtonLayer[i].height);
+				}
+			break;
+			case 10://MOVIE ON/OFF
+				if(s["movie"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,ButtonLayer[i].height);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,ButtonLayer[i].height);
+				}
+			break;
+			case 11://VOICE ON/OFF
+				if(s["voice"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,ButtonLayer[i].height);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,ButtonLayer[i].height);
+				}
+			break;
+			case 12://system on/off
+				if(s["system"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,ButtonLayer[i].height);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,ButtonLayer[i].height);
+				}
+			break;
+			
+			case 13:{//BGM TEST
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height);
+			}break;
+			case 14://se test
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height);
+			break;
+			case 15://char test
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height);
+			break;
+			case 16://system test
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height);
+			break;
+			case 17://system random
+				if(s["sys_char_id"] == 11)return;
+				ButtonLayer[i].copyRect(0,0, sound_parts2,ButtonLayer[i].width,ButtonLayer[i].height);
+			break;
+			
+			case 18://CHAR01 BUTTON
+			case 19://CHAR02 BUTTON
+			case 20://CHAR03 BUTTON
+			case 21://CHAR04 BUTTON
+			case 22://CHAR05 BUTTON
+			case 23://CHAR06 BUTTON
+			case 24://CHAR07 BUTTON
+			case 25://CHAR08 BUTTON
+			case 26://CHAR09 BUTTON
+			case 27://CHAR10 BUTTON
+			case 28:{//CHAR11 BUTTON
+				
+				//CHAR ON/OFF
+				if(
+					((i == 25) && (s["CHAR_E_OPEN"] == false)) || ((i == 26) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 27) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				var id = i - 17;
+				
+				if(s["char_"+id] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,ButtonLayer[i].height);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,ButtonLayer[i].height);
+				}
+			}break;
+			
+			case 29://CHAR01 TEST
+			case 30://CHAR02 TEST
+			case 31://CHAR03 TEST
+			case 32://CHAR04 TEST
+			case 33://CHAR05 TEST
+			case 34://CHAR06 TEST
+			case 35://CHAR07 TEST
+			case 36://CHAR08 TEST
+			case 37://CHAR09 TEST
+			case 38://CHAR10 TEST
+			case 39://CHAR11 TEST
+			{
+				//CHAR ON/OFF
+				if(
+					((i == 36) && (s["CHAR_E_OPEN"] == false)) || ((i == 37) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 38) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				//再生中は反応させない
+				if(TempCharVoiceTestflag == i)return;
+				
+				ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width*3 ,ButtonLayer[i].height);
+				
+			}break;
+			
+			
+			case 40://CHAR01 SYSTEM
+			case 41://CHAR02 SYSTEM
+			case 42://CHAR03 SYSTEM
+			case 43://CHAR04 SYSTEM
+			case 44://CHAR05 SYSTEM
+			case 45://CHAR06 SYSTEM
+			case 46://CHAR07 SYSTEM
+			case 47://CHAR08 SYSTEM
+			case 48://CHAR09 SYSTEM
+			case 49://CHAR10 SYSTEM
+			//case 50://CHAR11 SYSTEM
+			{
+				//CHAR ON/OFF
+				if(
+					((i == 47) && (s["CHAR_E_OPEN"] == false)) || ((i == 48) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 49) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				var id = i - 40;
+				
+				//現状のIDなら点灯させない
+				if(s["sys_char_id"] == id)return;
+				
+				ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width*2 ,ButtonLayer[i].height);
+				
+			}break;
+			
+			case 51://BGM BAR
+			case 52://SE BAR
+			case 53://MOVIE BAR
+			case 54://VOICE BAR
+			case 55://system bar
+			case 56://CHAR01 VOL
+			case 57://CHAR02 VOL
+			case 58://CHAR03 VOL
+			case 59://CHAR04 VOL
+			case 60://CHAR05 VOL
+			case 61://CHAR06 VOL
+			case 62://CHAR07 VOL
+			case 63://CHAR08 VOL
+			case 64://CHAR09 VOL
+			case 65://CHAR10 VOL
+			case 66:{//CHAR11 VOL
+			
+				//CHAR ON/OFF
+				if(
+					((i == 63) && (s["CHAR_E_OPEN"] == false)) || ((i == 64) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 65) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				if( i == 51 ){
+				//BGM
+					ValueDrawFunction( mess_density_val, 3);
+				}else if( i == 52 ){
+				//SE
+					ValueDrawFunction( mess_density_val, 4);
+				}else if( i == 53 ){
+				//MOVIE
+					ValueDrawFunction( mess_density_val, 5);
+				}else if( i == 54 ){
+				//MASTER CHAR
+					ValueDrawFunction( mess_density_val, 6);
+				}else if( i == 55 ){
+				//SYSTEM
+					ValueDrawFunction( mess_density_val, 7);
+				}else if( (55 < i) && (i < 67) ){
+				//個別CHAR
+					ValueDrawFunction( mess_density_val, 8, i );
+				}
+				
+				ButtonLayer[i].copyRect(0,0, ParamParts,ButtonLayer[i].width,0);
+			}break;
+			
+			
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ カーソルOFF関数
+	
+	引数：
+	
+	説明：
+	カーソル点灯関数
+	-----------------------------------------*/
+	function ClearFunc()
+	{
+		if(!TempRes)return;
+		
+		//if(ScreenType)return;
+		
+		var i = TempRes - 1;
+		
+		if( ScreenType == 0 )
+		{//SYSTEM 1
+			switch( TempRes-1 )
+			{
+				case 0://SYSTEM 1
+					return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,0,0);
+				break;
+				case 1://SYSTEM 2
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width,0);
+				break;
+				case 2://SOUND
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 3://FORMAT
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 4://RETURN REPLAY
+					if(ReplayFlag == false)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 5://RETURN GAME
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 6://TITLE
+					if(TitleFlag)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 7://GAME END
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 8://full screen
+					if(s["screen"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*0,0);
+				break;
+				case 9://WINDOW
+					if(s["screen"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*1,0);
+				break;
+				case 10://1280*720
+					if((s["scsize"] == 0) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*2,0);
+				break;
+				case 11://1024*576
+					if((s["scsize"] == 1) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*3,0);
+				break;
+				case 12://960*540
+					if((s["scsize"] == 2) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*4,0);
+				break;
+				case 13://800*450
+					if((s["scsize"] == 3) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*5,0);
+				break;
+				case 14://640*360
+					if((s["scsize"] == 4) || (s["screen"] == true))return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*6,0);
+				break;
+				case 15://effect on
+					if(s["effect"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*7,0);
+				break;
+				case 16://effect off
+					if(s["effect"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*8,0);
+				break;
+				case 17://face on
+					if(s["face"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*7,0);
+				break;
+				case 18://face off
+					if(s["face"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*8,0);
+				break;
+				case 19://dialog save
+					if(s["dlg_save"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*9,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*10,0);
+					}
+				break;
+				case 20://dialog copy
+					if(s["dlg_copy"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*11,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*12,0);
+					}
+				break;
+				case 21://dialog move
+					if(s["dlg_move"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*13,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*14,0);
+					}
+				break;
+				case 22://dialog erase
+					if(s["dlg_erase"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*15,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*16,0);
+					}
+				break;
+				case 23://dialog load
+					if(s["dlg_load"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*17,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*18,0);
+					}
+				break;
+				case 24://dialog jump
+					if(s["dlg_jump"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*19,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*20,0);
+					}
+				break;
+				case 25://dialog end
+					if(s["dlg_end"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*21,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*22,0);
+					}
+				break;
+				case 26://dialog format
+					if(s["dlg_format"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*23,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*24,0);
+					}
+				break;
+				case 27://dialog title
+					if(s["dlg_title"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*25,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*26,0);
+					}
+				break;
+				case 28://dialog replay
+					if(s["dlg_replay"] == false){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*27,0);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*28,0);
+					}
+				break;
+				case 29://mouse on
+					if(s["mouse"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*7,0);
+				break;
+				case 30://mouse off
+					if(s["mouse"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*8,0);
+				break;
+				case 31://space key left click
+					if(s["space_key"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*29,0);
+				break;
+				case 32://space key right click
+					if(s["space_key"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*30,0);
+				break;
+				case 33://esc key 緊急回避
+					if(s["esc_key"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*31,0);
+				break;
+				case 34://esc key right click
+					if(s["esc_key"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,ButtonLayer[i].width*42,0);
+				break;
+			}
+		}
+		else if( ScreenType == 1 )
+		{//SYSTEM 2
+			switch( TempRes-1 )
+			{
+				case 0://SYSTEM 1
+					ButtonLayer[i].copyRect(0,0, CommonParts,0,0);
+				break;
+				case 1://SYSTEM 2
+					return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width,0);
+				break;
+				case 2://SOUND
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 3://FORMAT
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 4://RETURN REPLAY
+					if(ReplayFlag == false)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 5://RETURN GAME
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 6://TITLE
+					if(TitleFlag)return;
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				case 7://GAME END
+					ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+				break;
+				
+				case 8://wnd bar
+					mess_density_val.visible = false;
+					ButtonLayer[i].copyRect(0,0, ParamParts,0,0);
+				break;
+				case 9://mes speed
+					mess_spd_val.visible   = false;
+					ButtonLayer[i].copyRect(0,0, ParamParts,0,0);
+				break;
+				case 10://auto bar
+					auto_spd_val.visible   = false;
+					ButtonLayer[i].copyRect(0,0, ParamParts,0,0);
+				break;
+				
+				case 11://select log on
+					if(s["selectlog"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*32,0);
+				break;
+				case 12://select log off
+					if(s["selectlog"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*33,0);
+				break;
+				case 13://既読skip
+					if(s["skipmode"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*34,0);
+				break;
+				case 14://skip ALL
+					if(s["skipmode"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*35,0);
+				break;
+				case 15://select skip on
+					if(s["selectskip"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*36,0);
+				break;
+				case 16://select skip off
+					if(s["selectskip"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*37,0);
+				break;
+				case 17://select auto on
+					if(s["selectauto"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*36,0);
+				break;
+				case 18://select auto off
+					if(s["selectauto"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*37,0);
+				break;
+				case 19://auto window 表示
+					if(s["mess_view"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*38,0);
+				break;
+				case 20://auto window 非表示
+					if(s["mess_view"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*39,0);
+				break;
+				case 21://voiceskip on
+					if(s["voiceskip"] == true)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*40,0);
+				break;
+				case 22://voiceskip off
+					if(s["voiceskip"] == false)return;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*41,0);
+				break;
+			}
+		}
+		else
+		{//音楽設定画面
+			switch(TempRes-1){
+				
+			case 0://SYSTEM 1
+				ButtonLayer[i].copyRect(0,0, CommonParts,0,0);
+			break;
+			case 1://SYSTEM 2
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width,0);
+			break;
+			case 2://SOUND
+				return;
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+			break;
+			case 3://FORMAT
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+			break;
+			case 4://RETURN REPLAY
+				if(ReplayFlag == false)return;
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+			break;
+			case 5://RETURN GAME
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+			break;
+			case 6://TITLE
+				if(TitleFlag)return;
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+			break;
+			case 7://GAME END
+				ButtonLayer[i].copyRect(0,0, CommonParts,ButtonLayer[i].width*i,0);
+			break;
+			
+			case 8://BGM ON/OFF
+				if(s["bgm"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,0);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,0);
+				}
+			break;
+			case 9://SE ON/OFF
+				if(s["se"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,0);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,0);
+				}
+			break;
+			case 10://MOVIE ON/OFF
+				if(s["movie"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,0);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,0);
+				}
+			break;
+			case 11://VOICE ON/OFF
+				if(s["voice"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,0);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,0);
+				}
+			break;
+			case 12://system on/off
+				if(s["system"] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,0);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,0);
+				}
+			break;
+			
+			case 13://BGM TEST
+				if(BgmTestflag){
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*2);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,0);
+				}
+			break;
+			case 14://se test
+				if(SeTestflag){
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*2);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,0);
+				}
+			break;
+			case 15://char test
+				if(VoiceTestflag){
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*2);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,0);
+				}
+			break;
+			case 16://system test
+				if(SystemTestflag){
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*2);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts2,0,0);
+				}
+			break;
+			case 17://system random
+				if(s["sys_char_id"] == 11)return;
+				ButtonLayer[i].copyRect(0,0, sound_parts2,ButtonLayer[i].width,0);
+			break;
+			
+			case 18://CHAR01 BUTTON
+			case 19://CHAR02 BUTTON
+			case 20://CHAR03 BUTTON
+			case 21://CHAR04 BUTTON
+			case 22://CHAR05 BUTTON
+			case 23://CHAR06 BUTTON
+			case 24://CHAR07 BUTTON
+			case 25://CHAR08 BUTTON
+			case 26://CHAR09 BUTTON
+			case 27://CHAR10 BUTTON
+			case 28:{//CHAR11 BUTTON
+				//CHAR ON/OFF
+				if(
+					((i == 25) && (s["CHAR_E_OPEN"] == false)) || ((i == 26) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 27) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				var id = i - 17;
+				
+				if(s["char_"+id] == true){
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,0);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,0);
+				}
+			}break;
+			
+			case 29://CHAR01 TEST
+			case 30://CHAR02 TEST
+			case 31://CHAR03 TEST
+			case 32://CHAR04 TEST
+			case 33://CHAR05 TEST
+			case 34://CHAR06 TEST
+			case 35://CHAR07 TEST
+			case 36://CHAR08 TEST
+			case 37://CHAR09 TEST
+			case 38://CHAR10 TEST
+			case 39:{//CHAR11 TEST
+				
+				//CHAR ON/OFF
+				if(
+					((i == 36) && (s["CHAR_E_OPEN"] == false)) || ((i == 37) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 38) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				//再生中は反応させない
+				if(TempCharVoiceTestflag == i)return;
+				
+				ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width*3 ,0);
+				
+			}break;
+			
+			
+			case 40://CHAR01 SYSTEM
+			case 41://CHAR02 SYSTEM
+			case 42://CHAR03 SYSTEM
+			case 43://CHAR04 SYSTEM
+			case 44://CHAR05 SYSTEM
+			case 45://CHAR06 SYSTEM
+			case 46://CHAR07 SYSTEM
+			case 47://CHAR08 SYSTEM
+			case 48://CHAR09 SYSTEM
+			case 49://CHAR10 SYSTEM
+			//case 50://CHAR11 SYSTEM
+			{
+				
+				//CHAR ON/OFF
+				if(
+					((i == 47) && (s["CHAR_E_OPEN"] == false)) || ((i == 48) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 49) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				var id = i - 40;
+				
+				//現状のIDなら点灯させない
+				if(s["sys_char_id"] == id)return;
+				
+				ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width*2 ,0);
+				
+			}break;
+			
+			case 51://BGM BAR
+			case 52://SE BAR
+			case 53://MOVIE BAR
+			case 54://VOICE BAR
+			case 55://system bar
+			case 56://CHAR01 VOL
+			case 57://CHAR02 VOL
+			case 58://CHAR03 VOL
+			case 59://CHAR04 VOL
+			case 60://CHAR05 VOL
+			case 61://CHAR06 VOL
+			case 62://CHAR07 VOL
+			case 63://CHAR08 VOL
+			case 64://CHAR09 VOL
+			case 65://CHAR10 VOL
+			case 66://CHAR11 VOL
+			{
+				//テキスト非表示
+				mess_density_val.visible = false;
+				
+				//CHAR ON/OFF
+				if(
+					((i == 63) && (s["CHAR_E_OPEN"] == false)) || ((i == 64) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 65) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				
+				ButtonLayer[i].copyRect(0,0, ParamParts,0,0);
+				
+			}break;
+			
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ クリック処理
+	-----------------------------------------*/
+	function ClickWork()
+	{
+		var x, y, srcx, srcy, wid, hei;
+		var i = MapRes-1;
+		//if(ScreenType)return;
+		
+		if( ScreenType == 0 )
+		{//SYSTEM 1
+		
+			switch(MapRes-1){
+			
+			case 0://SYSTEM 1
+				return;
+			break;
+			case 1://SYSTEM 2
+				srcx = 124;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 2://SOUND
+				srcx = 124*2;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 3://FORMAT
+				srcx = 124*3;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 4://RETURN REPLAY
+				if(ReplayFlag == false)return;
+				srcx = 124*4;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 5://RETURN GAME
+				srcx = 124*5;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 6://TITLE
+				if(TitleFlag)return;
+				srcx = 124*6;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 7://GAME END
+				srcx = 124*7;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			
+			case 8://full screen
+				if(s["screen"] == true)return;
+				srcx = 0;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 9:{//WINDOW
+				if(s["screen"] == false)return;
+				srcx = 159*1;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			}break;
+			case 10://1280*720
+				if((s["scsize"] == 0) || (s["screen"] == true))return;
+				srcx = 159*2;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 11://1024*576
+				if((s["scsize"] == 1) || (s["screen"] == true))return;
+				srcx = 159*3;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 12://960*540
+				if((s["scsize"] == 2) || (s["screen"] == true))return;
+				srcx = 159*4;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 13://800*450
+				if((s["scsize"] == 3) || (s["screen"] == true))return;
+				srcx = 159*5;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 14://640*360
+				if((s["scsize"] == 4) || (s["screen"] == true))return;
+				srcx = 159*6;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 15://effect on
+				if(s["effect"] == true)return;
+				srcx = 159*7;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 16://effect no
+				if(s["effect"] == false)return;
+				srcx = 159*8;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 17://face on
+				if(s["face"] == true)return;
+				srcx = 159*7;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 18://face off
+				if(s["face"] == false)return;
+				srcx = 159*8;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 19://dialog save
+				if(s["dlg_save"] == false){
+					srcx = 159*9;
+				}else{
+					srcx = 159*10;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 20://dialog copy
+				if(s["dlg_copy"] == false){
+					srcx = 159*11;
+				}else{
+					srcx = 159*12;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 21://dialog move
+				if(s["dlg_move"] == false){
+					srcx = 159*13;
+				}else{
+					srcx = 159*14;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 22://dialog erase
+				if(s["dlg_erase"] == false){
+					srcx = 159*15;
+				}else{
+					srcx = 159*16;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 23://dialog load
+				if(s["dlg_load"] == false){
+					srcx = 159*17;
+				}else{
+					srcx = 159*18;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 24://dialog jump
+				if(s["dlg_jump"] == false){
+					srcx = 159*19;
+				}else{
+					srcx = 159*20;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 25://dialog end
+				if(s["dlg_end"] == false){
+					srcx = 159*21;
+				}else{
+					srcx = 159*22;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 26://dialog format
+				if(s["dlg_format"] == false){
+					srcx = 159*23;
+				}else{
+					srcx = 159*24;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 27://dialog title
+				if(s["dlg_title"] == false){
+					srcx = 159*25;
+				}else{
+					srcx = 159*26;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 28://dialog replay
+				if(s["dlg_replay"] == false){
+					srcx = 159*27;
+				}else{
+					srcx = 159*28;
+				}
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			
+			case 29://mouse on
+				if(s["mouse"] == true)return;
+				srcx = 159*7;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 30://mouse off
+				if(s["mouse"] == false)return;
+				srcx = 159*8;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 31://space key left click
+				if(s["space_key"] == false)return;
+				srcx = 159*29;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 32://space key right click
+			if(s["space_key"] == true)return;
+				srcx = 159*30;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 33://esc key 緊急回避
+				if(s["esc_key"] == false)return;
+				srcx = 159*31;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 34://esc key right click
+				if(s["esc_key"] == true)return;
+				srcx = 159*42;
+				srcy = (37*2);
+				wid  = 159;
+				hei  = 37;
+			break;
+			
+			}
+		}
+		else if( ScreenType == 1 )
+		{//SYSTEM 2
+			switch( MapRes-1 )
+			{
+			case 0://SYSTEM 1
+				srcx = 0;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 1://SYSTEM 2
+				return;
+			break;
+			case 2://SOUND
+				srcx = 124*2;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 3://FORMAT
+				srcx = 124*3;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 4://RETURN REPLAY
+				if(ReplayFlag == false)return;
+				srcx = 124*4;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 5://RETURN GAME
+				srcx = 124*5;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 6://TITLE
+				if(TitleFlag)return;
+				srcx = 124*6;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 7://GAME END
+				srcx = 124*7;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			
+			case 8://wnd bar
+			case 9://mes speed
+			case 10://auto bar
+				return;
+			break;
+			
+			case 11://select log on
+				if(s["selectlog"] == true)return;
+				srcx = 159*32;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 12://select log off
+				if(s["selectlog"] == false)return;
+				srcx = 159*33;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 13://skip type 既読
+				if(s["skipmode"] == false)return;
+				srcx = 159*34;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 14://skip type all
+				if(s["skipmode"] == true)return;
+				srcx = 159*35;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 15://select skip on
+				if(s["selectskip"] == true)return;
+				srcx = 159*36;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 16://select skip off
+				if(s["selectskip"] == false)return;
+				srcx = 159*37;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 17://select auto on
+				if(s["selectauto"] == true)return;
+				srcx = 159*36;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 18://select auto off
+				if(s["selectauto"] == false)return;
+				srcx = 159*37;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 19://auto window 表示
+				if(s["mess_view"] == true)return;
+				srcx = 159*38;
+				srcy = 0;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 20://auto window 非表示
+				if(s["mess_view"] == false)return;
+				srcx = 159*39;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 21://voice skip on
+				if(s["voiceskip"] == true)return;
+				srcx = 159*40;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			case 22://voice skip off
+				if(s["voiceskip"] == false)return;
+				srcx = 159*41;
+				srcy = 37*2;
+				wid  = 159;
+				hei  = 37;
+			break;
+			
+			}
+		}
+		else
+		{//音楽設定画面
+			switch(MapRes-1){
+			case 0://SYSTEM 1
+				srcx = 0;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 1://SYSTEM 2
+				srcx = 124;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 2://SOUND
+				return;
+				srcx = 124*2;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 3://FORMAT
+				srcx = 124*3;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 4://RETURN REPLAY
+				if(ReplayFlag == false)return;
+				srcx = 124*4;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 5://RETURN GAME
+				srcx = 124*5;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 6://TITLE
+				if(TitleFlag)return;
+				srcx = 124*6;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			case 7://GAME END
+				srcx = 124*7;
+				srcy = (48*2);
+				wid  = 124;
+				hei  = 48;
+			break;
+			
+			
+			
+			case 8://BGM ON/OFF
+				if(s["bgm"] == true){
+					srcx = 0;
+				}else{
+					srcx = 65;
+				}
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+			break;
+			case 9://SE ON/OFF
+				if(s["se"] == true){
+					srcx = 0;
+				}else{
+					srcx = 65;
+				}
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+			break;
+			case 10://MOVIE ON/OFF
+				if(s["movie"] == true){
+					srcx = 0;
+				}else{
+					srcx = 65;
+				}
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+			break;
+			case 11:{//CHAR ON/OFF
+				if(s["voice"] == true){
+					srcx = 0;
+				}else{
+					srcx = 65;
+				}
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+			}break;
+			case 12://SYSTEM ON:OFF
+				if(s["system"] == true){
+					srcx = 0;
+				}else{
+					srcx = 65;
+				}
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+			break;
+			
+			case 13:{//BGM TEST
+				srcx = 0;
+				srcy = 37*2;
+				wid  = 98;
+				hei  = 37;
+			}break;
+			case 14://se test
+				srcx = 0;
+				srcy = 37*2;
+				wid  = 98;
+				hei  = 37;
+			break;
+			case 15://char test
+				srcx = 0;
+				srcy = 37*2;
+				wid  = 98;
+				hei  = 37;
+			break;
+			case 16://system test
+				srcx = 0;
+				srcy = 37*2;
+				wid  = 98;
+				hei  = 37;
+			break;
+			case 17://system random
+				if((s["sys_char_id"] == 11))return;
+				srcx = 98;
+				srcy = 37*2;
+				wid  = 98;
+				hei  = 37;
+			break;
+			
+			case 18://CHAR01 BUTTON
+			case 19://CHAR02 BUTTON
+			case 20://CHAR03 BUTTON
+			case 21://CHAR04 BUTTON
+			case 22://CHAR05 BUTTON
+			case 23://CHAR06 BUTTON
+			case 24://CHAR07 BUTTON
+			case 25://CHAR08 BUTTON
+			case 26://CHAR09 BUTTON
+			case 27://CHAR10 BUTTON
+			case 28:{//CHAR11 BUTTON
+				if(
+					((i == 25) && (s["CHAR_E_OPEN"] == false)) || ((i == 26) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 27) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				var id  = (MapRes-18);
+				
+				if(s["char_"+id] == true){
+					srcx = 0;
+				}else{
+					srcx = 65;
+				}
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+			}break;
+			
+			
+			case 29://CHAR01 TEST
+			case 30://CHAR02 TEST
+			case 31://CHAR03 TEST
+			case 32://CHAR04 TEST
+			case 33://CHAR05 TEST
+			case 34://CHAR06 TEST
+			case 35://CHAR07 TEST
+			case 36://CHAR08 TEST
+			case 37://CHAR09 TEST
+			case 38://CHAR10 TEST
+			case 39:{//CHAR11 TEST
+				if(
+					((i == 36) && (s["CHAR_E_OPEN"] == false)) || ((i == 37) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 38) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				srcx = 65*3;
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+			}break;
+			
+			case 40://CHAR01 SYSTEM
+			case 41://CHAR02 SYSTEM
+			case 42://CHAR03 SYSTEM
+			case 43://CHAR04 SYSTEM
+			case 44://CHAR05 SYSTEM
+			case 45://CHAR06 SYSTEM
+			case 46://CHAR07 SYSTEM
+			case 47://CHAR08 SYSTEM
+			case 48://CHAR09 SYSTEM
+			case 49://CHAR10 SYSTEM
+			//case 50://CHAR11 SYSTEM
+			{
+				if(
+					((i == 47) && (s["CHAR_E_OPEN"] == false)) || ((i == 48) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 49) && (s["CHAR_M_OPEN"] == false))
+				){
+					return;
+				}
+				
+				
+				var id  = (MapRes-41);
+				if(s["sys_char_id"] == id)return;
+				srcx = 65*2;
+				srcy = (37*2);
+				wid  = 65;
+				hei  = 37;
+				
+			}break;
+			case 50://CHAR11 SYSTEM
+				return;
+			break;
+			
+			case 51://BGM BAR
+			case 52://SE BAR
+			case 53://MOVIE BAR
+			case 54://VOICE BAR
+			case 55://system bar
+			case 56://CHAR01 VOL
+			case 57://CHAR02 VOL
+			case 58://CHAR03 VOL
+			case 59://CHAR04 VOL
+			case 60://CHAR05 VOL
+			case 61://CHAR06 VOL
+			case 62://CHAR07 VOL
+			case 63://CHAR08 VOL
+			case 64://CHAR09 VOL
+			case 65://CHAR10 VOL
+			case 66://CHAR11 VOL
+				return;
+			break;
+			
+			}
+		}
+		
+		if(MapRes < 9){
+			ButtonLayer[i].copyRect(0,0, CommonParts,srcx,srcy,wid,hei);
+		}else{
+			if(ScreenType < 2){
+			//SYSTEM 1 or 2
+				ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,srcy,wid,hei);
+			}else{
+				if( (12 < i) && (i < 18) ){
+					ButtonLayer[i].copyRect(0,0, sound_parts2,srcx,srcy,wid,hei);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,srcx,srcy,wid,hei);
+				}
+			}
+		}
+		
+		ButtonLayer[i].update();
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ BUTTON WORK
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function ButtonWork()
+	{
+		if(!MapRes)return;
+		
+		var i = MapRes-1;
+		
+		if( ScreenType == 0 )
+		{//SYSTEM 1
+			
+			switch(MapRes-1){
+				
+			case 0://SYSTEM 1
+			break;
+			case 1://SYSTEM 2
+				//画面変更
+				ScreenChange( 1 );
+				return;
+			break;
+			case 2://sound 
+				//画面変更
+				ScreenChange( 2 );
+				return;
+			break;
+			case 3://FORMAT
+				if(s["dlg_format"] == true)
+				{//ダイアログ表示
+					//初期化確認処理
+					MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "CONFIG設定を初期化します。よろしいですか？", FormatResultFunc, nFORMAT_BOX);
+					
+					//アクティブオブジェクトを変更する
+					MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+					
+					//タイマー再開
+					MainWnd.DefaultTimer.enabled = true;
+				}else{
+				//ダイアログ非表示
+					MainWnd.CheckBoxResult = true;
+					
+					FormatResultFunc();
+				}
+			break;
+			case 4://RETURN REPLAY
+				
+				if(ReplayFlag == false)return;
+				
+				if(s["dlg_replay"] == true)
+				{//ダイアログ表示
+					
+					//TITLE確認処理
+					MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "シーン選択に戻ります。よろしいですか？", ReplayResultFunc, nSCENE_REPLAY);
+					
+					//アクティブオブジェクトを変更する
+					MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+					
+					//タイマー再開
+					MainWnd.DefaultTimer.enabled = true;
+					
+				}else{
+				//ダイアログ非表示
+					//タイマー停止
+					MainWnd.DefaultTimer.enabled = false;
+					
+					MainWnd.CheckBoxResult = true;
+					
+					ReplayResultFunc();
+					
+					return;
+				}
+				
+			break;
+			case 5://RETURN GAME
+				RightMouseUpAction();
+				return;
+			break;
+			case 6://TITLE
+				if(TitleFlag)return;
+				
+				if(s["dlg_title"] == true)
+				{//ダイアログ表示
+				
+					//TITLE確認処理
+					MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "TITLE画面に戻ります。よろしいですか？", TitleResultFunc, nTITLE_BOX);
+					
+					//アクティブオブジェクトを変更する
+					MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+					
+					//タイマー再開
+					MainWnd.DefaultTimer.enabled = true;
+				}else{
+				//ダイアログ非表示
+					//タイマー停止
+					MainWnd.DefaultTimer.enabled = false;
+					
+					MainWnd.CheckBoxResult       = true;
+					
+					TitleResultFunc();
+					
+					return;
+				}
+			break;
+			case 7://GAME END
+				//終了確認処理
+				
+				if(s["dlg_end"] == true)
+				{//ダイアログ表示
+					MainWnd.onCloseQuery(true);
+				}else{
+				//ダイアログ非表示
+					//タイマー停止
+					MainWnd.DefaultTimer.enabled = false;
+					
+					MainWnd.CheckBoxResult = true;
+					
+					MainWnd.Canclose = true;
+					
+					ExitObject = new AsyncTrigger(MainWnd, "EndResultFunc");
+					
+					ExitObject.mode = atmAtIdle;
+					
+					ExitObject.cached = true;
+					
+					ExitObject.trigger();
+					
+					return;
+				}
+				
+			break;
+			case 8://full screen
+				
+				if(MainWnd.ScreenSizeType == 5)return;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,0,ButtonLayer[i].height*1);
+				
+				ButtonLayer[i+1].copyRect(0,0, PartsFrame,159,0);
+				
+				MainWnd.FullScreenWork();
+				
+				ParamSetFunc();
+				
+			break;
+			case 9://WINDOW
+				
+				if(MainWnd.ScreenSizeType == 5)return;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159,ButtonLayer[i].height*1);
+				
+				ButtonLayer[i-1].copyRect(0,0, PartsFrame,0,0);
+				
+				MainWnd.FullScreenWork();
+				
+				ParamSetFunc();
+				
+			break;
+			case 10://1280*720
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*2,ButtonLayer[i].height*1);
+				MainWnd.WindowCreateFunc( 0 );
+				ParamSetFunc();
+				
+			break;
+			case 11://1024*576
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*3,ButtonLayer[i].height*1);
+				MainWnd.WindowCreateFunc( 1 );
+				ParamSetFunc();
+				
+			break;
+			case 12://960*540
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*4,ButtonLayer[i].height*1);
+				MainWnd.WindowCreateFunc( 2 );
+				ParamSetFunc();
+				
+			break;
+			case 13://800*450
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*5,ButtonLayer[i].height*1);
+				MainWnd.WindowCreateFunc( 3 );
+				ParamSetFunc();
+				
+			break;
+			case 14://640*360
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*6,ButtonLayer[i].height*1);
+				MainWnd.WindowCreateFunc( 4 );
+				ParamSetFunc();
+				
+			break;
+			case 15://effect on
+				s["effect"] = true;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*7,ButtonLayer[i].height*1);
+				
+				ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*8,0);
+				
+			break;
+			case 16://effect no
+				s["effect"] = false;
+				
+				ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*7,0);
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*8,ButtonLayer[i].height*1);
+				
+			break;
+			case 17://face on
+				s["face"] = true;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*7,ButtonLayer[i].height*1);
+				
+				ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*8,0);
+				
+			break;
+			case 18://face no
+				s["face"] = false;
+				
+				ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*7,0);
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*8,ButtonLayer[i].height*1);
+				
+			break;
+			case 19://dialog save
+				s["dlg_save"] = !s["dlg_save"];
+				ParamSetFunc();
+			break;
+			case 20://dialog copy
+				s["dlg_copy"] = !s["dlg_copy"];
+				ParamSetFunc();
+				
+			break;
+			case 21://dialog move
+				s["dlg_move"] = !s["dlg_move"];
+				ParamSetFunc();
+				
+			break;
+			case 22://dialog erase
+				s["dlg_erase"] = !s["dlg_erase"];
+				ParamSetFunc();
+				
+			break;
+			case 23://dialog load
+				s["dlg_load"] = !s["dlg_load"];
+				ParamSetFunc();
+				
+			break;
+			case 24://dialog jump
+				s["dlg_jump"] = !s["dlg_jump"];
+				ParamSetFunc();
+				
+			break;
+			case 25://dialog end
+				s["dlg_end"] = !s["dlg_end"];
+				ParamSetFunc();
+				
+			break;
+			case 26://dialog format
+				s["dlg_format"] = !s["dlg_format"];
+				ParamSetFunc();
+				
+			break;
+			case 27://dialog title
+				s["dlg_title"] = !s["dlg_title"];
+				ParamSetFunc();
+				
+			break;
+			case 28://dialog replay
+				s["dlg_replay"] = !s["dlg_replay"];
+				ParamSetFunc();
+				
+			break;
+			
+			case 29://mouse on
+				
+				s["mouse"] = true;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*7,ButtonLayer[i].height*1);
+				
+				ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*8,0);
+			break;
+			case 30://mouse off
+				s["mouse"] = false;
+				
+				ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*7,0);
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*8,ButtonLayer[i].height*1);
+				
+			break;
+			case 31://space key left click
+				s["space_key"] = false;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*29,ButtonLayer[i].height*1);
+				
+				ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*30,0);
+				
+			break;
+			case 32://space key right click
+				s["space_key"] = true;
+				
+				ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*29,0);
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*30,ButtonLayer[i].height*1);
+				
+			break;
+			case 33://esc key 緊急回避
+				s["esc_key"] = false;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*31,ButtonLayer[i].height*1);
+				
+				ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*42,0);
+				
+			break;
+			case 34://esc key right click
+				s["esc_key"] = true;
+				
+				ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*31,0);
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,159*42,ButtonLayer[i].height*1);
+				
+			break;
+			}
+		}
+		else if( ScreenType == 1 )
+		{//SYSTEM 2
+			switch( MapRes - 1 )
+			{
+				case 0://SYSTEM 1
+					//画面変更
+					ScreenChange( 0 );
+					return;
+				break;
+				case 1://SYSTEM 2
+					return;
+				break;
+				case 2://sound 
+					//画面変更
+					ScreenChange( 2 );
+					return;
+				break;
+				case 3://FORMAT
+					if(s["dlg_format"] == true)
+					{//ダイアログ表示
+						//初期化確認処理
+						MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "CONFIG設定を初期化します。よろしいですか？", FormatResultFunc, nFORMAT_BOX);
+						
+						//アクティブオブジェクトを変更する
+						MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+						
+						//タイマー再開
+						MainWnd.DefaultTimer.enabled = true;
+					}else{
+					//ダイアログ非表示
+						MainWnd.CheckBoxResult = true;
+						
+						FormatResultFunc();
+					}
+				break;
+				case 4://RETURN REPLAY
+					
+					if(ReplayFlag == false)return;
+					
+					if(s["dlg_replay"] == true)
+					{//ダイアログ表示
+						
+						//TITLE確認処理
+						MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "シーン選択に戻ります。よろしいですか？", ReplayResultFunc, nSCENE_REPLAY);
+						
+						//アクティブオブジェクトを変更する
+						MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+						
+						//タイマー再開
+						MainWnd.DefaultTimer.enabled = true;
+						
+					}else{
+					//ダイアログ非表示
+						//タイマー停止
+						MainWnd.DefaultTimer.enabled = false;
+						
+						MainWnd.CheckBoxResult = true;
+						
+						ReplayResultFunc();
+						
+						return;
+					}
+					
+				break;
+				case 5://RETURN GAME
+					RightMouseUpAction();
+					return;
+				break;
+				case 6://TITLE
+					if(TitleFlag)return;
+					
+					if(s["dlg_title"] == true)
+					{//ダイアログ表示
+					
+						//TITLE確認処理
+						MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "TITLE画面に戻ります。よろしいですか？", TitleResultFunc, nTITLE_BOX);
+						
+						//アクティブオブジェクトを変更する
+						MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+						
+						//タイマー再開
+						MainWnd.DefaultTimer.enabled = true;
+					}else{
+					//ダイアログ非表示
+						//タイマー停止
+						MainWnd.DefaultTimer.enabled = false;
+						
+						MainWnd.CheckBoxResult       = true;
+						
+						TitleResultFunc();
+						
+						return;
+					}
+				break;
+				case 7://GAME END
+					//終了確認処理
+					
+					if(s["dlg_end"] == true)
+					{//ダイアログ表示
+						MainWnd.onCloseQuery(true);
+					}else{
+					//ダイアログ非表示
+						//タイマー停止
+						MainWnd.DefaultTimer.enabled = false;
+						
+						MainWnd.CheckBoxResult = true;
+						
+						MainWnd.Canclose = true;
+						
+						ExitObject = new AsyncTrigger(MainWnd, "EndResultFunc");
+						
+						ExitObject.mode = atmAtIdle;
+						
+						ExitObject.cached = true;
+						
+						ExitObject.trigger();
+						
+						return;
+					}
+					
+				break;
+				
+				case 8://wnd density
+				case 9://mes speed
+				case 10://auto bar
+					return;
+				break;
+				
+				case 11:{//select log on
+					s["selectlog"] = true;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*32,37*1);
+					ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*33,0);
+					//選択肢が表示されていたら
+					if(MainWnd.SelObj.SelResource !== void){
+						//透明度設定
+						MainWnd.SelObj.ReWriteText();
+					}
+					
+					//再描画
+					MainWnd.MessObj.ReDrawText();
+					
+				}break;
+				case 12:{//select log off
+					s["selectlog"] = false;
+					ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*32,0);
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*33,37*1);
+					//選択肢が表示されていたら
+					if(MainWnd.SelObj.SelResource !== void){
+						//透明度設定
+						MainWnd.SelObj.ReWriteText();
+					}
+					
+					//再描画
+					MainWnd.MessObj.ReDrawText();
+					
+				}break;
+				
+				case 13://skip 既読
+					s["skipmode"] = false;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*34,37*1);
+					ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*35,0);
+				break;
+				case 14://skip ALL
+					s["skipmode"] = true;
+					ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*34,0);
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*35,37*1);
+				break;
+				
+				case 15://select skip on
+					s["selectskip"] = true;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*36,37*1);
+					ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*37,0);
+				break;
+				case 16://select skip off
+					s["selectskip"] = false;
+					ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*36,0);
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*37,37*1);
+				break;
+				
+				case 17://select auto on
+					s["selectauto"] = true;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*36,37*1);
+					ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*37,0);
+				break;
+				case 18://auto window 非表示
+					s["selectauto"] = false;
+					ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*36,0);
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*37,37*1);
+				break;
+				
+				case 19://auto window 表示
+					s["mess_view"] = true;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*38,37*1);
+					ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*39,0);
+				break;
+				case 20://auto window 表示
+					s["mess_view"] = false;
+					ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*38,0);
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*39,37*1);
+				break;
+				
+				case 21://voice skip on
+					s["voiceskip"] = true;
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*40,37*1);
+					ButtonLayer[i+1].copyRect(0,0, PartsFrame,159*41,0);
+				break;
+				case 22://voice skip off
+					s["voiceskip"] = false;
+					ButtonLayer[i-1].copyRect(0,0, PartsFrame,159*40,0);
+					ButtonLayer[i].copyRect(0,0, PartsFrame,159*41,37*1);
+				break;
+				
+			}
+			
+		}
+		else
+		{//音声設定画面
+			
+			var i = MapRes-1;
+			
+			switch(MapRes-1){
+			
+			case 0://SYSTEM 1
+				//画面変更
+				ScreenChange( 0 );
+				return;
+			break;
+			case 1://SYSTEM 2
+				//画面変更
+				ScreenChange( 1 );
+				return;
+			break;
+			case 2://sound 
+				//画面変更
+				return;
+			break;
+			case 3://FORMAT
+				if(s["dlg_format"] == true)
+				{//ダイアログ表示
+					//初期化確認処理
+					MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "CONFIG設定を初期化します。よろしいですか？", FormatResultFunc, nFORMAT_BOX);
+					
+					//アクティブオブジェクトを変更する
+					MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+					
+					//タイマー再開
+					MainWnd.DefaultTimer.enabled = true;
+				}else{
+				//ダイアログ非表示
+					MainWnd.CheckBoxResult = true;
+					
+					FormatResultFunc();
+				}
+			break;
+			case 4://RETURN REPLAY
+				
+				if(ReplayFlag == false)return;
+				
+				if(s["dlg_replay"] == true)
+				{//ダイアログ表示
+					
+					//TITLE確認処理
+					MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "シーン選択に戻ります。よろしいですか？", ReplayResultFunc, nSCENE_REPLAY);
+					
+					//アクティブオブジェクトを変更する
+					MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+					
+					//タイマー再開
+					MainWnd.DefaultTimer.enabled = true;
+					
+				}else{
+				//ダイアログ非表示
+					//タイマー停止
+					MainWnd.DefaultTimer.enabled = false;
+					
+					MainWnd.CheckBoxResult = true;
+					
+					ReplayResultFunc();
+					
+					return;
+				}
+				
+			break;
+			case 5://RETURN GAME
+				RightMouseUpAction();
+				return;
+			break;
+			case 6://TITLE
+				if(TitleFlag)return;
+				
+				if(s["dlg_title"] == true)
+				{//ダイアログ表示
+				
+					//TITLE確認処理
+					MainWnd.CheckBoxObj = new _CHECKDIALOG(MainWnd, PriLayer, "TITLE画面に戻ります。よろしいですか？", TitleResultFunc, nTITLE_BOX);
+					
+					//アクティブオブジェクトを変更する
+					MainWnd.ActiveObj   = MainWnd.CheckBoxObj;
+					
+					//タイマー再開
+					MainWnd.DefaultTimer.enabled = true;
+				}else{
+				//ダイアログ非表示
+					//タイマー停止
+					MainWnd.DefaultTimer.enabled = false;
+					
+					MainWnd.CheckBoxResult       = true;
+					
+					TitleResultFunc();
+					
+					return;
+				}
+			break;
+			case 7://GAME END
+				//終了確認処理
+				
+				if(s["dlg_end"] == true)
+				{//ダイアログ表示
+					MainWnd.onCloseQuery(true);
+				}else{
+				//ダイアログ非表示
+					//タイマー停止
+					MainWnd.DefaultTimer.enabled = false;
+					
+					MainWnd.CheckBoxResult = true;
+					
+					MainWnd.Canclose = true;
+					
+					ExitObject = new AsyncTrigger(MainWnd, "EndResultFunc");
+					
+					ExitObject.mode = atmAtIdle;
+					
+					ExitObject.cached = true;
+					
+					ExitObject.trigger();
+					
+					return;
+				}
+				
+			break;
+			
+			case 8://BGM ON/OFF
+				
+				s["bgm"] = !s["bgm"];
+				
+				var srcx = 0;
+				if(s["bgm"] == false)srcx = 65;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,ButtonLayer[i].height*0);
+				
+				if((s["bgm"] == true) && (f["bgm"] !== void) && (f["bgmpause"] == false)){
+					MainWnd.BgmObj.FilePlay(f["bgm"], true);
+					
+					//BGMを再生するならTESTを消去
+					BgmTestflag = false;
+					//BGM 停止
+					BgmTest.FileStop();
+					ButtonLayer[13].copyRect(0,0, sound_parts2,0,0);
+					
+				}else if((s["bgm"] == false) && (f["bgm"] !== void) && (f["bgmpause"] == false)){
+					//BGM 停止
+					MainWnd.BgmObj.FileStop();
+				}
+				
+				
+			break;
+			case 9://SE ON/OFF
+				
+				var srcx = 0;
+				s["se"] = !s["se"];
+				
+				if(s["se"] == false)srcx = 65;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,ButtonLayer[i].height*0);
+				
+				
+				//SE 再生
+				if(s["se"] == true){
+					for(var i=0; i<nSE_MAXNUM; i++){
+						if((f["seloop"+i] !== void) && (f["sepause"+i] == false)){
+							MainWnd.SeObj[i].FilePlay(f["seloop"+i], true);
+						}
+					}
+				}else{
+					for(var i=0; i<nSE_MAXNUM; i++){
+						if(f["seloop"+i] !== void)MainWnd.SeObj[i].FileStop();
+					}
+				}
+				
+				SeTestflag = false;
+				//SE 停止
+				SeTest.FileStop();
+				ButtonLayer[14].copyRect(0,0, sound_parts2,0,0);
+				
+			break;
+			case 10:{//MOVIE ON/OFF
+			
+				var srcx = 0;
+				s["movie"] = !s["movie"];
+				if(s["movie"] == false)srcx = 65;
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,ButtonLayer[i].height*0);
+				
+			}break;
+			case 11:{//CHAR ON/OFF
+				
+				var srcx = 0;
+				s["voice"] = !s["voice"];
+				
+				if(s["voice"] == false){
+					srcx = 65;
+				}
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,ButtonLayer[i].height*0);
+				
+			}break;
+			case 12://SYSTEM ON/OFF
+				s["system"] = !s["system"];
+				var srcx = 0;
+				if(s["system"] == false){
+					srcx = 65;
+					SystemTestflag = false;
+					//SYSTEM 停止
+					SystemTest.FileStop();
+				}
+				
+				ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,ButtonLayer[i].height*0);
+				
+			break;
+			
+			case 13://BGM TEST
+			{
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*0);
+				
+				if(!((s["bgm"] == true) && (f["bgm"] !== void) && (f["bgmpause"] == false)))
+				{
+					BgmTestflag = !BgmTestflag;
+					
+					if(BgmTestflag == true){
+						//BGM 再生
+						BgmTest.FilePlay(nBGM_TEST, true);
+						return;
+					}else{
+						//BGM 停止
+						BgmTest.FileStop();
+					}
+				}
+				
+			}break;
+			case 14://SE TEST
+				
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*0);
+				
+				//SE が再生中の時は再生しない
+				for(var i=0; i<nSE_MAXNUM; i++){
+					if(f["seloop"+i] !== void){
+						CursorFunc();
+						return;
+					}
+				}
+				
+				SeTestflag = !SeTestflag;
+				
+				if(SeTestflag == true){
+					//SE 再生
+					
+					//SE が再生中の時は再生しない
+					for(var i=0; i<nSE_MAXNUM; i++){
+						if(f["seloop"+i] !== void)return;
+					}
+					
+					SeTest.FilePlay(nSE_TEST, true);
+					
+					return;
+				}else{
+					//SE 停止
+					SeTest.FileStop();
+				}
+			break;
+			case 15:{//VOICE TEST
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*0);
+				
+				VoiceTestflag = !VoiceTestflag;
+				
+				if(VoiceTestflag == true){
+					var id = getCharID(s.sys_char_id);
+					var file = nSYSTEM_VOICE_HEADER + id + nSYS_VOICEMASTERTEST + ".ogg";
+					VoiceTest.FilePlay(file, true);
+					
+					//個別停止
+					
+					//個別キャラ停止
+					CharVoiceTest.FileStop();
+					CharVoiceTestflag     = false;
+					TempCharVoiceTestflag = false;
+					for (var i=29; i<39; i++){
+						//CHAR ON/OFF
+						if(
+							((i == 36) && (s["CHAR_E_OPEN"] == false)) || ((i == 37) && (s["CHAR_L_OPEN"] == false)) ||
+							((i == 38) && (s["CHAR_M_OPEN"] == false))
+						){
+							continue;
+						}
+						ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width*3 ,0);
+					}
+					
+				}else{
+					
+					VoiceTest.FileStop();
+				}
+				
+			}break;
+			case 16:{//SYSTEM TEST
+				ButtonLayer[i].copyRect(0,0, sound_parts2,0,ButtonLayer[i].height*0);
+				
+				SystemTestflag = !SystemTestflag;
+				
+				if(SystemTestflag == true){
+					//SYSTEM 再生
+					var id = getCharID(s.sys_char_id);
+					
+					var file = "";
+					if(RamdomCheck(0, 1) == 0){
+						file = nSYSTEM_VOICE_HEADER + id + nSYS_SYSTEMTEST   + ".ogg";
+					}else{
+						file = nSYSTEM_VOICE_HEADER + id + nSYS_SYSTEMMASTER + ".ogg";
+					}
+					
+					//IDの更新
+					SystemTestChar = id;
+					
+					//SYSTEM VOL
+					SystemTest.SetState(5, MainWnd.GetSystemVolume( SystemTestChar ) );
+					
+					SystemTest.FilePlay(file, true);
+					return;
+				}else{
+					//SYSTEM 停止
+					SystemTest.FileStop();
+				}
+				
+			}break;
+			case 17:{//system random
+				ButtonLayer[i].copyRect(0,0, sound_parts2,98,ButtonLayer[i].height*2);
+				
+				//音声ON音声
+				OnOffVoicePlay( s.sys_char_id, 2, true );
+				
+				//ランダムに変更
+				s.sys_char_id = 11;
+				
+				//個別SYSTEMをOFFにする
+				for(var i=40; i<50; i++){
+					
+					//CHAR ON/OFF
+					if( ((i == 47) && (s["CHAR_E_OPEN"] == false)) )continue;
+					if( ((i == 48) && (s["CHAR_L_OPEN"] == false)) )continue;
+					if( ((i == 49) && (s["CHAR_M_OPEN"] == false)) )continue;
+					
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width*2,0 );
+				}
+				
+				//SYSTEM TEST VOICEは停止
+				//SYSTEM 停止
+				SystemTest.FileStop();
+				SystemTestflag = false;
+				//ボタンも元に戻しておく
+				ButtonLayer[16].copyRect(0,0, sound_parts2,0,0);
+				
+			}break;
+			
+			case 18://CHAR01 BUTTON
+			case 19://CHAR02 BUTTON
+			case 20://CHAR03 BUTTON
+			case 21://CHAR04 BUTTON
+			case 22://CHAR05 BUTTON
+			case 23://CHAR06 BUTTON
+			case 24://CHAR07 BUTTON
+			case 25://CHAR08 BUTTON
+			case 26://CHAR09 BUTTON
+			case 27://CHAR10 BUTTON
+			case 28://CHAR11 BUTTON
+			{
+				var id = i - 17;
+				
+				//フラグを反転
+				s["char_"+id] = !s["char_"+id];
+				
+				//TESTを切り返る
+				if(s["char_"+id]){
+				//ON
+					ButtonLayer[i].copyRect(0,0, sound_parts,0, ButtonLayer[i].height*0 );
+					
+					//音声ON音声
+					OnOffVoicePlay( i, 0, true );
+					
+				}else{
+				//OFF
+					CharVoiceTest.FileStop();
+					CharVoiceTestflag     = false;
+					TempCharVoiceTestflag = false;
+					
+					ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width, ButtonLayer[i].height*0 );
+					
+					ButtonLayer[i+11].copyRect(0,0, sound_parts, ButtonLayer[i+11].width*3, ButtonLayer[i+11].height*0 );
+					
+					//音声OFF音声
+					OnOffVoicePlay( i, 0, false );
+				}
+				
+			}break;
+			
+			case 29://CHAR01 TEST
+			case 30://CHAR02 TEST
+			case 31://CHAR03 TEST
+			case 32://CHAR04 TEST
+			case 33://CHAR05 TEST
+			case 34://CHAR06 TEST
+			case 35://CHAR07 TEST
+			case 36://CHAR08 TEST
+			case 37://CHAR09 TEST
+			case 38://CHAR10 TEST
+			case 39://CHAR11 TEST
+			{
+				//ボタンを戻しておく
+				if(TempCharVoiceTestflag){
+					ButtonLayer[TempCharVoiceTestflag].copyRect(0,0, sound_parts, ButtonLayer[TempCharVoiceTestflag].width*3, 0 );
+				}
+				
+				CharVoiceTestflag = i;
+				
+				if(CharVoiceTestflag != TempCharVoiceTestflag)
+				{//再生
+					var id = i - 29;
+					
+					//VOICE 再生
+					var file = "";
+					if(id != 10){
+						file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_VOICETEST + ".ogg";
+					}else{
+					//その他
+						file = nOTHER_TEST;
+					}
+					
+					//個別音声ボリューム設定
+					CharVoiceTest.SetState(5, ((s["voice_vol"] / 100) * s["char_" + (id+1) + "_vol"]));
+					
+					CursorVoice.SetState(5, ((s["voice_vol"] / 100) * s["char_" + (id+1) + "_vol"]));
+					
+					CharVoiceTest.FilePlay(file, true);
+					
+					TempCharVoiceTestflag = CharVoiceTestflag;
+					
+					//VOICE TESTを消しておく
+					//VOICE 停止
+					VoiceTest.FileStop();
+					VoiceTestflag = false;
+					ButtonLayer[15].copyRect(0,0, sound_parts2,0,0);
+					
+					return;
+				}else{
+				//停止
+					CharVoiceTest.FileStop();
+					CharVoiceTestflag     = false;
+					TempCharVoiceTestflag = false;
+					
+				}
+				
+			}break;
+			
+			case 40://CHAR01 SYSTEM
+			case 41://CHAR02 SYSTEM
+			case 42://CHAR03 SYSTEM
+			case 43://CHAR04 SYSTEM
+			case 44://CHAR05 SYSTEM
+			case 45://CHAR06 SYSTEM
+			case 46://CHAR07 SYSTEM
+			case 47://CHAR08 SYSTEM
+			case 48://CHAR09 SYSTEM
+			case 49://CHAR10 SYSTEM
+			//case 50://CHAR11 SYSTEM
+			{
+				var id = i - 40;
+				
+				//ボタンを戻す
+				if((s["sys_char_id"] != id) && (s["sys_char_id"] != 11)){
+					var inx = s["sys_char_id"] + 40;
+					ButtonLayer[inx].copyRect(0,0, sound_parts, ButtonLayer[inx].width*2, 0 );
+				}else{
+				//random button
+					ButtonLayer[17].copyRect(0,0, sound_parts2,98,0);
+				}
+				
+				s["sys_char_id"] = id;
+				
+				//ＩＤを入れておく
+				SystemTestChar = getCharID(s["sys_char_id"]);
+				
+				//通常設定
+				ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width*2, ButtonLayer[i].height*2);
+				
+				//SYSTEM TEST VOICEは停止
+				//SYSTEM 停止
+				SystemTest.FileStop();
+				SystemTestflag = false;
+				ButtonLayer[16].copyRect(0,0, sound_parts2,0,ButtonLayer[16].height*0);
+				
+				//音声ON音声
+				OnOffVoicePlay( i, 1, true );
+				
+			}break;
+			
+			
+			
+			
+			
+			
+			case 51://BGM BAR
+			case 52://SE BAR
+			case 53://MOVIE BAR
+			case 54://CHAR BAR
+			case 55://SYSTEM BAR
+			case 56://CHAR01 VOL
+			case 57://CHAR02 VOL
+			case 58://CHAR03 VOL
+			case 59://CHAR04 VOL
+			case 60://CHAR05 VOL
+			case 61://CHAR06 VOL
+			case 62://CHAR07 VOL
+			case 63://CHAR08 VOL
+			case 64://CHAR09 VOL
+			case 65://CHAR10 VOL
+			case 66://CHAR11 VOL
+				return;
+			break;
+			
+			}
+		}
+		
+		
+		CursorFunc();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ パラメータ関数
+	
+	引数：
+	
+	説明：
+	初期化関数
+	-----------------------------------------*/
+	function ParamSetFunc()
+	{
+		if( ScreenType == 0 )
+		{//SYSTEM 1
+		
+			//画面モード
+			if(s["screen"] == false){
+			//window
+				//強制フルスクリーン時は動作させない
+				if(MainWnd.ScreenSizeType == 5)return;
+				
+				ButtonLayer[8].copyRect(0,0, PartsFrame,0,0);
+				
+				ButtonLayer[9].copyRect(0,0, PartsFrame,159,ButtonLayer[9].height*1);
+				
+			}else{
+			//full
+				//強制フルスクリーン時は動作させない
+				if(MainWnd.ScreenSizeType == 5)return;
+				
+				ButtonLayer[8].copyRect(0,0, PartsFrame,0,ButtonLayer[8].height*1);
+				
+				ButtonLayer[9].copyRect(0,0, PartsFrame,159,0);
+				
+			}
+			
+			
+			
+			//ウィンドウサイズ
+			for(var i=10,t=0; i<15; i++, t++){
+				var x=159*2;
+				x += (159*t);
+				
+				if(s["screen"] == false){
+				//ウィンドウモードのみ
+					if((s["scsize"] < 5) && (s["scsize"] == t)){
+						ButtonLayer[i].copyRect(0,0, PartsFrame,x,ButtonLayer[i].height*1);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,x,0);
+					}
+				}else{
+				//フルスクリーンは閉じる
+					ButtonLayer[i].copyRect(0,0, PartsFrame,x,ButtonLayer[i].height*3);
+				}
+			}
+			
+			
+			
+			//演出効果
+			if(s["effect"] == true){
+				ButtonLayer[15].copyRect(0,0, PartsFrame,159*7, ButtonLayer[15].height*1);
+				
+				ButtonLayer[16].copyRect(0,0, PartsFrame,159*8,0);
+			}else{
+				ButtonLayer[15].copyRect(0,0, PartsFrame,159*7,0);
+				
+				ButtonLayer[16].copyRect(0,0, PartsFrame,159*8,ButtonLayer[16].height*1 );
+			}
+			
+			
+			
+			//face
+			if(s["face"] == true){
+				ButtonLayer[17].copyRect(0,0, PartsFrame,159*7,ButtonLayer[17].height*1);
+			
+				ButtonLayer[18].copyRect(0,0, PartsFrame,159*8,0);
+			}else{
+				ButtonLayer[17].copyRect(0,0, PartsFrame,159*7,0);
+				
+				ButtonLayer[18].copyRect(0,0, PartsFrame,159*8,ButtonLayer[18].height*1);
+			}
+			
+			
+			
+			//dialog save
+			if(s["dlg_save"] == true){
+				ButtonLayer[19].copyRect(0,0, PartsFrame,159*10,0);
+			}else{
+				ButtonLayer[19].copyRect(0,0, PartsFrame,159*9,0);
+			}
+			
+			//dialog copy
+			if(s["dlg_copy"] == true){
+				ButtonLayer[20].copyRect(0,0, PartsFrame,159*12,0);
+			}else{
+				ButtonLayer[20].copyRect(0,0, PartsFrame,159*11,0);
+			}
+			
+			//dialog move
+			if(s["dlg_move"] == true){
+				ButtonLayer[21].copyRect(0,0, PartsFrame,159*14,0);
+			}else{
+				ButtonLayer[21].copyRect(0,0, PartsFrame,159*13,0);
+			}
+			
+			//dialog erase
+			if(s["dlg_erase"] == true){
+				ButtonLayer[22].copyRect(0,0, PartsFrame,159*16,0);
+			}else{
+				ButtonLayer[22].copyRect(0,0, PartsFrame,159*15,0);
+			}
+			
+			//dialog load
+			if(s["dlg_load"] == true){
+				ButtonLayer[23].copyRect(0,0, PartsFrame,159*18,0);
+			}else{
+				ButtonLayer[23].copyRect(0,0, PartsFrame,159*17,0);
+			}
+			
+			//dialog jump
+			if(s["dlg_jump"] == true){
+				ButtonLayer[24].copyRect(0,0, PartsFrame,159*20,0);
+			}else{
+				ButtonLayer[24].copyRect(0,0, PartsFrame,159*19,0);
+			}
+			
+			//dialog end
+			if(s["dlg_end"] == true){
+				ButtonLayer[25].copyRect(0,0, PartsFrame,159*22,0);
+			}else{
+				ButtonLayer[25].copyRect(0,0, PartsFrame,159*21,0);
+			}
+			
+			//dialog format
+			if(s["dlg_format"] == true){
+				ButtonLayer[26].copyRect(0,0, PartsFrame,159*24,0);
+			}else{
+				ButtonLayer[26].copyRect(0,0, PartsFrame,159*23,0);
+			}
+			
+			
+			//dialog title
+			if(s["dlg_title"] == true){
+				ButtonLayer[27].copyRect(0,0, PartsFrame,159*26,0);
+			}else{
+				ButtonLayer[27].copyRect(0,0, PartsFrame,159*25,0);
+			}
+			
+			//dialog replay
+			if(s["dlg_replay"] == true){
+				ButtonLayer[28].copyRect(0,0, PartsFrame,159*28,0);
+			}else{
+				ButtonLayer[28].copyRect(0,0, PartsFrame,159*27,0);
+			}
+			
+			
+			
+			//mouse
+			if(s["mouse"] == true){
+				ButtonLayer[29].copyRect(0,0, PartsFrame,159*7,ButtonLayer[29].height*1);
+				
+				ButtonLayer[30].copyRect(0,0, PartsFrame,159*8,0);
+			}else{
+				ButtonLayer[29].copyRect(0,0, PartsFrame,159*7,0);
+				
+				ButtonLayer[30].copyRect(0,0, PartsFrame,159*8,ButtonLayer[30].height*1);
+			}
+			
+			
+			//space key right click
+			if(s["space_key"] == false){
+				//左クリック に割り当て
+				ButtonLayer[31].copyRect(0,0, PartsFrame,159*29,ButtonLayer[31].height*1);
+				
+				ButtonLayer[32].copyRect(0,0, PartsFrame,159*30,0);
+			}else{
+				//右クリック に割り当て
+				ButtonLayer[31].copyRect(0,0, PartsFrame,159*29,0);
+				
+				ButtonLayer[32].copyRect(0,0, PartsFrame,159*30,ButtonLayer[32].height*1);
+			}
+			
+			
+			//esc key right click
+			if(s["esc_key"] == true){
+				//右クリック に割り当て
+				ButtonLayer[34].copyRect(0,0, PartsFrame,159*42,ButtonLayer[34].height*1);
+				
+				ButtonLayer[33].copyRect(0,0, PartsFrame,159*31,0);
+			}else{
+				//緊急回避 に割り当て
+				ButtonLayer[34].copyRect(0,0, PartsFrame,159*42,0);
+				
+				ButtonLayer[33].copyRect(0,0, PartsFrame,159*31,ButtonLayer[33].height*1);
+			}
+			
+		}
+		else if( ScreenType == 1 )
+		{//SYSTEM 2
+			
+			//select log
+			if(s["selectlog"] == true){
+				ButtonLayer[11].copyRect(0,0, PartsFrame,159*32,ButtonLayer[11].height);
+				
+				ButtonLayer[12].copyRect(0,0, PartsFrame,159*33,0);
+			}else{
+				ButtonLayer[11].copyRect(0,0, PartsFrame,159*32,0);
+				
+				ButtonLayer[12].copyRect(0,0, PartsFrame,159*33,ButtonLayer[12].height);
+			}
+			
+			
+			//skipmode 既読/ALL
+			if(s["skipmode"] == false){
+			//skipmode 既読
+				ButtonLayer[13].copyRect(0,0, PartsFrame,159*34,ButtonLayer[13].height);
+				
+				ButtonLayer[14].copyRect(0,0, PartsFrame,159*35,0);
+			}else{
+			//skipmode ALL
+				ButtonLayer[13].copyRect(0,0, PartsFrame,159*34,0);
+				
+				ButtonLayer[14].copyRect(0,0, PartsFrame,159*35,ButtonLayer[13].height);
+			}
+			
+			
+			//select skip
+			if(s["selectskip"] == true){
+				ButtonLayer[15].copyRect(0,0, PartsFrame,159*36,ButtonLayer[15].height);
+				
+				ButtonLayer[16].copyRect(0,0, PartsFrame,159*37,0);
+			}else{
+				ButtonLayer[15].copyRect(0,0, PartsFrame,159*36,0);
+				
+				ButtonLayer[16].copyRect(0,0, PartsFrame,159*37,ButtonLayer[16].height);
+			}
+			
+			
+			if(s["selectauto"] == true){
+				ButtonLayer[17].copyRect(0,0, PartsFrame,159*36,ButtonLayer[17].height);
+				
+				ButtonLayer[18].copyRect(0,0, PartsFrame,159*37,0);
+			}else{
+				ButtonLayer[17].copyRect(0,0, PartsFrame,159*36,0);
+				
+				ButtonLayer[18].copyRect(0,0, PartsFrame,159*37,ButtonLayer[18].height);
+			}
+			
+			
+			
+			//auto window 表示
+			if(s["mess_view"] == true){
+				ButtonLayer[19].copyRect(0,0, PartsFrame,159*38,ButtonLayer[19].height);
+				
+				ButtonLayer[20].copyRect(0,0, PartsFrame,159*39,0);
+			}else{
+				ButtonLayer[19].copyRect(0,0, PartsFrame,159*38,0);
+				
+				ButtonLayer[20].copyRect(0,0, PartsFrame,159*39,ButtonLayer[20].height);
+			}
+			
+			
+			
+			//voice skip on
+			if(s["voiceskip"] == true){
+			//voice skip on 音声を止めない
+				ButtonLayer[21].copyRect(0,0, PartsFrame,159*40,ButtonLayer[21].height);
+				
+				ButtonLayer[22].copyRect(0,0, PartsFrame,159*41,0);
+			}else{
+			//voice skip off 音声を止める
+				ButtonLayer[21].copyRect(0,0, PartsFrame,159*40,0);
+				
+				ButtonLayer[22].copyRect(0,0, PartsFrame,159*41,ButtonLayer[22].height);
+			}
+			
+			
+			
+			
+			
+			//wnd density
+			VolumeSet(6);
+			
+			//mes speed
+			VolumeSet(0);
+			
+			//auto speed
+			VolumeSet(1);
+			
+			
+		}
+		else
+		{//音楽設定画面
+			
+			if(s["bgm"] == true){
+			//BGM ON
+				ButtonLayer[8].copyRect(0,0, sound_parts,0,0);
+			}else{
+			//BGM OFF
+				ButtonLayer[8].copyRect(0,0, sound_parts,ButtonLayer[8].width,0);
+			}
+			
+			
+			if(s["se"] == true){
+			//SE ON
+				ButtonLayer[9].copyRect(0,0, sound_parts,0,0);
+			}else{
+			//SE OFF
+				ButtonLayer[9].copyRect(0,0, sound_parts,ButtonLayer[9].width,0);
+			}
+			
+			
+			if(s["movie"] == true){
+			//MOVIE ON
+				ButtonLayer[10].copyRect(0,0, sound_parts,0,0);
+			}else{
+			//MOVIE OFF
+				ButtonLayer[10].copyRect(0,0, sound_parts,ButtonLayer[10].width,0);
+			}
+			
+			
+			
+			if(s["voice"] == true){
+			//VOICE ON
+				ButtonLayer[11].copyRect(0,0, sound_parts,0,0);
+				
+			}else{
+			//VOICE OFF
+				ButtonLayer[11].copyRect(0,0, sound_parts,ButtonLayer[11].width,0);
+			}
+			
+			
+			
+			if(s["system"] == true){
+			//SYSTEM ON
+				ButtonLayer[12].copyRect(0,0, sound_parts,0,0);
+				
+			}else{
+			//SYSTEM OFF
+				ButtonLayer[12].copyRect(0,0, sound_parts,ButtonLayer[12].width,0);
+			}
+			
+			
+			//SYSTEM RAMDOM
+			if(s["sys_char_id"] != 11){
+				ButtonLayer[17].copyRect(0,0, sound_parts2,ButtonLayer[17].width,0);
+			}
+			
+			
+			//CHAR ON/OFF
+			for(var cnt=0,i=18; cnt<11; cnt++,i++){
+				
+				//Voice offなら強制Off
+				if(( s["voice"] == false ) || ( s["char_"+(cnt+1)] == false )){
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,0);
+				}else{
+					ButtonLayer[i].copyRect(0,0, sound_parts,0,0);
+				}
+				
+				
+				if(
+					((i == 25) && (s["CHAR_E_OPEN"] == false)) || ((i == 26) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 27) && (s["CHAR_M_OPEN"] == false))
+				){	//CHAR ON/OFF
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width,ButtonLayer[i].height*3);
+					//CHAR TEST
+					ButtonLayer[i+11].copyRect(0,0, sound_parts,ButtonLayer[i+11].width*3,ButtonLayer[i+11].height*3);
+				}
+			}
+			
+			
+			//SYSTEM VOICE設定
+			
+			//一度全部クリア
+			for(var cnt=0,i=40; cnt<10; cnt++,i++){
+				ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width*2,0);
+				
+				if(
+					((i == 47) && (s["CHAR_E_OPEN"] == false)) || ((i == 48) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 49) && (s["CHAR_M_OPEN"] == false))
+				){	//CHAR ON/OFF
+					ButtonLayer[i].copyRect(0,0, sound_parts,ButtonLayer[i].width*2,ButtonLayer[i].height*3);
+				}
+			}
+			
+			if(s["sys_char_id"] != 11){
+				ButtonLayer[ 40+s["sys_char_id"] ].copyRect(0,0, sound_parts, ButtonLayer[ 40+s["sys_char_id"] ].width*2, ButtonLayer[ 40+s["sys_char_id"] ].height*2 );
+			}else{
+				ButtonLayer[17].copyRect(0,0, sound_parts2,ButtonLayer[17].width,ButtonLayer[17].height*2);
+			}
+			
+			
+			//voice vol
+			VolumeSet(2);
+			
+			//system vol
+			VolumeSet(3);
+			
+			//se vol
+			VolumeSet(4);
+			
+			//bgm vol
+			VolumeSet(5);
+			
+			//movie vol
+			VolumeSet(7);
+			
+			//Char 個別
+			for(var i=56; i<67; i++){
+				VolumeSet( i );
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 画面CHANGE関数
+	-----------------------------------------*/
+	function ScreenChange( type = 0 )
+	{
+		//タイマーをとめておく
+		MainWnd.DefaultTimer.enabled  = false;
+		
+		//スクリーンフラグを変更する
+		ScreenType = type;
+		
+		//画面を保持
+		s["config_type"]  = ScreenType;
+		
+		//サンプルテキストを停止
+		if(MessDrawTimer !== void){
+			MessDrawTimer.enabled  = false;
+			invalidate MessDrawTimer;
+			MessDrawTimer          = void;
+		}
+		
+		if(AutoDrawTimer !== void){
+			AutoDrawTimer.enabled  = false;
+			invalidate AutoDrawTimer;
+			AutoDrawTimer          = void;
+		}
+		
+		
+		
+		//ボタンレイヤーの削除
+		for(var i=0; i<ButtonLayer.count; i++){
+			
+			if(ButtonLayer[i] === void)continue;
+			
+			invalidate ButtonLayer[i];
+			
+			ButtonLayer[i] = void;
+		}
+		
+		//配列を破棄
+		ButtonLayer.clear();
+		
+		
+		//サンプル系の削除
+		if(mess_spd_bord !== void)invalidate mess_spd_bord;
+		if(auto_spd_bord !== void)invalidate auto_spd_bord;
+		if(mess_spd_density !== void)invalidate mess_spd_density;
+		if(auto_spd_density !== void)invalidate auto_spd_density;
+		if(mess_spd_layer   !== void)invalidate mess_spd_layer;
+		if(auto_spd_layer   !== void)invalidate auto_spd_layer;
+		
+		mess_spd_bord    = void;
+		auto_spd_bord    = void;
+		mess_spd_density = void;
+		auto_spd_density = void;
+		mess_spd_layer   = void;
+		auto_spd_layer   = void;
+		
+		
+		//値テキスト系の削除
+		if(mess_density_val !== void)invalidate mess_density_val;
+		if(mess_spd_val !== void)invalidate mess_spd_val;
+		if(auto_spd_val !== void)invalidate auto_spd_val;
+		mess_density_val = void;
+		mess_spd_val     = void;
+		auto_spd_val     = void;
+		
+		
+		//背景の消去
+		if(ConfigBg !== void)invalidate ConfigBg;
+		
+		ConfigBg   = void;
+		
+		
+		//SOUND BG
+		if(sound_bg !== void)invalidate sound_bg;
+		
+		//SOUND TEST
+		
+		//VOICE
+		VoiceTest.FileStop();
+		
+		VoiceTestflag = false;
+		
+		//SYSTEM
+		SystemTest.FileStop();
+		
+		SystemTestflag = false;
+		
+		//SE 停止
+		SeTest.FileStop();
+		
+		SeTestflag = false;
+		
+		//BGM 停止
+		BgmTest.FileStop();
+		
+		BgmTestflag = false;
+		
+		//個別音声 停止
+		CharVoiceTest.FileStop();
+		
+		CharVoiceTestflag     = false;
+		TempCharVoiceTestflag = false;
+		
+		CursorVoice.FileStop();
+		
+		CharVoiceSystem.FileStop();
+		
+		if( ScreenType == 0 )
+		{//SYSTEM 1
+			
+			//マップレイヤ
+			ConfigBg   = new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config01.png");
+			
+			ConfigBg.loadProvinceImage("config_map.png");
+			
+			ConfigBg.absolute = nCONFIGLAYER;
+			
+			CommentLayer.absolute = ConfigBg.absolute + 1;
+			
+			//ボタンレイヤ
+			for(var i=0; i<35; i++){
+				
+				var x, y, srcx, srcy, wid, hei;
+				
+				switch(i){
+				
+				case 0://SYSTEM 1
+					x    = 254;
+					y    = 4;
+					srcx = 0;
+					srcy = 48*2;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 1://SYSTEM 2
+					x    = 384;
+					y    = 4;
+					srcx = 124;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 2://SOUND
+					x    = 512;
+					y    = 4;
+					srcx = 124*2;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 3://FORMAT
+					x    = 640;
+					y    = 4;
+					srcx = 124*3;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 4://RETURN REPLAY
+					x    = 768;
+					y    = 4;
+					srcx = 124*4;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 5://REPLAY GAME
+					x    = 896;
+					y    = 4;
+					srcx = 124*5;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 6://TITLE
+					x    = 1024;
+					y    = 4;
+					srcx = 124*6;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 7:{//GAME END
+					x    = 1152;
+					y    = 4;
+					srcx = 124*7;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				}break;
+				case 8://full screen
+					x    = 844;
+					y    = 80;
+					srcx = 0;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 9://window screen
+					x    = 1024;
+					y    = 80;
+					srcx = 159;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 10://1280*720
+					x    = 304;
+					y    = 152;
+					srcx = 159*2;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 11://1024*576
+					x    = 484;
+					y    = 152;
+					srcx = 159*3;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 12://960*540
+					x    = 664;
+					y    = 152;
+					srcx = 159*4;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 13://800*450
+					x    = 844;
+					y    = 152;
+					srcx = 159*5;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 14://640*360
+					x    = 1024;
+					y    = 152;
+					srcx = 159*6;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 15://演出効果 通常
+					x    = 844;
+					y    = 224;
+					srcx = 159*7;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 16://演出効果 無し
+					x    = 1024;
+					y    = 224;
+					srcx = 159*8;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 17://FACE ON
+					x    = 844;
+					y    = 296;
+					srcx = 159*7;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 18://FACE OFF
+					x    = 1024;
+					y    = 296;
+					srcx = 159*8;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 19://上書き
+					x    = 304;
+					y    = 368;
+					srcx = 159*9;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 20://COPY
+					x    = 484;
+					y    = 368;
+					srcx = 159*11;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 21://MOVE
+					x    = 664;
+					y    = 368;
+					srcx = 159*13;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 22://ERASE
+					x    = 844;
+					y    = 368;
+					srcx = 159*15;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 23://load
+					x    = 1024;
+					y    = 368;
+					srcx = 159*17;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 24://jump
+					x    = 304;
+					y    = 416;
+					srcx = 159*19;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 25://game end
+					x    = 484;
+					y    = 416;
+					srcx = 159*21;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 26://format
+					x    = 664;
+					y    = 416;
+					srcx = 159*23;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 27://title
+					x    = 844;
+					y    = 416;
+					srcx = 159*25;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 28://replay
+					x    = 1024;
+					y    = 416;
+					srcx = 159*27;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 29://mouse on
+					x    = 844;
+					y    = 488;
+					srcx = 159*7;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 30://mouse off
+					x    = 1024;
+					y    = 488;
+					srcx = 159*8;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 31://左クリック
+					x    = 844;
+					y    = 560;
+					srcx = 159*29;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 32://右クリック
+					x    = 1024;
+					y    = 560;
+					srcx = 159*30;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 33://最小化
+					x    = 844;
+					y    = 632;
+					srcx = 159*31;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 34://右クリック
+					x    = 1024;
+					y    = 632;
+					srcx = 159*30;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				
+				}
+				
+				//ボタンレイヤ
+				ButtonLayer[i] = new BaseLayer(MainWnd, PriLayer, x, y, wid, hei);
+				
+				ButtonLayer[i].absolute = (nCONFIGLAYER+1)+i;
+				
+				
+				//パーツCOPY
+				if( i < 8  ){
+					ButtonLayer[i].copyRect(0,0, CommonParts,srcx,srcy,wid,hei);
+				}else{
+					ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,srcy,wid,hei);
+				}
+			}
+		}
+		else if( ScreenType == 1 )
+		{//SYSTEM 2
+			
+			//マップレイヤ
+			ConfigBg   = new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config02.png");
+			
+			ConfigBg.loadProvinceImage("config_map2.png");
+			
+			ConfigBg.absolute = nCONFIGLAYER;
+			
+			CommentLayer.absolute = ConfigBg.absolute + 1;
+			
+			//ボタンレイヤ
+			for(var i=0; i<23; i++)
+			{
+				var x, y, srcx, srcy, wid, hei;
+				
+				switch(i){
+				case 0://SYSTEM 1
+					x    = 254;
+					y    = 4;
+					srcx = 0;
+					srcy = 48*0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 1://SYSTEM 2
+					x    = 384;
+					y    = 4;
+					srcx = 124;
+					srcy = 48*2;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 2://SOUND
+					x    = 512;
+					y    = 4;
+					srcx = 124*2;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 3://FORMAT
+					x    = 640;
+					y    = 4;
+					srcx = 124*3;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 4://RETURN REPLAY
+					x    = 768;
+					y    = 4;
+					srcx = 124*4;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 5://REPLAY GAME
+					x    = 896;
+					y    = 4;
+					srcx = 124*5;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 6://TITLE
+					x    = 1024;
+					y    = 4;
+					srcx = 124*6;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 7:{//GAME END
+					x    = 1152;
+					y    = 4;
+					srcx = 124*7;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				}break;
+				case 8://window density
+					x    = 540;
+					y    = 84;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 24;
+				break;
+				case 9://mess speed
+					x    = 540;
+					y    = 139;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 24;
+				break;
+				case 10://auto speed
+					x    = 540;
+					y    = 476;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 24;
+				break;
+				case 11://select log on
+					x    = 844;
+					y    = 190;
+					srcx = 159*32;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 12://select log off
+					x    = 1024;
+					y    = 190;
+					srcx = 159*33;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 13://既読 skip
+					x    = 844;
+					y    = 302;
+					srcx = 159*34;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 14://all skip
+					x    = 1024;
+					y    = 302;
+					srcx = 159*35;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 15://select skip on
+					x    = 844;
+					y    = 358;
+					srcx = 159*36;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 16://select skip off
+					x    = 1024;
+					y    = 358;
+					srcx = 159*37;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 17://select auto on
+					x    = 844;
+					y    = 414;
+					srcx = 159*36;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 18://select auto off
+					x    = 1024;
+					y    = 414;
+					srcx = 159*37;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 19://auto mess on
+					x    = 844;
+					y    = 526;
+					srcx = 159*38;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 20://auto mess off
+					x    = 1024;
+					y    = 526;
+					srcx = 159*39;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 21://voice cut on
+					x    = 844;
+					y    = 638;
+					srcx = 159*40;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				case 22://voice cut off
+					x    = 1024;
+					y    = 638;
+					srcx = 159*41;
+					srcy = 0;
+					wid  = 159;
+					hei  = 37;
+				break;
+				
+				}
+				
+				//ボタンレイヤ
+				ButtonLayer[i] = new BaseLayer(MainWnd, PriLayer, x, y, wid, hei);
+				
+				ButtonLayer[i].absolute = (nCONFIGLAYER+1)+i;
+				
+				
+				//パーツCOPY
+				if( i < 8  ){
+					ButtonLayer[i].copyRect(0,0, CommonParts,srcx,srcy,wid,hei);
+				}else{
+					
+					if(( 7 < i ) && ( i < 11 )){
+						ButtonLayer[i].copyRect(0,0, ParamParts,srcx,srcy,wid,hei);
+					}else{
+						ButtonLayer[i].copyRect(0,0, PartsFrame,srcx,srcy,wid,hei);
+					}
+				}
+				
+			}
+			
+			//サンプル系
+			mess_spd_bord    = new BaseLayer(MainWnd, PriLayer, 489, 239, 0, 0, "frm_config06.png");
+			auto_spd_bord    = new BaseLayer(MainWnd, PriLayer, 489, 574, 0, 0, "frm_config06.png");
+			//どちらのフレームを使用しているかで分かれる
+			if((MainWnd.MessObj.MessFrame.ResFile == "frm_meswin") || (TitleFlag)){
+				mess_spd_density = new BaseLayer(MainWnd, PriLayer, 489, 239, 0, 0, "frm_config07.png");
+				auto_spd_density = new BaseLayer(MainWnd, PriLayer, 489, 574, 0, 0, "frm_config07.png");
+			}else{
+				mess_spd_density = new BaseLayer(MainWnd, PriLayer, 489, 239, 0, 0, "frm_config08.png");
+				auto_spd_density = new BaseLayer(MainWnd, PriLayer, 489, 574, 0, 0, "frm_config08.png");
+			}
+			mess_spd_layer   = new BaseLayer(MainWnd, PriLayer, 489, 239, mess_spd_density.width, mess_spd_density.height);
+			auto_spd_layer   = new BaseLayer(MainWnd, PriLayer, 489, 574, mess_spd_density.width, mess_spd_density.height);
+			
+			
+			//index
+			//*
+			sample_index  = 0;
+			auto_index    = 0;
+			text_x        = 0;
+			auto_x        = 0;
+			
+			//タイマー作成
+			MessDrawTimer = new Timer(SampleMessageView, "");
+			AutoDrawTimer = new Timer(AutoMessageView, "");
+			
+			
+			//描画を動かす
+			if(98 <= s["messpeed"]){
+				//テキストを表示させておく
+				MessDrawTimer.enabled  = false;
+			}else{
+				MessDrawTimer.enabled  = true;
+			}
+			
+			
+			//描画を動かす
+			if(98 <= s["autopeed"]){
+				//テキストを表示させておく
+				AutoDrawTimer.enabled  = false;
+			}else{
+				AutoDrawTimer.enabled  = true;
+			}
+			
+			
+			//タイマー初期値設定
+			var StartTimer = (nDEF_MESS_WAIT * 100) + 1;
+			
+			MessDrawTimer.interval = (StartTimer - (s["messpeed"]*nDEF_MESS_WAIT));
+			
+			//タイマー初期値設定
+			var BaseWait = (nDEF_AUTO_WAIT * 1000) + 1;
+			
+			AutoDrawTimer.interval = (BaseWait - (s["autospeed"] * (nDEF_AUTO_WAIT*10)));
+			
+			//*/
+			
+			
+			
+			
+			//*
+			//テストボードの濃度を変える
+			if(s["wnddensity"] != 0){
+				mess_spd_density.opacity = 255*(s["wnddensity"]/100);
+				auto_spd_density.opacity = 255*(s["wnddensity"]/100);
+			}else{
+				mess_spd_density.opacity = 0;
+				auto_spd_density.opacity = 0;
+			}
+			
+			
+			//text sample
+			//基本SIZE設定
+			mess_spd_layer.font.height = scFONTSIZE;
+			mess_spd_layer.font.face   = stFONTNAME;
+			mess_spd_layer.font.bold   = nFONTBOLD;
+			auto_spd_layer.font.height = scFONTSIZE;
+			auto_spd_layer.font.face   = stFONTNAME;
+			auto_spd_layer.font.bold   = nFONTBOLD;
+			
+			
+			while(MessDrawTimer.enabled == false){
+				SampleMessageView( );
+				if(!sample_index)break;
+			}
+			
+			
+			//while(AutoDrawTimer.enabled == false){
+				AutoMessageView();
+			//	if(!auto_index)break;
+			//}
+			
+			
+			//数値系
+			//濃度値レイヤ
+			mess_density_val = new BaseLayer(MainWnd, PriLayer, 0, 0, nVALUE_FONTSIZE*4, nVALUE_FONTSIZE);
+			//テキスト速度値レイヤ
+			mess_spd_val     = new BaseLayer(MainWnd, PriLayer, 0, 0, nVALUE_FONTSIZE*4, nVALUE_FONTSIZE);
+			//AUTO速度値レイヤ
+			auto_spd_val     = new BaseLayer(MainWnd, PriLayer, 0, 0, nVALUE_FONTSIZE*4, nVALUE_FONTSIZE);
+			
+			mess_density_val.font.height = nVALUE_FONTSIZE;
+			mess_density_val.font.face   = stFONTNAME;
+			mess_density_val.font.bold   = nFONTBOLD;
+			
+			mess_spd_val.font.height     = nVALUE_FONTSIZE;
+			mess_spd_val.font.face       = stFONTNAME;
+			mess_spd_val.font.bold       = nFONTBOLD;
+			
+			auto_spd_val.font.height     = nVALUE_FONTSIZE;
+			auto_spd_val.font.face       = stFONTNAME;
+			auto_spd_val.font.bold       = nFONTBOLD;
+			
+			mess_density_val.visible     = false;
+			mess_spd_val.visible         = false;
+			auto_spd_val.visible         = false;
+			
+		}
+		else
+		{//音楽設定画面
+			
+			//マップレイヤ
+			ConfigBg   = new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config03.png");
+			
+			ConfigBg.loadProvinceImage("config_sound_map.png");
+			
+			ConfigBg.absolute = nCONFIGLAYER;
+			
+			sound_bg   = new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config10.png");
+			
+			sound_bg.absolute = nCONFIGLAYER + 1;
+			
+			CommentLayer.absolute = sound_bg.absolute + 1;
+			
+			var temp_bg= void;
+			
+			//キャラ背景
+			if( s["CHAR_E_OPEN"] == true ){
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config25.png");
+			}else{
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config11.png");
+			}
+			
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			if( s["CHAR_L_OPEN"] == true ){
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config26.png");
+			}else{
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config12.png");
+			}
+			
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			
+			if( s["CHAR_M_OPEN"] == true ){
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config27.png");
+			}else{
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config13.png");
+			}
+			
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			
+			
+			//キャラ名
+			temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config14.png");
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			
+			if( s["CHAR_G_OPEN"] == true ){
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config19.png");
+			}else{
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config15.png");
+			}
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			if( s["CHAR_E_OPEN"] == true ){
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config20.png");
+			}else{
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config16.png");
+			}
+			
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			if( s["CHAR_L_OPEN"] == true ){
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config21.png");
+			}else{
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config17.png");
+			}
+			
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			
+			if( s["CHAR_M_OPEN"] == true ){
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config22.png");
+			}else{
+				temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config18.png");
+			}
+			
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			temp_bg= new BaseLayer(MainWnd, PriLayer, 0,0, 0,0,"frm_config09.png");
+			sound_bg.pileRect( 0,0,temp_bg );
+			invalidate temp_bg;
+			
+			
+			//ボタンレイヤ
+			for(var i=0; i<67; i++){
+				
+				var x, y, srcx, srcy, wid, hei;
+				
+				
+				switch(i){
+				case 0://SYSTEM 1
+					x    = 254;
+					y    = 4;
+					srcx = 0;
+					srcy = 48*0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 1://SYSTEM 2
+					x    = 384;
+					y    = 4;
+					srcx = 124;
+					srcy = 48*0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 2://SOUND
+					x    = 512;
+					y    = 4;
+					srcx = 124*2;
+					srcy = 48*2;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 3://FORMAT
+					x    = 640;
+					y    = 4;
+					srcx = 124*3;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 4://RETURN REPLAY
+					x    = 768;
+					y    = 4;
+					srcx = 124*4;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 5://REPLAY GAME
+					x    = 896;
+					y    = 4;
+					srcx = 124*5;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 6://TITLE
+					x    = 1024;
+					y    = 4;
+					srcx = 124*6;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				break;
+				case 7:{//GAME END
+					x    = 1152;
+					y    = 4;
+					srcx = 124*7;
+					srcy = 0;
+					wid  = 124;
+					hei  = 48;
+				}break;
+				
+				case 8:{//BGM ON/OFF
+					x    = 371;
+					y    = 66;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 9:{//SE ON/OFF
+					x    = 371;
+					y    = 114;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 10:{//MOVIE ON/OFF
+					x    = 371;
+					y    = 162;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 11:{//CHAR ON/OFF
+					x    = 371;
+					y    = 210;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 12:{//SYSTEM ON/OFF
+					x    = 371;
+					y    = 258;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				case 13:{//BGM TEST
+					x    = 1065;
+					y    = 66;
+					srcx = 0;
+					srcy = 0;
+					wid  = 98;
+					hei  = 37;
+				}break;
+				case 14:{//SE TEST
+					x    = 1065;
+					y    = 114;
+					srcx = 0;
+					srcy = 0;
+					wid  = 98;
+					hei  = 37;
+				}break;
+				case 15:{//CHAR TEST
+					x    = 1065;
+					y    = 210;
+					srcx = 0;
+					srcy = 0;
+					wid  = 98;
+					hei  = 37;
+				}break;
+				case 16:{//SYSTEM SE TEST
+					x    = 1065;
+					y    = 258;
+					srcx = 0;
+					srcy = 0;
+					wid  = 98;
+					hei  = 37;
+				}break;
+				case 17:{//SYSTEM SE RAMDOM
+					x    = 1175;
+					y    = 258;
+					srcx = 98;
+					srcy = 0;
+					wid  = 98;
+					hei  = 37;
+				}break;
+				
+				case 18:{//CHAR 01
+					x    = 197;
+					y    = 416;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 19:{//CHAR 02
+					x    = 197;
+					y    = 512;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 20:{//CHAR 03
+					x    = 197;
+					y    = 608;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				case 21:{//CHAR 04
+					x    = 617;
+					y    = 320;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 22:{//CHAR 05
+					x    = 617;
+					y    = 416;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 23:{//CHAR 06
+					x    = 617;
+					y    = 512;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 24:{//CHAR 07
+					x    = 617;
+					y    = 608;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				case 25:{//CHAR 08
+					x    = 1037;
+					y    = 320;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 26:{//CHAR 09
+					x    = 1037;
+					y    = 416;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 27:{//CHAR 10
+					x    = 1037;
+					y    = 512;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 28:{//CHAR 11
+					x    = 1037;
+					y    = 608;
+					srcx = 0;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				
+				case 29:{//CHAR 01 TEST
+					x    = 277;
+					y    = 416;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 30:{//CHAR 02 TEST
+					x    = 277;
+					y    = 512;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 31:{//CHAR 03 TEST
+					x    = 277;
+					y    = 608;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				case 32:{//CHAR 04 TEST
+					x    = 697;
+					y    = 320;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 33:{//CHAR 05 TEST
+					x    = 697;
+					y    = 416;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 34:{//CHAR 06 TEST
+					x    = 697;
+					y    = 512;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 35:{//CHAR 07 TEST
+					x    = 697;
+					y    = 608;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				case 36:{//CHAR 08 TEST
+					x    = 1117;
+					y    = 320;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 37:{//CHAR 09 TEST
+					x    = 1117;
+					y    = 416;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 38:{//CHAR 10 TEST
+					x    = 1117;
+					y    = 512;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 39:{//CHAR 11 TEST
+					x    = 1117;
+					y    = 608;
+					srcx = 65*3;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				
+				case 40:{//CHAR 01 SYSTEM
+					x    = 357;
+					y    = 416;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 41:{//CHAR 02 SYSTEM
+					x    = 357;
+					y    = 512;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 42:{//CHAR 03 SYSTEM
+					x    = 357;
+					y    = 608;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				case 43:{//CHAR 04 SYSTEM
+					x    = 777;
+					y    = 320;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 44:{//CHAR 05 SYSTEM
+					x    = 777;
+					y    = 416;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 45:{//CHAR 06 SYSTEM
+					x    = 777;
+					y    = 512;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 46:{//CHAR 07 SYSTEM
+					x    = 777;
+					y    = 608;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				case 47:{//CHAR 08 SYSTEM
+					x    = 1197;
+					y    = 320;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 48:{//CHAR 09 SYSTEM
+					x    = 1197;
+					y    = 416;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 49:{//CHAR 10 SYSTEM
+					x    = 1197;
+					y    = 512;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				case 50:{//CHAR 11 SYSTEM
+					x    = 1197;
+					y    = 608;
+					srcx = 65*2;
+					srcy = 0;
+					wid  = 65;
+					hei  = 37;
+				}break;
+				
+				
+				case 51:{//BGM VOL
+					x    = 489;
+					y    = 77;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 52:{//SE VOL
+					x    = 489;
+					y    = 123;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 53:{//MOVIE VOL
+					x    = 489;
+					y    = 169;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 54:{//CHAR VOL
+					x    = 489;
+					y    = 215;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 55:{//SYSTEM VOL
+					x    = 489;
+					y    = 261;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				
+				
+				
+				case 56:{//CHAR 01 VOL
+					x    = 163;
+					y    = 468;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 57:{//CHAR 02 VOL
+					x    = 163;
+					y    = 564;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 58:{//CHAR 03 VOL
+					x    = 163;
+					y    = 660;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				
+				case 59:{//CHAR 04 VOL
+					x    = 583;
+					y    = 373;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 60:{//CHAR 05 VOL
+					x    = 583;
+					y    = 468;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 61:{//CHAR 06 VOL
+					x    = 583;
+					y    = 564;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 62:{//CHAR 07 VOL
+					x    = 583;
+					y    = 660;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				
+				case 63:{//CHAR 08 VOL
+					x    = 1003;
+					y    = 373;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 64:{//CHAR 09 TEST
+					x    = 1003;
+					y    = 468;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 65:{//CHAR 10 VOL
+					x    = 1003;
+					y    = 564;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				case 66:{//CHAR 11 VOL
+					x    = 1003;
+					y    = 660;
+					srcx = 0;
+					srcy = 0;
+					wid  = 18;
+					hei  = 25;
+				}break;
+				
+				}
+				
+				//ボタンレイヤ
+				ButtonLayer[i] = new BaseLayer(MainWnd, PriLayer, x, y, wid, hei);
+				
+				ButtonLayer[i].absolute = (sound_bg.absolute+1)+i;
+				
+				//パーツCOPY
+				if( i < 8  ){
+					ButtonLayer[i].copyRect(0,0, CommonParts,srcx,srcy,wid,hei);
+				}else{
+					
+					if( 50 < i ){
+					//BAR
+						ButtonLayer[i].copyRect(0,0, ParamParts,srcx,srcy,wid,hei);
+						
+						if(
+							((i == 63) && (s["CHAR_E_OPEN"] == false)) || ((i == 64) && (s["CHAR_L_OPEN"] == false)) ||
+							((i == 65) && (s["CHAR_M_OPEN"] == false))
+						){
+							ButtonLayer[i].copyRect(0,0, ParamParts,wid*3,srcy,wid,hei);
+						}
+						
+					}else if((12 < i) && (i < 18)){
+					//large parts
+						ButtonLayer[i].copyRect(0,0, sound_parts2,srcx,srcy,wid,hei);
+					}else{
+					//small parts
+						ButtonLayer[i].copyRect(0,0, sound_parts,srcx,srcy,wid,hei);
+						//その他のSYSTEMは消しておく
+						if( i == 50 )ButtonLayer[i].visible = false;
+					}
+				}
+				
+			}
+			
+			
+			mess_density_val = new BaseLayer(MainWnd, PriLayer, 0, 0, nVALUE_FONTSIZE*4, nVALUE_FONTSIZE);
+			mess_density_val.font.height = nVALUE_FONTSIZE;
+			mess_density_val.font.face   = stFONTNAME;
+			mess_density_val.font.bold   = nFONTBOLD;
+			
+			mess_density_val.visible     = false;
+			
+			
+		}
+		
+		
+		
+		
+		//----------------------------------------------------------
+		// ■ここから環境状態毎の変更
+		//----------------------------------------------------------
+		
+		
+		//タイトル画面に戻るを抑制
+		if(TitleFlag == true){
+			ButtonLayer[6].copyRect(0,0, CommonParts,ButtonLayer[6].width*6,ButtonLayer[6].height*3);
+			TitleBg.absolute = ConfigBg.absolute - 1;
+		}
+		
+		//リプレイシーン選択に戻るを抑制
+		if(ReplayFlag == false){
+			ButtonLayer[4].copyRect(0,0, CommonParts,ButtonLayer[4].width*4,ButtonLayer[4].height*3);
+		}
+		
+		
+		//パラメータ設定関数
+		ParamSetFunc();
+		
+		
+		//タイマーを動かす
+		MainWnd.DefaultTimer.enabled  = true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ パラメータ
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function VolumeSet( type )
+	{
+		var mouse_x = PriLayer.cursorX;
+		
+		var mouse_y = PriLayer.cursorY;
+		
+		if(type == 0){
+		//mes speed
+			
+			var x = 0;
+			
+			if(s["messpeed"]){
+				x = (540 + (5 * s["messpeed"]));
+			}else{
+				x = 540;
+			}
+			
+			if(x <= 540){
+				x = 540;
+			}else if(1040 <= x){
+				x = 1040;
+			}
+			
+			ButtonLayer[9].left = (x) - (ButtonLayer[9].width \ 2);
+			
+		}else if(type == 1){
+		//auto speed
+			
+			var x = 0;
+			
+			if(s["autospeed"]){
+				x = (540 + (5 * s["autospeed"]));
+			}else{
+				x = 540;
+			}
+			
+			if(x <= 540){
+				x = 540;
+			}else if(1040 <= x){
+				x = 1040;
+			}
+			
+			ButtonLayer[10].left = (x) - (ButtonLayer[10].width \ 2);
+			
+		}else if(type == 2){
+		//voice vol
+			if(s["voice_vol"]){
+				ButtonLayer[54].left = (489 + ((s["voice_vol"]*5))) - (ButtonLayer[54].width\2);
+			}else{
+				ButtonLayer[54].left = 489;
+			}
+			
+			//Volume Set
+			VoiceTest.SetState(5, s["voice_vol"]);
+			
+		}else if(type == 3){
+		//system vol
+			if(s["system_vol"]){
+				ButtonLayer[55].left = (489 + (s["system_vol"]*5)) - (ButtonLayer[55].width\2);
+			}else{
+				ButtonLayer[55].left = 489;
+			}
+			
+			//Volume Set
+			//VOLUMEを取得する
+			SystemTest.SetState( 5, MainWnd.GetSystemVolume( SystemTestChar ) );
+			
+			
+		}else if(type == 4){
+		//se vol
+			if(s["se_vol"]){
+				ButtonLayer[52].left = (489 + (s["se_vol"]*5)) - (ButtonLayer[52].width\2);
+			}else{
+				ButtonLayer[52].left = 489;
+			}
+			
+			//Volume Set
+			SeTest.SetState(5, s["se_vol"]);
+			
+		}else if(type == 5){
+		//bgm vol
+			if(s["bgm_vol"]){
+				ButtonLayer[51].left = (489 + (s["bgm_vol"]*5)) - (ButtonLayer[51].width\2);
+			}else{
+				ButtonLayer[51].left = 489;
+			}
+			
+			BgmTest.SetState(5, s["bgm_vol"]);
+			
+		}else if(type == 6){
+		//wnd density
+			
+			var x = 0;
+			
+			if(s["wnddensity"]){
+				x = (540 + (5 * s["wnddensity"]));
+			}else{
+				x = 540;
+			}
+			
+			if(x <= 540){
+				x = 540;
+			}else if(1040 <= x){
+				x = 1040 + (ButtonLayer[8].width \ 2);
+			}
+			
+			ButtonLayer[8].left = (x) - (ButtonLayer[8].width \ 2);
+			
+			x = 255*(s["wnddensity"]/100);
+			
+			if( x < 0){
+				x = 0;
+			}else if(255 < x){
+				x = 255;
+			}
+			
+			MainWnd.MessObj.MessFrame.opacity = x;
+			
+		}
+		else if( type == 7 )
+		{//MOVIE 
+			if(s["movie_vol"]){
+				ButtonLayer[53].left = (489 + (s["movie_vol"]*5)) - (ButtonLayer[53].width\2);
+			}else{
+				ButtonLayer[53].left = 489;
+			}
+		}
+		else if((55 < type) && (type < 67)){
+		//CHAR 個別 VOL
+			if(s["char_" + (type-55) + "_vol"])
+			{
+				var topx = 0;
+				
+				if((55 < type) && (type < 59)){
+				//CHAR 01 - 03
+					topx = 163;
+				}else if((58 < type) && (type < 63)){
+				//CHAR 04 - 07
+					topx = 583;
+				}else if((62 < type) && (type < 67)){
+				//CHAR 08 - 11
+					topx = 1003;
+				}
+				
+				var x = (s["char_" + (type-55) + "_vol"]*2.2) - (ButtonLayer[type].width\2);
+				
+				ButtonLayer[type].left = topx + x;
+			}
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ DRAGパラメータ
+	
+	引数：
+	
+	説明：
+	
+	-----------------------------------------*/
+	function DragParam()
+	{
+		var x = PriLayer.cursorX;
+		var y = PriLayer.cursorY;
+		
+		//SYSTEM 2
+		if(ScreenType == 1)
+		{
+			if((DragType == 9) || (DragType == 10) || (DragType == 11))
+			{
+				if(x <= 540){
+					x = 540;
+				}else if(1040 <= x){
+					x = 1040;
+				}
+				
+				var vol = ((x - 540) / 5);
+				
+				vol \= 1;
+				
+				x = PriLayer.cursorX - (ButtonLayer[DragType-1].width\2);
+				
+				if(x <= 540){
+					x = 540;
+				}else if(1040 <= x){
+					x = 1040;
+				}
+				
+				ButtonLayer[DragType-1].left = x;
+				
+				//パラメータ変更
+				if(DragType == 9)
+				{//wnd density
+					
+					s["wnddensity"] = vol;
+					
+					if(s["wnddensity"] != 0){
+						mess_spd_density.opacity = 255*(s["wnddensity"]/100);
+						auto_spd_density.opacity = 255*(s["wnddensity"]/100);
+					}else{
+						mess_spd_density.opacity = 0;
+						auto_spd_density.opacity = 0;
+					}
+					
+					var x = 255*(s["wnddensity"]/100);
+					
+					if( x < 0){
+						x = 0;
+					}else if(255 < x){
+						x = 255;
+					}
+					
+					//値変更
+					ValueDrawFunction( mess_density_val, 0 );
+					
+					MainWnd.MessObj.MessFrame.opacity = x;
+					
+				}else if(DragType == 10){
+					
+					s["messpeed"]  = vol;
+					
+					//タイマー初期値設定
+					var StartTimer = (nDEF_MESS_WAIT * 100) + 1;
+					
+					MainWnd.MessObj.DrawTextTimer.interval = (StartTimer - (s["messpeed"]*nDEF_MESS_WAIT));
+					
+					//値変更
+					ValueDrawFunction( mess_spd_val, 1 );
+					
+					if((99 < s["messpeed"] ) && (MessDrawTimer.enabled == true)){
+						
+						//メッセージを一度クリアしておく
+						MessDrawTimer.enabled  = false;
+						sample_index           = 0;
+						text_x                 = 0;
+						mess_spd_layer.fillRect(0, 0, mess_spd_layer.width, mess_spd_layer.height, 0);
+						
+						while(1){
+							SampleMessageView();
+							if(!sample_index)break;
+						}
+						
+					}else if( s["messpeed"] < 100 ){
+						//メッセージを一度クリアしておく
+						if(MessDrawTimer.enabled == false){
+							mess_spd_layer.fillRect(0, 0, mess_spd_layer.width, mess_spd_layer.height, 0);
+						}
+						
+						MessDrawTimer.enabled  = true;
+						
+						MessDrawTimer.interval = (StartTimer - (s["messpeed"]*nDEF_MESS_WAIT));
+					}
+					
+				}else if(DragType == 11){
+				//auto
+					s["autospeed"] = vol;
+					
+					//値変更
+					ValueDrawFunction( auto_spd_val, 2 );
+					
+					if((99 < s["autospeed"] ) && (AutoDrawTimer.enabled == true)){
+						
+						//メッセージを一度クリアしておく
+						AutoDrawTimer.enabled  = false;
+						auto_index           = 0;
+						auto_x               = 0;
+						auto_spd_layer.fillRect(0, 0, auto_spd_layer.width, auto_spd_layer.height, 0);
+						
+						//while(1){
+							AutoMessageView();
+							//if(!auto_index)break;
+						//}
+						
+					}else if( s["autospeed"] < 100 ){
+						//メッセージを一度クリアしておく
+						if(AutoDrawTimer.enabled == false){
+							auto_spd_layer.fillRect(0, 0, auto_spd_layer.width, auto_spd_layer.height, 0);
+						}
+						
+						AutoDrawTimer.enabled  = true;
+						
+						//タイマー初期値設定
+						var BaseWait = (nDEF_AUTO_WAIT * 1000) + 1;
+						
+						AutoDrawTimer.interval = (BaseWait - (s["autospeed"] * (nDEF_AUTO_WAIT*10)));
+						
+					}
+				}
+			}
+		}
+		else
+		{//音声設定画面
+			if( DragType == 52 )
+			{//bgm
+				
+				if(x <= 489){
+					x = 489;
+				}else if(989 <= x){
+					x = 989;
+				}
+				
+				var vol = (0 < (x - 489)) ? ((x - 489) / 5) : 0;
+				
+				vol \= 1;
+				
+				x = PriLayer.cursorX - (ButtonLayer[DragType-1].width\2);
+				
+				if(x <= 489){
+					x = 489;
+				}else if(979 <= x){
+					x = 979;
+				}
+				
+				ButtonLayer[DragType-1].left = x;
+				
+				//パラメータ変更
+				s["bgm_vol"] = vol;
+				
+				BgmTest.SetState(5, vol);
+				
+				MainWnd.BgmObj.SetState(5, vol);
+				
+				//値変更
+				ValueDrawFunction( mess_density_val, 3);
+				
+			}
+			else if((DragType == 53))
+			{//se
+				
+				if(x <= 489){
+					x = 489;
+				}else if(989 <= x){
+					x = 989;
+				}
+				
+				var vol = (0 < (x - 489)) ? ((x - 489) / 5) : 0;
+				
+				vol \= 1;
+				
+				x = PriLayer.cursorX - (ButtonLayer[DragType-1].width/2);
+				
+				if(x <= 489){
+					x = 489;
+				}else if(979 <= x){
+					x = 979;
+				}
+				
+				ButtonLayer[DragType-1].left = x;
+				
+				s["se_vol"] = vol;
+				
+				SeTest.SetState(5, vol);
+				
+				//ボリューム変更
+				CursorVoice.SetState(5, vol );
+				
+				//カーソル音声
+				CursorVoicePlay( 0, true, 2 );
+				
+				
+				for(var i=0; i<nSE_MAXNUM; i++){
+					MainWnd.SeObj[i].SetState(5, vol);
+				}
+				//値変更
+				ValueDrawFunction( mess_density_val, 4);
+				
+				
+			}
+			else if( DragType == 54 )
+			{//MOVIE
+				
+				if(x <= 489){
+					x = 489;
+				}else if(989 <= x){
+					x = 989;
+				}
+				
+				var vol = (0 < (x - 489)) ? ((x - 489) / 5) : 0;
+				
+				vol \= 1;
+				
+				x = PriLayer.cursorX - (ButtonLayer[DragType-1].width/2);
+				
+				if(x <= 489){
+					x = 489;
+				}else if(979 <= x){
+					x = 979;
+				}
+				
+				ButtonLayer[DragType-1].left = x;
+				
+				s["movie_vol"] = vol;
+				
+				MainWnd.MovieObj.SetState(5, vol);
+				
+				//ボリューム変更
+				CursorVoice.SetState(5, vol );
+				
+				//カーソル音声
+				CursorVoicePlay( s["sys_char_id"], true, 3 );
+				
+				//値変更
+				ValueDrawFunction( mess_density_val, 5);
+				
+			}
+			else if( DragType == 55 )
+			{//voice
+				if(x <= 489){
+					x = 489;
+				}else if(989 <= x){
+					x = 989;
+				}
+				
+				var vol = (0 < (x - 489)) ? ((x - 489) / 5) : 0;
+				
+				vol \= 1;
+				
+				x = PriLayer.cursorX - (ButtonLayer[DragType-1].width/2);
+				
+				if(x <= 489){
+					x = 489;
+				}else if(979 <= x){
+					x = 979;
+				}
+				
+				ButtonLayer[DragType-1].left = x;
+				
+				s["voice_vol"]  = vol;
+				
+				VoiceTest.SetState(5, vol);
+				
+				for(var i=0; i<nVOICE_MAXNUM; i++){
+					MainWnd.VoiceObj[i].SetState(5, vol);
+				}
+				
+				//ボリューム変更
+				CursorVoice.SetState(5, s["voice_vol"] );
+				
+				//カーソル音声
+				CursorVoicePlay( s["sys_char_id"], true, 4 );
+				
+				//個別音声再生中は音量を変更する
+				if( CharVoiceTest.SetState(3) == "play" ){
+					
+					var id = (CharVoiceTestflag - 29) + 1;
+					
+					//個別音声ボリューム設定
+					CharVoiceTest.SetState(5, ((s["voice_vol"]*s["char_" + id + "_vol"]) \ 100) );
+				}
+				
+				//値変更
+				ValueDrawFunction( mess_density_val, 6);
+				
+			}
+			else if((DragType == 56))
+			{//system
+				if(x <= 489){
+					x = 489;
+				}else if(989 <= x){
+					x = 989;
+				}
+				
+				var vol = (0 < (x - 489)) ? ((x - 489) / 5) : 0;
+				
+				vol \= 1;
+				
+				x = PriLayer.cursorX - (ButtonLayer[DragType-1].width/2);
+				
+				if(x <= 489){
+					x = 489;
+				}else if(979 <= x){
+					x = 979;
+				}
+				
+				ButtonLayer[DragType-1].left = x;
+				
+				s["system_vol"] = vol;
+				
+				//SYSTEM VOLUMEを取得する
+				vol = MainWnd.GetSystemVolume( SystemTestChar );
+				
+				SystemTest.SetState(5, vol);
+				
+				CursorVoice.SetState(5, vol);
+				
+				//カーソル音声再生関数
+				CursorVoicePlay( 0, true, 5 );
+				
+				//SYSTEM SE VOLUMEの変更
+				//MainWnd.SystemObj.SetState(5, vol);
+				//MainWnd.EyeCatchBgmObj.SetState(5, vol);
+				
+				//値変更
+				ValueDrawFunction( mess_density_val, 7);
+			
+			}
+			else if((56 < DragType) && (DragType < 68))
+			{//個別音声VOL
+				
+				var topx = 0;
+				var endx = 0;
+				
+				if((56 < DragType) && (DragType < 60)){
+				//CHAR 01 - 03
+					topx = 163;
+					endx = 383;
+					if(x <= 163){
+						x = 163;
+					}else if(384 <= x){
+						x = 384;
+					}
+					
+				}else if((59 < DragType) && (DragType < 64)){
+				//CHAR 04 - 07
+					topx = 583;
+					endx = 803;
+					if(x <= 583){
+						x = 583;
+					}else if(804 <= x){
+						x = 804;
+					}
+					
+				}else if((63 < DragType) && (DragType < 68)){
+				//CHAR 08 - 11
+					topx = 1003;
+					endx = 1223;
+					if(x <= 1003){
+						x = 1003;
+					}else if(1224 <= x){
+						x = 1224;
+					}
+				}
+				
+				
+				var vol = (0 < (x - topx)) ? ((x - topx) / 2.2) : 0;
+				
+				vol \= 1;
+				
+				x = PriLayer.cursorX;
+				
+				if(x <= topx){
+					x = topx;
+				}else if(endx <= x){
+					x = endx - 10;
+				}else{
+					x = PriLayer.cursorX - ButtonLayer[DragType-1].width/2;
+					if(x <= topx)x = topx;
+				}
+				
+				ButtonLayer[DragType-1].left = x;
+				
+				//個別音声
+				s["char_" + (DragType-56) + "_vol"] = vol;
+				
+				//個別音声ボリューム設定
+				CharVoiceTest.SetState(5, ((s["voice_vol"]  * vol) \ 100));
+				
+				CursorVoice.SetState(5, ((s["voice_vol"]  * vol) \ 100));
+				
+				//値変更
+				ValueDrawFunction( mess_density_val, 8, DragType-1 );
+				
+				//カーソル音声再生関数
+				CursorVoicePlay( DragType-57, true, 0 );
+				
+				//SYSTEM音声ボリューム設定
+				//SystemTest.SetState(5, MainWnd.GetSystemVolume( SystemTestChar ));
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 初期化設定処理
+	-----------------------------------------*/
+	function FormatResultFunc()
+	{
+		if(MainWnd.CheckBoxResult)
+		{//YES
+			MainWnd.CheckBoxResult = false;
+			
+			//初期化処理
+			MainWnd.SystemFormat();
+			
+			//サンプル系音声を全部停止
+			TestSoundStopWork();
+			
+			
+			//パラメータセット
+			ParamSetFunc();
+			
+			//タイマー初期値設定
+			var StartTimer = (nDEF_MESS_WAIT * 100) + 1;
+			
+			MainWnd.MessObj.DrawTextTimer.interval = (StartTimer - (s["messpeed"]*nDEF_MESS_WAIT));
+			
+			if(MessDrawTimer !== void){
+				MessDrawTimer.interval = (StartTimer - (s["messpeed"]*nDEF_MESS_WAIT));
+				MessDrawTimer.enabled  = true;
+				//SampleMessageView();
+			}
+			
+			
+			if(ScreenType == 1)
+			{//SYSTEM 2
+				//window density
+				if(s["wnddensity"] != 0){
+					mess_spd_density.opacity = 255*(s["wnddensity"]/100);
+					auto_spd_density.opacity = 255*(s["wnddensity"]/100);
+				}else{
+					mess_spd_density.opacity = 0;
+					auto_spd_density.opacity = 0;
+				}
+			}
+			
+			
+			var x = 255*(s["wnddensity"]/100);
+			
+			if( x < 0){
+				x = 0;
+			}else if(255 < x){
+				x = 255;
+			}
+			
+			MainWnd.MessObj.MessFrame.opacity = x;
+			
+			
+			//選択肢が表示されていたら
+			if(MainWnd.SelObj.SelResource !== void){
+				//透明度設定
+				MainWnd.SelObj.ReWriteText();
+			}
+			
+			//MENU LOCK
+			//MainWnd.MessObj.MessButton[6].copyRect(0,0, MainWnd.MessObj.ButtonResource,32*6,0,32,32);
+			
+			//VOICE VOL
+			CharVoiceTest.SetState(5, ((s["voice_vol"]*s["char_"+(nSYS_CHAR_ID+1)+"_vol"]) \ 100) );
+			
+			CursorVoice.SetState(5, ((s["voice_vol"]*s["char_"+(nSYS_CHAR_ID+1)+"_vol"]) \ 100) );
+			
+			for(var i=0; i<nVOICE_MAXNUM; i++){
+				MainWnd.VoiceObj[i].SetState(5, ((s["voice_vol"]*s["char_"+(nSYS_CHAR_ID+1)+"_vol"]) \ 100) );
+			}
+			
+			//ＩＤを入れておく
+			SystemTestChar = getCharID(s["sys_char_id"]);
+			
+			//SYSTEM VOL
+			SystemTest.SetState(5, MainWnd.GetSystemVolume( SystemTestChar ) );
+			
+			MainWnd.SystemObj.SetState(5, MainWnd.GetSystemVolume( SystemTestChar ) );
+			
+			MainWnd.EyeCatchBgmObj.SetState(5, MainWnd.GetSystemVolume( SystemTestChar ));
+			
+			//SE LOOP FILEを再生する
+			for(var i=0; i<nSE_MAXNUM; i++){
+				if(f["se"+i] !== void){
+					MainWnd.SeObj[i].FilePlay(f["se"+i], true);
+				}
+			}
+			//SE音量
+			for(var i=0; i<nSE_MAXNUM; i++){
+				MainWnd.SeObj[i].SetState(5, s["se_vol"]);
+			}
+			
+			//BGM FILEを再生する
+			if(f["bgm"] !== void){
+				MainWnd.BgmObj.FilePlay(f["bgm"], true);
+			}
+			//BGM 音量
+			MainWnd.BgmObj.SetState(5, s["bgm_vol"]);
+			
+			BgmTest.SetState(5, s["bgm_vol"]);
+			
+			//MOVIE 音量
+			MainWnd.MovieObj.SetState(5, s["movie_vol"]);
+			
+			//レジスタをクリアしておく
+			MapRes = 0;
+		}	
+		
+		
+		//MEDIA系を戻す
+		MainWnd.onActivate();
+		
+		//タイマー再開
+		MainWnd.DefaultTimer.enabled = true;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ RETURN TITLE処理
+	-----------------------------------------*/
+	function TitleResultFunc()
+	{
+		if(MainWnd.CheckBoxResult)
+		{//YES
+			MainWnd.CheckBoxResult = false;
+			
+			//タイトル戻り関数
+			MainWnd.ReturnTitleFunc();
+			
+			return;
+		}
+		
+		//タイマー再開
+		MainWnd.DefaultTimer.enabled = true;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ RETURN REPLAY処理
+	-----------------------------------------*/
+	function ReplayResultFunc()
+	{
+		if(MainWnd.CheckBoxResult)
+		{//YES
+			MainWnd.CheckBoxResult = false;
+			
+			//タイトル戻り関数
+			MainWnd.ReturnSceneReplay(ExtraFlag);
+			
+			return;
+		}
+		
+		//タイマー再開
+		MainWnd.DefaultTimer.enabled = true;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ TEST 音声停止処理
+	-----------------------------------------*/
+	function TestSoundStopWork()
+	{
+		
+		//テスト再生中の場合は停止のみ
+		if(BgmTestflag || SeTestflag || VoiceTestflag || SystemTestflag || CharVoiceTestflag){
+			
+			//VOICE
+			VoiceTest.FileStop();
+			VoiceTestflag = false;
+			
+			ButtonLayer[15].copyRect(0,0, sound_parts2,0,0);
+			
+			//SYSTEM
+			SystemTest.FileStop();
+			SystemTestflag = false;
+			
+			ButtonLayer[16].copyRect(0,0, sound_parts2,0,0);
+			
+			//SE 停止
+			SeTest.FileStop();
+			SeTestflag = false;
+			
+			ButtonLayer[14].copyRect(0,0, sound_parts2,0,0);
+			
+			//BGM 停止
+			BgmTest.FileStop();
+			BgmTestflag = false;
+			
+			ButtonLayer[13].copyRect(0,0, sound_parts2,0,0);
+			
+			
+			//個別キャラ停止
+			CharVoiceTest.FileStop();
+			CharVoiceTestflag     = false;
+			TempCharVoiceTestflag = false;
+			for (var i=29; i<39; i++){
+				//CHAR ON/OFF
+				if(
+					((i == 36) && (s["CHAR_E_OPEN"] == false)) || ((i == 37) && (s["CHAR_L_OPEN"] == false)) ||
+					((i == 38) && (s["CHAR_M_OPEN"] == false))
+				){
+					continue;
+				}
+				ButtonLayer[i].copyRect(0,0, sound_parts, ButtonLayer[i].width*3 ,0);
+			}
+			
+			
+			return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ サンプルメッセージ描画
+	-----------------------------------------*/
+	function SampleMessageView()
+	{
+		MainWnd.MessObj.TextDraw(mess_spd_layer, 1+text_x, 7, stTEST_MESS[sample_index] );
+		
+		text_x += mess_spd_layer.font.getEscWidthX(stTEST_MESS[sample_index++]) + nKERNING;
+		
+		if(stTEST_MESS.length < sample_index){
+			
+			text_x       = 0;
+			sample_index = 0;
+			
+			//タイマーが停止しているならここまで
+			if(MessDrawTimer.enabled == false)return;
+			
+			mess_spd_layer.fillRect(0, 0, mess_spd_layer.width, mess_spd_layer.height, 0);
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ サンプルメッセージ描画
+	-----------------------------------------*/
+	function AutoMessageView()
+	{
+		var AutoMess = "";
+		
+		auto_spd_layer.fillRect(0, 0, auto_spd_layer.width, auto_spd_layer.height, 0);
+		
+		if(auto_index == false){
+			AutoMess = "０１２３４５６５６７８９０１２３４５６５６７８";
+		}else{
+			AutoMess = "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷ";
+		}
+		
+		
+		MainWnd.MessObj.TextDraw(auto_spd_layer, 1+auto_x, 8, AutoMess );
+		
+		//auto_x += auto_spd_layer.font.getEscWidthX(stTEST_MESS[auto_index++]) + nKERNING;
+		
+		//if(stTEST_MESS.length < auto_index){
+			
+			auto_x       = 0;
+			auto_index   = !auto_index;
+			
+			//タイマーが停止しているならここまで
+			if(AutoDrawTimer.enabled == false)return;
+			
+			//auto_spd_layer.fillRect(0, 0, auto_spd_layer.width, auto_spd_layer.height, 0);
+			
+		//}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 値表示関数
+	-----------------------------------------*/
+	function ValueDrawFunction( layer, type, i = -1 )
+	{
+		var val = 0, x = 0, y = 0, draw_x = 0;
+		
+		layer.fillRect(0,0,layer.width,layer.height,0);
+		
+		if( type == 0 ){
+		//WND DENSITY
+			val = "" + s["wnddensity"];
+			x =  ButtonLayer[8].left + nVALUE_XPOS;
+			y = (ButtonLayer[8].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+		}else if( type == 1 ){
+		//MESS SPD
+			val = "" + s["messpeed"];
+			x =  ButtonLayer[9].left + nVALUE_XPOS;
+			y = (ButtonLayer[9].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+		}else if( type == 2 ){
+		//AUTO
+			val = "" + s["autospeed"];
+			x =  ButtonLayer[10].left + nVALUE_XPOS;
+			y = (ButtonLayer[10].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+		}else if( type == 3 ){
+		//BGM
+			val = "" + s["bgm_vol"];
+			x =  ButtonLayer[51].left + nVALUE_XPOS;
+			y = (ButtonLayer[51].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+			layer.visible = true;
+		}else if( type == 4 ){
+		//SE
+			val = "" + s["se_vol"];
+			x =  ButtonLayer[52].left + nVALUE_XPOS;
+			y = (ButtonLayer[52].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+			layer.visible = true;
+		}else if( type == 5 ){
+		//MOVIE
+			val = "" + s["movie_vol"];
+			x =  ButtonLayer[53].left + nVALUE_XPOS;
+			y = (ButtonLayer[53].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+			layer.visible = true;
+		}else if( type == 6 ){
+		//CHAR
+			val = "" + s["voice_vol"];
+			x =  ButtonLayer[54].left + nVALUE_XPOS;
+			y = (ButtonLayer[54].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+			layer.visible = true;
+		}else if( type == 7 ){
+		//SYSTEM
+			val = "" + s["system_vol"];
+			x =  ButtonLayer[55].left + nVALUE_XPOS;
+			y = (ButtonLayer[55].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+			layer.visible = true;
+		}else if( type == 8 ){
+		//CHAR 個別
+			
+			val = "" + s["char_"+(i-55)+"_vol"];
+			x =  ButtonLayer[i].left + nVALUE_XPOS;
+			y = (ButtonLayer[i].top - nVALUE_FONTSIZE) + nVALUE_YPOS;
+			layer.visible = true;
+		}
+		
+		
+		if(2 < val.length){
+			x -= (nVALUE_FONTSIZE*0.7);
+		}else if(1 < val.length){
+			x -= (nVALUE_FONTSIZE*0.4);
+		}
+		
+		layer.left = x;
+		layer.top  = y;
+		
+		//テキスト描画
+		MainWnd.MessObj.TextDraw(layer, 0, 0, val );
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ カーソル音声再生関数
+	-----------------------------------------*/
+	function CursorVoicePlay( i, flag, type )
+	{
+		if( flag == true )
+		{//再生
+			if(CursorVoice.SetState(3) != "play"){
+				
+				var file     = "";
+				var testfile = "";
+				
+				if( type == 0 ){
+				//個別キャラ音声
+					if(i != 10){
+						file = nSYSTEM_VOICE_HEADER + getCharID( i ) + nSYS_VOICETEST + ".ogg";
+					}else{
+						file = nOTHER_TEST;
+					}
+					
+					//比較用ファイル名
+					testfile = CharVoiceTest.ResFile;
+					
+				}else if( type == 1 ){
+				//BGM
+					if((s["bgm"] == true) && (f["bgm"] !== void) && (f["bgmpause"] == false))return;
+					
+				}else if( type == 2 ){
+				//SE
+					//SE が再生中の時は再生しない
+					for(var i=0; i<nSE_MAXNUM; i++){ if(f["seloop"+i] !== void)return; }
+					
+					file = nSE_TEST;
+				}else if( type == 3 ){
+				//MOVIE
+					file = nMOVIE_TEST;
+				}else if( type == 4 ){
+				//CHAR
+					if(i != 10){
+						file = nSYSTEM_VOICE_HEADER + getCharID( i ) + nSYS_VOICEMASTERTEST + ".ogg";
+					}else{
+						file = nOTHER_TEST;
+					}
+					
+					//比較用ファイル名
+					testfile = VoiceTest.ResFile;
+					
+				}else if( type == 5 ){
+				//SYSTEM
+					//再生中ならここまで
+					if(SystemTest.SetState(3) == "play")return;
+					
+					var id = getCharID(s.sys_char_id);
+					if(RamdomCheck(0, 1) == 0){
+						file = nSYSTEM_VOICE_HEADER + id + nSYS_SYSTEMTEST   + ".ogg";
+					}else{
+						file = nSYSTEM_VOICE_HEADER + id + nSYS_SYSTEMMASTER + ".ogg";
+					}
+					
+					//比較用ファイル名
+					testfile = SystemTest.ResFile;
+					
+				}
+				
+				//現在再生している個別音声と違うなら再生
+				if(testfile != file){
+					CursorVoice.FilePlay(file, true);
+				}
+			}
+		}
+		else
+		{//停止
+			CursorVoice.FileStop();
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ON・OFF切り替えレイヤ
+	-----------------------------------------*/
+	function OnOffVoicePlay( i, type, flag )
+	{
+		//SYSTEM VOLUMEを割り当てる
+		CharVoiceSystem.SetState(5, s["system_vol"]);
+		CharVoiceSystem.FileStop();
+		var file = "";
+		var id   = 0;
+		
+		if( type == 0 )
+		{//VOICE ON/OFF
+			id = i - 18;
+			//その他は鳴らさない
+			if(id == 10)return;
+			
+			if(flag == true){
+			//ON
+				file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_VOICEON + ".ogg";
+			}else{
+			//OFF
+				file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_VOICEOFF + ".ogg";
+			}
+		}
+		else if( type == 1 )
+		{//SYSTEM ON/OFF
+			id = i - 40;
+			file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_SYSTEMCALL + ".ogg";
+		}else{
+		//SYSTEM RAMDOM
+			id = i;
+			file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_SYSTEMRAMDOMCALL + ".ogg";
+		}
+		
+		
+		CharVoiceSystem.FilePlay(file, false);
+	}
+	
+}
+
+
+
+
+
+
+
+
+/*-----------------------------------------
+■CONFIG オブジェクト削除関数
+-----------------------------------------*/
+function ConfigDeleteFunc()
+{
+	//アクティブオブジェクトを変更する
+	MainObj.ActiveObj = MainObj.ConfigObj.TempActive;
+	
+	//終了画面を保持
+	s["config_type"]  = MainObj.ConfigObj.ScreenType;
+	
+	//オブジェクトを削除する
+	invalidate MainObj.ConfigObj;
+	
+	MainObj.ConfigObj = void;
+	
+	//ガベージを強制的に動かす
+	System.doCompact();
+	
+	//タイマー再開
+	MainObj.DefaultTimer.enabled = true;
+
+}
+
+
+
+
+
+
+@endif
+
+		file = nOTHER_TEST;
+					}
+					
+					//姣旇純鐢ㄣ儠銈°偆銉悕
+					testfile = CharVoiceTest.ResFile;
+					
+				}else if( type == 1 ){
+				//BGM
+					if((s["bgm"] == true) && (f["bgm"] !== void) && (f["bgmpause"] == false))return;
+					
+				}else if( type == 2 ){
+				//SE
+					//SE 銇屽啀鐢熶腑銇檪銇啀鐢熴仐銇亜
+					for(var i=0; i<nSE_MAXNUM; i++){ if(f["seloop"+i] !== void)return; }
+					
+					file = nSE_TEST;
+				}else if( type == 3 ){
+				//MOVIE
+					file = nMOVIE_TEST;
+				}else if( type == 4 ){
+				//CHAR
+					if(i != 10){
+						file = nSYSTEM_VOICE_HEADER + getCharID( i ) + nSYS_VOICEMASTERTEST + ".ogg";
+					}else{
+						file = nOTHER_TEST;
+					}
+					
+					//姣旇純鐢ㄣ儠銈°偆銉悕
+					testfile = VoiceTest.ResFile;
+					
+				}else if( type == 5 ){
+				//SYSTEM
+					//鍐嶇敓涓仾銈夈亾銇撱伨銇�
+					if(SystemTest.SetState(3) == "play")return;
+					
+					var id = getCharID(s.sys_char_id);
+					if(RamdomCheck(0, 1) == 0){
+						file = nSYSTEM_VOICE_HEADER + id + nSYS_SYSTEMTEST   + ".ogg";
+					}else{
+						file = nSYSTEM_VOICE_HEADER + id + nSYS_SYSTEMMASTER + ".ogg";
+					}
+					
+					//姣旇純鐢ㄣ儠銈°偆銉悕
+					testfile = SystemTest.ResFile;
+					
+				}
+				
+				//鐝惧湪鍐嶇敓銇椼仸銇勩倠鍊嬪垾闊冲０銇ㄩ仌銇嗐仾銈夊啀鐢�
+				if(testfile != file){
+					CursorVoice.FilePlay(file, true);
+				}
+			}
+		}
+		else
+		{//鍋滄
+			CursorVoice.FileStop();
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	鈻� ON銉籓FF鍒囥倞鏇裤亪銉偆銉�
+	-----------------------------------------*/
+	function OnOffVoicePlay( i, type, flag )
+	{
+		//SYSTEM VOLUME銈掑壊銈婂綋銇︺倠
+		CharVoiceSystem.SetState(5, s["system_vol"]);
+		CharVoiceSystem.FileStop();
+		var file = "";
+		var id   = 0;
+		
+		if( type == 0 )
+		{//VOICE ON/OFF
+			id = i - 18;
+			//銇濄伄浠栥伅槌淬倝銇曘仾銇�
+			if(id == 10)return;
+			
+			if(flag == true){
+			//ON
+				file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_VOICEON + ".ogg";
+			}else{
+			//OFF
+				file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_VOICEOFF + ".ogg";
+			}
+		}
+		else if( type == 1 )
+		{//SYSTEM ON/OFF
+			id = i - 40;
+			file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_SYSTEMCALL + ".ogg";
+		}else{
+		//SYSTEM RAMDOM
+			id = i;
+			file = nSYSTEM_VOICE_HEADER + getCharID(id) + nSYS_SYSTEMRAMDOMCALL + ".ogg";
+		}
+		
+		
+		CharVoiceSystem.FilePlay(file, false);
+	}
+	
+}
+
+
+
+
+
+
+
+
+/*-----------------------------------------
+鈻燙ONFIG 銈儢銈搞偋銈儓鍓婇櫎闁㈡暟
+-----------------------------------------*/
+function ConfigDeleteFunc()
+{
+	//銈€偗銉嗐偅銉栥偑銉栥偢銈с偗銉堛倰澶夋洿銇欍倠
+	MainObj.ActiveObj = MainObj.ConfigObj.TempActive;
+	
+	//绲備簡鐢婚潰銈掍繚鎸�
+	s["config_type"]  = MainObj.ConfigObj.ScreenType;
+	
+	//銈儢銈搞偋銈儓銈掑墛闄ゃ仚銈�
+	invalidate MainObj.ConfigObj;
+	
+	MainObj.ConfigObj = void;
+	
+	//銈儥銉笺偢銈掑挤鍒剁殑銇嫊銇嬨仚
+	System.doCompact();
+	
+	//銈裤偆銉炪兗鍐嶉枊
+	MainObj.DefaultTimer.enabled = true;
+
+}
+
+
+
+
+
+
+@endif
+

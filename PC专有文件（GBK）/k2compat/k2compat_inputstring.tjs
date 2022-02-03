@@ -1,11 +1,11 @@
-// System.inputStringã®äº’æ›å®Ÿè£…
+// System.inputString¤Î»¥“QŒg×°
 
 Krkr2CompatUtils.requireWIN32Dialog();
 
 class        _System_inputString_Dialog extends WIN32GenericDialogEX {
 	function _System_inputString_Dialog(caption, prompt, initialString, width = 200) {
 		var tagOK = getResourceString("ButtonOK",     "&OK");
-		var tagNG = getResourceString("ButtonCancel", "ã‚­ãƒ£ãƒ³ã‚»ãƒ«");
+		var tagNG = getResourceString("ButtonCancel", "¥­¥ã¥ó¥»¥ë");
 		super.WIN32GenericDialogEX(%[ title:caption, width:width, itemtexts:%[ IDOK=>tagOK, IDCANCEL=>tagNG ] ]);
 
 		addLText(prompt);
@@ -18,8 +18,8 @@ class        _System_inputString_Dialog extends WIN32GenericDialogEX {
 	function finalize() {
 		super.finalize(...);
 	}
-	function getResourceString (name, def) { return def; } // [TODO] ãƒªã‚½ãƒ¼ã‚¹ãªã©ã§ãƒœã‚¿ãƒ³ã®æ–‡è¨€ã‚’å·®ã—æ›¿ãˆã‚‰ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹
-	function getResourceInteger(name, def) { return def; } // [TODO] ãƒªã‚½ãƒ¼ã‚¹ãªã©ã§ãƒœã‚¿ãƒ³ã®æ–‡è¨€ã‚’å·®ã—æ›¿ãˆã‚‰ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹
+	function getResourceString (name, def) { return def; } // [TODO] ¥ê¥½©`¥¹¤Ê¤É¤Ç¥Ü¥¿¥ó¤ÎÎÄÑÔ¤ò²î¤·Ìæ¤¨¤é¤ì¤ë¤è¤¦¤Ë¤¹¤ë
+	function getResourceInteger(name, def) { return def; } // [TODO] ¥ê¥½©`¥¹¤Ê¤É¤Ç¥Ü¥¿¥ó¤ÎÎÄÑÔ¤ò²î¤·Ìæ¤¨¤é¤ì¤ë¤è¤¦¤Ë¤¹¤ë
 	function open() {
 		var r = super.open(...);
 		if (r.result == IDOK) return (string)r.items.Input;
@@ -28,6 +28,11 @@ class        _System_inputString_Dialog extends WIN32GenericDialogEX {
 &System.inputString = function { // caption, prompt, initialString
 	var dialog = new _System_inputString_Dialog(...);
 	var result = dialog.open(null);
+	invalidate dialog;
+	return result;
+} incontextof global;
+
+);
 	invalidate dialog;
 	return result;
 } incontextof global;

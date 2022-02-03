@@ -1,0 +1,5159 @@
+//==============================================================================
+// screenCgmodeReplay.tjs
+//
+//								CG MODE&REPLAY画面クラス
+//
+//														2010/1/21 K.Uchino
+//										Copyright 2009 (C) NanoMicron/Parasol
+//
+//==============================================================================
+
+/*-----------------------------------------
+■ CustomSoundBufferクラス 
+石坂君のもらって、改変したもの
+-----------------------------------------*/
+class CustomSoundBuffer extends WaveSoundBuffer {
+
+	var playIndex    = 0;	//現在のINDEX
+	
+	var loopList     = 0;	//ループリスト
+	
+	var shuffle      = 0;	//シャッフルフラグ
+	
+	var shuffleList  = [];	//シャッフルリスト
+	
+	var playFileName;		//楽曲リスト
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function CustomSoundBuffer( win )
+	{
+		super.WaveSoundBuffer(win);
+		
+		//FILE NAME配列の作成
+		playFileName = new Array();
+		
+		//CSV FILEの読み込み
+		var filelist = LoadCSVFile( nMUSIC_MODE_LIST );
+		
+		//ファイルリストを使用状態に格納する
+		for(var i=0; i<filelist.count; i++)
+		{
+			//使用リストに格納
+			playFileName.add( filelist[i][0] );
+			
+			//拡張子チェック
+			if( playFileName[ playFileName.count-1 ].indexOf(".ogg") != -1 )continue;
+			
+			//拡張子を加えておく
+			playFileName[ playFileName.count-1 ] += ".ogg";
+			
+		}
+		
+		//Utilityで確保した配列を削除
+		invalidate filelist;
+		
+		reset();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デストラクタ
+	-----------------------------------------*/
+	function finalize() {
+
+		super.finalize(...);
+		
+		invalidate playFileName;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ リセット関数
+	-----------------------------------------*/
+	function reset()
+	{
+		playIndex = 0;
+		loopList  = 0;
+		shuffle   = 0;
+		
+		//停止
+		super.stop();
+		//一時停止解除
+		super.paused = 0;
+		
+		//ボリューム設定
+		super.volume  = s.bgm_vol * 1000;
+		super.volume2 = 100000;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 再生関数
+	-----------------------------------------*/
+	function playing(index)
+	{
+		super.stop();
+		
+		super.open(playFileName[ index ]);
+		
+		this.flags[0] = 1;
+		
+		super.play();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ シャッフル
+	-----------------------------------------*/
+	function createShuffle()
+	{
+		var list = [], i;
+		
+		for (i = 0; i < playFileName.count; i++) 
+		{//最初に0-21までの数を詰める
+			list[i] = i;
+		}
+		
+		//ランダムジェネレータを作成
+		var rand = new Math.RandomGenerator();
+		
+		for (i = 0; i < playFileName.count; i++) 
+		{//ランダムジェネレータを使用してランダム数を発生させる
+			var SetIndex = (rand.random32() % (playFileName.count-i));
+			
+			//シャッフルリストに追加
+			shuffleList[i] = list[SetIndex];
+			
+			//元リストから要素を削除する
+			list.erase(SetIndex);
+			
+		}
+		
+		return;
+	}
+}
+
+
+
+
+
+
+
+
+
+class _CGREPLAYMODE extends BaseObject {
+	
+	/*-----------------------------------------
+	■ パラメータ各種
+	-----------------------------------------*/
+	var TitleBg;		//タイトル画面背景
+	
+	var BaseBg;			//ベース背景
+	
+	var ThumBase;		//サムネイルベース
+	
+	var ScrollBase;		//スクロール用ベース
+	
+	var CgViewList;		//CG画像配列
+	
+	var ThumbnailLayer;	//サムネイルレイヤ
+	
+	var ScType;			//画面タイプ
+	
+	var PageLayer;		//PAGE 配列	
+	
+	var PageBgLayer;	//PAGE 背景
+	
+	var SpecialParts;	//パーツレイヤ
+	
+	var ThumParts;		//サムネイルパーツ
+	
+	var BarParts;		//バーパーツ
+	
+	var CommonParts;	//共通ボタンパーツ
+	
+	var CharButtonParts;//キャラボタンパーツ
+	
+	var ModeButton;		//画面モードボタン
+	
+	var ReturnButton;			//戻るボタン
+	
+	var CgCursor;				//CG カーソルレイヤ
+	
+	var CharPageButton;			//キャラクターページボタン
+	
+	var CgScreen;				//CG MDOE描画用レイヤ
+	
+	var CgScreenPrev;			//CG MDOE描画用レイヤ
+	
+	var MusicPlayer;			//MUSIC BAR
+	
+	var PlayListButton;			//プレイリストボタン
+	
+	var SelectMusicNameLayer;	//選択曲名レイヤー
+	
+	var MusicButton;			//MUSIC ボタン
+	
+	var ListParts;				//MUSIC リストパーツ
+	
+	var MusicListBord;			//MusicListBord レイヤー
+	
+	var MusicList;				//Music List用
+	
+	var MusicParts;				//Music Parts
+	
+	var MusicSelectCursor;		//曲名選択カーソル
+	
+	var MusicStatusCheck;		//音楽再生状況チェック
+	
+	var MapRes;					//マップレジスタ
+	
+	var PrevRes;				//マップレジスタ
+	
+	var ListMapReg;				//マップレジスタ
+	
+	var ListPrevReg;			//マップレジスタ
+	
+	var CharPage;				//現在のキャラクターページ
+	
+	var Page;					//現在のページ
+	
+	var ListMode;				//リスト表示・非表示
+	
+	var RepeatMode;				//リピートモード
+	
+	var PlayerAction;			//リスト表示・非表示フラグ
+	
+	var ThumbnailParts;			//サムネイル 画像
+	
+	var ThumbnailDrawFlag;		//サムネイル フラグ
+	
+	var CgDrawArray;			//CG 描画配列
+	
+	var ChkFlagArray;			//FLAG判定用配列
+	
+	var CgViewEnd;				//CG 描画終了フラグ
+	
+	var CgViewCount;			//描画するCG枚数
+	
+	var ScrollCgFlag;			//描画するCGがスクロールＣＧか
+	
+	var UpDownScroll;			//スクロール上下
+	
+	var SideScroll;				//スクロール左右
+	
+	var ScrollTimer;			//スクロールタイマー
+	
+	var MoveTimer;				//MOVE タイマー
+	
+	var MusicPlay;				//再生中かの判定フラグ
+	
+	var NowSelectMusic;			//現在選択済み音楽番号
+	
+	var SuffuleMode;			//シャッフルモードフラグ
+	
+	var MusicPlayerObj;			//ミュージックプレイヤーオブジェクト
+	
+	var SuffleCount;			//シャッフルカウント
+	
+	var ReplayFile;				//リプレイファイル
+	
+	var DebugFlag;				//デバッグフラグ
+	
+	var CgSizeFlag;				//通常サイズが大きいサイズか
+	
+	var WheelControl;			//ホイール抑制フラグ
+	
+	var BarFrame;				//バー
+	
+	var UpDateMoveValue;		//更新値
+	
+	var UpDateLine;				//更新可能数
+	
+	var CursorMove;				//移動フラグ
+	
+	var DebugOpen;				//デバッグオープンフラグ
+	
+	var nCURSOR_TOP = 58;		//カーソルトップ
+	
+	var nCURSOR_DOWN= 613;		//カーソルダウン
+	
+	var nTHUMB_VALUE= 175;		//サムネイルの行間
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ コンストラクタ
+	-----------------------------------------*/
+	function _CGREPLAYMODE(win, pri, type, recreate = false)
+	{
+		//タイマー停止
+		win.DefaultTimer.enabled = false;
+		
+		super.BaseObject(win, pri);
+		
+		win.ChangeActive(this);
+		
+		//bgmを止めるよ
+		win.BgmObj.FileStop();
+		
+		
+		ScType    = type;
+		
+		var page_max;
+		
+		TitleBg = new BaseLayer(win, pri, 0, 0, 0, 0, "frm_config00.png");
+		
+		//ファイルを読み込む
+		if(ScType == nCGMODE_SC){
+		//CG MODE
+			BaseBg  = new BaseLayer(win,pri,0,0,0,0,"frm_special01");
+			page_max= nCGMODE_THUM_PAGEMAX;
+		}else{
+		//REPLAY MODE
+			BaseBg = new BaseLayer(win,pri,0,0,0,0,"frm_special02");
+			//page_max= nREPLAY_THUM_PAGEMAX;
+		}
+		
+		//最大値に合わせる
+		page_max = nCGMODE_THUM_PAGEMAX;
+		
+		//クリックマップを読み込む
+		BaseBg.loadProvinceImage("special_map.png");
+		
+		//ベースを作成
+		ThumBase  = new BaseLayer(win,pri,6,135,1239,530);
+		
+		ScrollBase= new BaseLayer(win,ThumBase,0,0,1239,1575);
+		
+		ScrollBase.loadProvinceImage("thumscroll_map.png");
+		
+		ScrollBase.visible = true;
+		
+		
+		//配列オブジェクト
+		CgViewList        = new Array();
+		
+		ThumbnailLayer    = new Array();
+		
+		PageLayer         = new Array();
+		
+		MusicButton       = new Array();
+		
+		CharPageButton    = new Array();
+		
+		CgDrawArray       = void;
+		
+		ChkFlagArray      = void;
+		
+		ThumbnailDrawFlag = new Array();
+		
+		//パーツレイヤ
+		SpecialParts      = new BaseLayer(win, pri,0,0,0,0,"frm_special03");
+		
+		ThumParts         = new BaseLayer(win, pri,0,0,0,0,"frm_special09");
+		
+		BarParts          = new BaseLayer(win, pri,0,0,0,0,"frm_special10");
+		
+		CommonParts       = new BaseLayer(win, pri,0,0,0,0,"frm_special11");
+		
+		CharButtonParts   = new BaseLayer(win, pri,0,0,0,0,"frm_special12");
+		
+		BarFrame          = new BaseLayer(win, pri,1253,58,26,60);
+		
+		BarFrame.copyRect(0,0,BarParts,0,0);
+		
+		SpecialParts.visible    = false;
+		
+		ThumParts.visible       = false;
+		
+		BarParts.visible        = false;
+		
+		CommonParts.visible     = false;
+		
+		CharButtonParts.visible = false;
+		
+		
+		
+		
+		
+		//サムネイルレイヤ
+		for(var i=0; i<page_max; i++){
+			
+			var x, y;
+			
+			x = ((i % nLINE_THUM_NUM ) < 3) ? (310*( i % nLINE_THUM_NUM )) : (310*( i % nLINE_THUM_NUM ))+1;
+			y = (i \ nLINE_THUM_NUM ) * 176;
+			
+			//サムネイルレイヤを作成
+			ThumbnailLayer.add(new BaseLayer(win, ScrollBase, x,y,ThumParts.width,ThumParts.height));
+			
+			ThumbnailLayer[i].copyRect(0,0,ThumParts,0,0);
+		}
+		
+		
+		
+		
+		//サムネイルパーツ サイズ確定用に１枚入れておく
+		ThumbnailParts = new BaseLayer(win, pri, 0, 0, 0, 0, "char01_page01_thm.png");
+		
+		ThumbnailParts.visible = false;
+		
+		
+		//RETURN ボタン
+		ReturnButton = new BaseLayer(win, pri, 1112,4,124,48);
+		
+		ReturnButton.copyRect(0,0,CommonParts ,ReturnButton.width*2,0);
+		
+		//キャラクターページボタンの作成
+		for(var i=0; i<6; i++){
+			
+			var x,srcx,srcy;
+			
+			switch(i){
+			case 0:{
+				x    = 164;
+			}break;
+			case 1:{
+				x    = 344;
+			}break;
+			case 2:{
+				x    = 524;
+			}break;
+			case 3:{
+				x    = 704;
+			}break;
+			case 4:{
+				x    = 884;
+			}break;
+			case 5:{
+				x    = 1064;
+			}break;
+			}
+			
+			CharPageButton[i] = new BaseLayer(win,pri,x,67,178,58);
+			
+			if( i == 4 ){
+				if( s["CHAR_E_OPEN"] == true ){
+					srcx = (i+1) * CharPageButton[i].width;
+				}else{
+					srcx = i * CharPageButton[i].width;
+				}
+			}else if( i == 5 ){
+				srcx = (i+1) * CharPageButton[i].width;
+			}else{
+				srcx = i * CharPageButton[i].width;
+			}
+			
+			CharPageButton[i].copyRect(0,0,CharButtonParts, srcx, 0 );
+			
+		}
+		
+		
+		//キャラクターは０から
+		CharPage = 0;
+		
+		//リプレイの復帰からだとキャラページからの復帰
+		if(recreate){
+			CharPage = win.ReplayChar;
+		}
+		
+		
+		//MODE ボタンレイヤー
+		ModeButton = new BaseLayer(win, pri, 984, 4, 124, 48);
+		
+		if(ScType == nCGMODE_SC){
+		//CG MODE
+			ModeButton.copyRect(0,0,CommonParts,0,0);
+		}else{
+		//REPLAY
+			ModeButton.copyRect(0,0,CommonParts,ModeButton.width,0);
+		}
+		
+		
+		//カーソルレイヤー
+		CgCursor = new BaseLayer(win, ScrollBase, 0, 0, 0, 0,"frm_special08");
+		
+		CgCursor.visible = false;
+		
+		
+		//ミュージックプレイヤーオブジェクト
+		MusicPlayerObj = new CustomSoundBuffer(win);
+		
+		//*
+		
+		//Music List Parts
+		ListParts = new BaseLayer(win, pri, 0,0,0,0,"frm_special04");
+		
+		ListParts.visible = false;
+		
+		
+		
+		
+		
+		//MusicListBord レイヤー
+		MusicListBord = new BaseLayer(win, pri, 0,win.WndScreenY,0,0, "frm_special06");
+		
+		MusicListBord.visible = false;
+		
+		MusicListBord.loadProvinceImage("musicmode_map.png");
+		
+		
+		//Music Parts
+		MusicParts  = new BaseLayer(win, pri, 0, 0, 0, 0 ,"frm_special05");
+		
+		MusicParts.visible = false;
+		
+		
+		
+		
+		//MusicList
+		MusicList = new BaseLayer(win, MusicListBord, 0, 0, win.WndScreenX,win.WndScreenY);
+		
+		MusicList.fillRect(0,0,win.WndScreenX,win.WndScreenY, 0);
+		
+		MusicList.visible = true;
+		
+		//Listを貼り付ける
+		for(var i=0; i<MusicPlayerObj.playFileName.count; i++){
+			
+			var DstX = 0;
+			var DstY = ( i != 0 ) ? 64+(32*(i%19)) : 64;
+			var SrcX = 0;
+			var SrcY = i*32;
+			
+			if(i < 19){
+				DstX = 112;
+			}else{
+				DstX = 747;
+			}
+			
+			//フラグ判定 ????にする
+			if(
+				((i == 18) && (s["bgm019"] != true))  || ((i == 23) && (s["bgm024"] != true)) || 
+				((i == 24) && (s["bgm025"] != true))  ||
+				((i == 27) && (s["CLEAR_A"] != true)) || ((i == 28) && (s["CLEAR_A"] != true))|| 
+				((i == 29) && (s["CLEAR_B"] != true)) || ((i == 30) && (s["CLEAR_B"] != true))|| 
+				((i == 31) && (s["CLEAR_C"] != true)) || ((i == 32) && (s["CLEAR_C"] != true))|| 
+				((i == 33) && (s["CLEAR_D"] != true)) || ((i == 34) && (s["CLEAR_D"] != true))|| 
+				((i == 35) && (s["CLEAR_E"] != true)) || ((i == 36) && (s["CLEAR_E"] != true))
+			){
+				SrcY = 37*32;
+			}
+			
+			
+			
+			MusicList.copyRect(DstX, DstY, MusicParts, 0, SrcY, 416, 32);
+			
+		}
+		
+		
+		//*/
+		
+		//MusicPlayer レイヤー
+		MusicPlayer    = new BaseLayer(win, pri, 0, 674, 0, 0 ,"frm_special07");
+		
+		//プレイリストレイヤ
+		PlayListButton = new BaseLayer(win, MusicPlayer, 571, 4, 110, 40);
+		
+		PlayListButton.copyRect(0, 0, SpecialParts, 0, 0);
+		
+		
+		//選択曲名レイヤー
+		SelectMusicNameLayer = new BaseLayer(win, MusicPlayer, 155, 10, 330, 30);
+		
+		SelectMusicNameLayer.fillRect(0,0,SelectMusicNameLayer.width,SelectMusicNameLayer.height,0);
+		
+		//プレイヤーボタン
+		for(var i=0; i<6; i++){
+			var x, y, srcx, srcy,wid,hei;
+			
+			switch(i){
+				case 0:{//prev
+					x   = 699;
+					y   = 4;
+					srcx= 298;
+					srcy= 0;
+					wid = 78;
+					hei = 40;
+				}break;
+				case 1:{//play or pause
+					x   = 795;
+					y   = 4;
+					srcx= 110;
+					srcy= 0;
+					wid = 94;
+					hei = 40;
+				}break;
+				case 2:{//stop
+					x   = 907;
+					y   = 4;
+					srcx= 376;
+					srcy= 0;
+					wid = 78;
+					hei = 40;
+				}break;
+				case 3:{//next
+					x   = 1003;
+					y   = 4;
+					srcx= 454;
+					srcy= 0;
+					wid = 78;
+					hei = 40;
+				}break;
+				case 4:{//repeat
+					x   = 1099;
+					y   = 4;
+					srcx= 532;
+					srcy= 0;
+					wid = 78;
+					hei = 40;
+				}break;
+				case 5:{//shuffle
+					x   = 1195;
+					y   = 4;
+					srcx= 610;
+					srcy= 0;
+					wid = 78;
+					hei = 40;
+				}break;
+			}
+			
+			//音楽プレイヤーボタン
+			MusicButton[i] = new BaseLayer(win, MusicPlayer, x, y, wid, hei);
+			
+			MusicButton[i].copyRect(0,0, SpecialParts, srcx,srcy,wid, hei);
+			
+		}
+		
+		
+		
+		
+		//*/
+		
+		//CG MODE描画用のレイヤ
+		CgScreen = new BaseLayer(win, pri, 0, 0, win.WndScreenX,win.WndScreenY);
+		
+		CgScreen.visible = false;
+		
+		//スクロールタイマー
+		ScrollTimer = new Timer(ScrollMove, "");
+		
+		ScrollTimer.interval = 16;
+		
+		ScrollTimer.enabled  = false;
+		
+		//プレイリストタイマー
+		MoveTimer   = new Timer(ListMoveFunc, "");
+		
+		MoveTimer.interval = 16;
+		
+		MoveTimer.enabled  = false;
+		
+		
+		
+		//画面作成関数
+		ScreenCreate( type );
+		
+		//MusicStatusCheck
+		MusicStatusCheck = new Timer(MusicStatusCheckFunc, "");
+		
+		MusicStatusCheck.interval = 16;
+		
+		MusicStatusCheck.enabled  = false;
+		
+		
+		//パラメータ初期化
+		PrevRes = MapRes = 0;
+		
+		PlayerAction   = MusicPlay = RepeatMode = SuffuleMode = 0;
+		
+		ReplayFile     = "";
+		
+		NowSelectMusic = 0;
+		
+		SuffleCount    = 0;
+		
+		//最初に曲選択をしておく
+		MusicCursorMoveFunc( true );
+		
+		win.ChangeActive(this);
+		
+		//CG&REPLAY描画時の音声再生
+		if(s["system"] == true) {
+			var file = "";
+			if(ScType == nCGMODE_SC){
+			//CG MODE
+				file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_CGMODECALL + ".ogg";
+			}else if(recreate == false){
+			//REPLAY は画面復帰時は再生しないよ
+				file = nSYSTEM_VOICE_HEADER + getCharID(s["sys_char_id"]) + nSYS_REPLAYCALL + ".ogg";
+			}
+			
+			//SYSTEM音声を再生する
+			if(file != "")win.SystemObj.FilePlay(file);
+		}
+		
+		//タイマー再開
+		win.DefaultTimer.enabled = true;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ デストラクタ
+	-----------------------------------------*/	
+	function finalize() 
+	{
+		invalidate TitleBg;
+		
+		invalidate BaseBg;
+		
+		invalidate CgViewList;
+		
+		for(var i=0; i<ThumbnailLayer.count; i++){
+			if(ThumbnailLayer[i] !== void)invalidate ThumbnailLayer[i];
+		}
+		
+		for(var i=0; i<PageLayer.count; i++){
+			if(PageLayer[i] !== void)invalidate PageLayer[i];
+		}
+		
+		for(var i=0; i<MusicButton.count; i++){
+			if(MusicButton[i] !== void)invalidate MusicButton[i];
+		}
+		
+		for(var i=0; i<CharPageButton.count; i++){
+			if(CharPageButton[i] !== void)invalidate CharPageButton[i];
+		}
+		
+		invalidate ThumbnailDrawFlag;
+		
+		invalidate SpecialParts;
+		
+		invalidate PageBgLayer;
+		
+		invalidate ThumbnailParts;
+		
+		invalidate ReturnButton;
+		
+		invalidate ModeButton;
+		
+		invalidate CgCursor;
+		
+		invalidate MusicPlayer;
+		
+		invalidate PlayListButton;
+		
+		invalidate SelectMusicNameLayer;
+		
+		invalidate CgScreen;
+		
+		invalidate ListParts;
+		
+		invalidate MusicStatusCheck;
+		
+		invalidate MusicPlayerObj;
+		
+		invalidate MoveTimer;
+		
+		invalidate MusicListBord;
+		
+		invalidate MusicList;
+		
+		invalidate MusicParts;
+		
+		invalidate ThumParts;
+		
+		invalidate BarParts;
+		
+		invalidate CommonParts;
+		
+		invalidate CharButtonParts;
+		
+		invalidate BarFrame;
+		
+		invalidate ThumBase;
+		
+		invalidate ScrollBase;
+		
+		//SYSTEM音声を停止しておく
+		MainWnd.SystemObj.FileStop();
+		
+		super.finalize(...);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ MODE変更関数
+	-----------------------------------------*/
+	function ModeChange()
+	{
+		//MODE 変更
+		ScType = !ScType;
+		
+		//MODE CHANGEした場合は 最初のページに戻る
+		MainWnd.ReplayPage = 0;
+		
+		MainWnd.ReplayChar = 0;
+		
+		//ファイルを読み込む
+		if(ScType == nCGMODE_SC){
+			BaseBg.loadImages("frm_special01");
+		}else {
+			BaseBg.loadImages("frm_special02");
+		}
+		
+		BaseBg.loadProvinceImage("special_map.png");
+		
+		//CG SIZEフラグを戻しておく
+		CgSizeFlag   = false;
+		
+		//抑制フラグを解除
+		WheelControl = false;
+		
+		ScreenCreate( ScType );
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 画面作成関数
+	-----------------------------------------*/
+	function ScreenCreate(type)
+	{
+		if( type == false )
+		{//CG MODE
+			
+			//ページをクリアしておく
+			MainWnd.ReplayPage = 0;
+			
+			MainWnd.ReplayChar = 0;
+			
+			//キャラボタンを書き換えて表示しておく
+			for(var i=0; i<CharPageButton.count; i++){
+				
+				var srcx = 0;
+				
+				if( i == 4 ){
+					if( s["CHAR_E_OPEN"] == true ){
+						srcx = (i+1) * CharPageButton[i].width;
+					}else{
+						srcx = i * CharPageButton[i].width;
+					}
+				}else if( i == 5 ){
+					srcx = (i+1) * CharPageButton[i].width;
+				}else{
+					srcx = i * CharPageButton[i].width;
+				}
+				
+				CharPageButton[i].copyRect(0,0,CharButtonParts, srcx, 0 );
+				
+				CharPageButton[i].visible = true;
+			}
+			
+			//MODE 変更ボタン
+			ModeButton.copyRect(0,0,CommonParts,0,0);
+			
+			//スタートは１ページから
+			PageCreate( 0 );
+			
+		}else{
+		//REPLAY MODE
+			
+			//MODE 変更ボタン
+			ModeButton.copyRect(0,0,CommonParts,ModeButton.width,0);
+			
+			//キャラボタンを書き換えて表示しておく
+			for(var i=0; i<CharPageButton.count; i++){
+				
+				var srcx = 0;
+				var srcy = 0;
+				
+				if( i == 4 ){
+					
+					if( s['dicReplayFlagE1'] == false ){
+						
+						srcy = CharPageButton[i].height * 3;
+						
+						if(CharPage == 4){
+							
+							Page     = 0;
+							
+							CharPage = 0;
+						}
+					}
+					
+					if( s["CHAR_E_OPEN"] == true ){
+						srcx = (i+1) * CharPageButton[i].width;
+					}else{
+						srcx = i * CharPageButton[i].width;
+					}
+				}else if( i == 5 ){
+					srcx = (i+1) * CharPageButton[i].width;
+				}else{
+					srcx = i * CharPageButton[i].width;
+				}
+				
+				CharPageButton[i].copyRect(0,0,CharButtonParts, srcx, srcy );
+			}
+			
+			//その他は表示させない
+			CharPageButton[5].visible = false;
+			//奈乃花に戻す
+			if(CharPage == 5){
+				Page     = 0;
+							
+				CharPage = 0;
+			}
+			
+			
+			//スタートは１ページから or リプレイ復帰はそのページから
+			PageCreate( MainWnd.ReplayPage );
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ページ作成ボタン
+	-----------------------------------------*/
+	function PageCreate( page )
+	{
+		//ページ番号保存
+		Page = page;
+		
+		var srcx;
+		var page_max;
+		
+		if(ScType == nCGMODE_SC){
+			srcx     = 0;
+			page_max = nCGMODE_THUM_PAGEMAX;
+		}else{
+			srcx     = ThumbnailLayer[0].width;
+			page_max = nREPLAY_THUM_PAGEMAX;
+		}
+		
+		//INDEX と サムネイル をクリアする
+		for (var i=0; i<page_max; i++){
+			
+			ThumbnailDrawFlag[i] = 0;
+			
+			ThumbnailLayer[i].copyRect(0,0,ThumParts,0,0);
+			
+			//一度非表示にしておく
+			ThumbnailLayer[i].visible = false;
+		}
+		
+		
+		
+		//配列を初期化
+		if(CgDrawArray !== void)invalidate CgDrawArray;
+		
+		//配列を作成
+		CgDrawArray      = new Array();
+		
+		//カーソルを消しておく
+		CgCursor.visible = false;
+		
+		PrevRes          = 0;
+		
+		//FLAG判定用配列
+		if(ChkFlagArray !== void)invalidate ChkFlagArray;
+		
+		ChkFlagArray = new Array();
+		
+		//Debug用フラグ
+		DebugOpen = false;
+		
+		
+		//スクロール台紙を先頭に戻す
+		ScrollBase.top = 0;
+		
+		BarFrame.top   = nCURSOR_TOP;
+		
+		if(ScType == nCGMODE_SC){
+		//CG MODE
+			
+			//キャラクターページ
+			switch( CharPage )
+			{
+				case 0:
+				{//奈乃花
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,0, CharPageButton[CharPage].height*2 );
+					
+					//ページを表示する
+					/*
+					for(var i=0; i<nGGMODE_CHAR01_PAGE; i++){
+						
+						//PAGE03 は extra01 ～ extra02 のどれかあれば表示
+						if (
+							(i == 2) &&
+							(!ResourceCheck(nEXTRAFILE01)) &&
+							(!ResourceCheck(nEXTRAFILE02))
+						){
+							PageLayer[i].visible = false;
+						}else{
+							PageLayer[i].visible = true;
+						}
+					}
+					*/
+					
+					//ページ毎の処理
+					switch( Page )
+					{
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR01_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR01_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR01_PAGE01_RESFILE );
+							
+							//フラグ判定関数を呼び出す
+							for (var i=0; i<ChkFlagArray.count; i++){
+								//追加パッチチェック
+								switch(i){
+								case 22:
+								case 23:{
+									//EH_A09
+									//EH_A10
+									if(!ResourceCheck(nEXTRAFILE01))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							
+						}break;
+						
+						case 1:
+						{//2ページ目
+							/*
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR01_PAGE02_THUM_FILE );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR01_PAGE02_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR01_PAGE02_RESFILE );
+							
+							//フラグ判定関数を呼び出す
+							for (var i=0; i<ChkFlagArray.count; i++){
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+						
+						case 2:
+						{//3ページ目
+							//サムネイル 画像を読み込む
+							//ThumbnailParts.loadImages( nGGMODE_CHAR01_PAGE03_THUM_FILE );
+							
+							/*
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR01_PAGE03_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR01_PAGE03_RESFILE );
+							
+							//フラグ判定関数を呼び出す
+							for (var i=0; i<ChkFlagArray.count; i++){
+							{
+								//追加パッチチェック
+								switch(i){
+								case 0:
+								case 1:{//EH_A09
+										//EH_A10
+									if(!ResourceCheck(nEXTRAFILE01))continue;
+								}break;
+								case 2:
+								case 3:{//EH_A11
+										//EH_A12
+									if(!ResourceCheck(nEXTRAFILE02))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+							
+						}break;
+					}
+					
+				}break;
+				case 1:{
+				//このみ
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nGGMODE_CHAR02_PAGE; i++){
+						
+						//PAGE03 は extra03 のどれかあれば表示
+						if (
+							(i == 2) && (!ResourceCheck(nEXTRAFILE03))
+						){
+							PageLayer[i].visible = false;
+						}else{
+							PageLayer[i].visible = true;
+						}
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page)
+					{
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR02_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR02_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR02_PAGE01_RESFILE );
+							
+							//フラグ判定関数を呼び出す
+							for (var i=0; i<ChkFlagArray.count; i++){
+								//追加パッチチェック
+								switch(i){
+								case 24:
+								case 25:{//EH_B09
+										//EH_B10
+									if(!ResourceCheck(nEXTRAFILE02))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+						case 1:
+						{//2ページ目
+							/*
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR02_PAGE02_THUM_FILE );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR02_PAGE02_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR02_PAGE02_RESFILE );
+							
+							//フラグ判定関数を呼び出す
+							for (var i=0; i<ChkFlagArray.count; i++){
+									FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+						case 2:
+						{//3ページ目
+							//サムネイル 画像を読み込む
+							//ThumbnailParts.loadImages( nGGMODE_CHAR02_PAGE03_THUM_FILE );
+							/*
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR02_PAGE03_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR02_PAGE03_RESFILE );
+							
+							//フラグ判定関数を呼び出す
+							for (var i=0; i<ChkFlagArray.count; i++){
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+					}
+				}break;
+				case 2:{
+				//花梨
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*2, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nGGMODE_CHAR03_PAGE; i++){
+						
+						//PAGE03 は extra05 のどれかあれば表示
+						if (
+							(i == 2) && (!ResourceCheck(nEXTRAFILE05))
+						){
+							PageLayer[i].visible = false;
+						}else{
+							PageLayer[i].visible = true;
+						}
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR03_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR03_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR03_PAGE01_RESFILE );
+							
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								//追加パッチチェック
+								switch(i){
+								case 20:
+								case 21:{
+									//EH_C08
+									//EH_C09
+									if(!ResourceCheck(nEXTRAFILE03))continue;
+								}break;
+								}
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+						case 1:
+						{//2ページ目
+							/*
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR03_PAGE02_THUM_FILE );
+							
+							//パッチのサムネイルを追加する
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR03_PAGE02_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR03_PAGE02_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 9:  //EH_C10
+								case 10:{//EH_C11
+									if( !ResourceCheck(nEXTRAFILE04) )continue;
+								}break;
+								case 11:{//EH_C12
+									if( !ResourceCheck(nEXTRAFILE05) )continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+						case 2:
+						{//3ページ目
+							//サムネイル 画像を読み込む
+							//ThumbnailParts.loadImages( nGGMODE_CHAR03_PAGE03_THUM_FILE );
+							/*
+							//パッチのサムネイルを追加する
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR03_PAGE03_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR03_PAGE03_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+					}
+					
+				}break;
+				case 3:{
+				//雨音
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*3, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nGGMODE_CHAR04_PAGE; i++){
+						
+						//PAGE03 は extra07 のどれかあれば表示
+						if (
+							(i == 2) && (!ResourceCheck(nEXTRAFILE07))
+						){
+							PageLayer[i].visible = false;
+						}else{
+							PageLayer[i].visible = true;
+						}
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR04_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR04_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR04_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 17:  
+								case 18:{
+								//EH_D08
+								//EH_D09
+									if( !ResourceCheck(nEXTRAFILE04) )continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+						case 1:
+						{//2ページ目
+							/*
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR04_PAGE02_THUM_FILE );
+							
+							//パッチ追加サムネイルを追加する
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR04_PAGE02_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR04_PAGE02_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 9://EH_D10
+								case 10:{//EH_D11
+									if(!ResourceCheck(nEXTRAFILE06))continue;
+								}break;
+								case 11:{//EH_D12
+									if(!ResourceCheck(nEXTRAFILE07))continue;
+								}break;
+								}
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+						case 2:
+						{//3ページ
+							/*
+							//パッチのサムネイルを追加する
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR04_PAGE03_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR04_PAGE03_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+					}
+					
+				}break;
+				case 4:{
+				//彩菜
+					
+					//選択キャラクターを点灯させる
+					if( s["CHAR_E_OPEN"] == false ){
+						CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*4, CharPageButton[CharPage].height*2 );
+					}else{
+						CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*5, CharPageButton[CharPage].height*2 );
+					}
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nGGMODE_CHAR05_PAGE; i++){
+						
+						PageLayer[i].visible = true;
+						
+						//PAGE02 は extra08 ～ extra09 のどれかあれば表示
+						if (
+							(i == 1) &&
+							(!ResourceCheck(nEXTRAFILE08)) &&
+							(!ResourceCheck(nEXTRAFILE09))
+						){
+							PageLayer[i].visible = false;
+						}
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR05_PAGE01_THUM_FILE );
+							
+							//パッチ追加処理
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR05_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR05_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+						case 1:
+						{//2ページ目
+							//サムネイル 画像を読み込む
+							//ThumbnailParts.loadImages( nGGMODE_CHAR05_PAGE02_THUM_FILE );
+							/*
+							//■パッチ追加分
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR05_PAGE02_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR05_PAGE02_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 0://EH_E05
+									//パッチ確認
+									if(!ResourceCheck(nEXTRAFILE08))continue;
+								break;
+								case 1://EV_F01
+								case 2://EV_F02
+								case 3://SD_F01
+								case 4://EH_F01
+								case 5://EH_F02
+								case 6://EH_F03
+								case 7://EH_F04
+								case 8://EH_F05
+									if(!ResourceCheck(nEXTRAFILE09))continue;
+								break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+						case 2:
+						{//3ページ目
+							/*
+							//サムネイル 画像を読み込む
+							//ThumbnailParts.loadImages( nGGMODE_CHAR05_PAGE03_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR05_PAGE03_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR05_PAGE03_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 0:{
+								//EH_I05
+									if(!ResourceCheck(nEXTRAFILE06))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+					}
+				}break;
+				case 5:{
+				//その他
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*6, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nGGMODE_CHAR05_PAGE; i++){
+						
+						PageLayer[i].visible = true;
+						
+						//PAGE02 は extra08 ～ extra09 のどれかあれば表示
+						if (
+							(i == 1) &&
+							(!ResourceCheck(nEXTRAFILE08)) &&
+							(!ResourceCheck(nEXTRAFILE09))
+						){
+							PageLayer[i].visible = false;
+						}
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nGGMODE_CHAR06_PAGE01_THUM_FILE );
+							
+							//パッチ追加処理
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR06_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR06_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+						case 1:
+						{//2ページ目
+							//サムネイル 画像を読み込む
+							//ThumbnailParts.loadImages( nGGMODE_CHAR05_PAGE02_THUM_FILE );
+							/*
+							//■パッチ追加分
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR05_PAGE02_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR05_PAGE02_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 0://EH_E05
+									//パッチ確認
+									if(!ResourceCheck(nEXTRAFILE08))continue;
+								break;
+								case 1://EV_F01
+								case 2://EV_F02
+								case 3://SD_F01
+								case 4://EH_F01
+								case 5://EH_F02
+								case 6://EH_F03
+								case 7://EH_F04
+								case 8://EH_F05
+									if(!ResourceCheck(nEXTRAFILE09))continue;
+								break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+						case 2:
+						{//3ページ目
+							/*
+							//サムネイル 画像を読み込む
+							//ThumbnailParts.loadImages( nGGMODE_CHAR05_PAGE03_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nGGMODE_CHAR05_PAGE03_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nGGMODE_CHAR05_PAGE03_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 0:{
+								//EH_I05
+									if(!ResourceCheck(nEXTRAFILE06))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							*/
+						}break;
+					}
+				}break;
+			}
+			
+			//DebugFlagを保持しておく
+			DebugOpen = DebugFlag;
+			
+		}else{
+		//REPLAY
+			//キャラクターページとページを保存
+			MainWnd.ReplayPage = Page;
+			
+			MainWnd.ReplayChar = CharPage;
+			
+			//キャラクターページ
+			switch(CharPage){
+				case 0:
+				{//奈乃花
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,0, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nREPLAY_CHAR01_PAGE; i++){
+						PageLayer[i].visible = true;
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nREPLAY_CHAR01_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nREPLAY_CHAR01_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nREPLAY_CHAR01_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 3:{
+								//dicReplayFlagA4
+									if(!ResourceCheck(nEXTRAFILE01))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+					}
+					
+				}break;
+				case 1:{
+				//このみ
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nREPLAY_CHAR02_PAGE; i++){
+						PageLayer[i].visible = true;
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nREPLAY_CHAR02_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nREPLAY_CHAR02_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nREPLAY_CHAR02_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 3:{
+								//dicReplayFlagB4
+									if(!ResourceCheck(nEXTRAFILE02))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+							
+						}break;
+					}
+					
+				}break;
+				case 2:
+				{//花梨
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*2, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nREPLAY_CHAR03_PAGE; i++){
+						PageLayer[i].visible = true;
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nREPLAY_CHAR03_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nREPLAY_CHAR03_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nREPLAY_CHAR03_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 3:{
+								//dicReplayFlagC4
+									if(!ResourceCheck(nEXTRAFILE03))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+					}
+					
+				}break;
+				case 3:{
+				//雨音
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*3, CharPageButton[CharPage].height*2 );
+					
+					/*
+					//ページを表示する
+					for(var i=0; i<nREPLAY_CHAR04_PAGE; i++){
+						PageLayer[i].visible = true;
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nREPLAY_CHAR04_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							//サムネイル 画像を読み込む
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nREPLAY_CHAR04_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nREPLAY_CHAR04_PAGE01_RESFILE );
+							
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 3:{
+								//dicReplayFlagD4
+									if(!ResourceCheck(nEXTRAFILE04))continue;
+								}break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+					}
+					
+				}break;
+				case 4:{
+				//彩菜
+					//選択キャラクターを点灯させる
+					if( s["dicReplayFlagE1"] == false ){
+						CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*4, CharPageButton[CharPage].height*3 );
+					}else if( s["CHAR_E_OPEN"] == false ){
+						CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*4, CharPageButton[CharPage].height*2 );
+					}else{
+						CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*5, CharPageButton[CharPage].height*2 );
+					}
+					
+					//ページを表示する
+					/*
+					for(var i=0; i<nREPLAY_CHAR05_PAGE; i++){
+						PageLayer[i].visible = true;
+					}
+					*/
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+						
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nREPLAY_CHAR05_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nREPLAY_CHAR05_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nREPLAY_CHAR05_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+					}
+				}break;
+				case 5:{
+				//その他
+					/*
+					//選択キャラクターを点灯させる
+					CharPageButton[CharPage].copyRect(0,0,CharButtonParts ,CharPageButton[CharPage].width*6, CharPageButton[CharPage].height*2 );
+					
+					//ページ毎の処理
+					switch(Page){
+						case 0:
+						{//1ページ目
+						
+							//サムネイル 画像を読み込む
+							ThumbnailParts.loadImages( nREPLAY_CHAR06_PAGE01_THUM_FILE );
+							
+							//■パッチ追加分
+							ThumbnailCreate( CharPage, Page );
+							
+							//CSV FILEの読み込み
+							ChkFlagArray = LoadCSVFile( nREPLAY_CHAR06_PAGE01_FLAG );
+							
+							//CSV FILEの読み込み
+							CgDrawArray  = LoadCSVFile( nREPLAY_CHAR06_PAGE01_RESFILE );
+							
+							//フラグ判定
+							for (var i=0; i<ChkFlagArray.count; i++){
+								
+								switch(i){
+								case 0://SD_01
+								case 1://SD_02
+								case 2://SD_04
+								case 3://SD_05
+									//if(!ResourceCheck(nEXTRAFILE08))continue;
+								break;
+								case 4://EH_Z01
+								case 5://EH_Z02
+								case 6://EH_B04
+									//if(!ResourceCheck(nEXTRAFILE09))continue;
+								break;
+								}
+								
+								FlagCheckFunc( i, s[ ChkFlagArray[i][0] ] );
+							}
+						
+						}break;
+					}
+					*/
+				}break;
+			}
+		}
+		
+		
+		//スクロールバー稼働領域の設定
+		if(ChkFlagArray.count <= nSCREEN_THUM_MAX){
+			BarFrame.visible = false;
+		}else{
+			SetScrollBarMove( (((ChkFlagArray.count-nSCREEN_THUM_MAX)\nLINE_THUM_NUM) + (((ChkFlagArray.count-nSCREEN_THUM_MAX)%nLINE_THUM_NUM) ? 1 : 0)) );
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ CG & REPLAY フラグチェック関数
+	----------------------------------------------------------*/
+	function FlagCheckFunc( inx, flag )
+	{
+		if( (DebugFlag == 1) || (flag == 1) )
+		{
+			ThumbnailDraw(inx, true);
+			
+			return true;
+		}
+		
+		//蓋を描画
+		ThumbnailDraw( inx );
+		
+		return false;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ サムネイルの蓋を描画する
+	-----------------------------------------*/
+	function ThumbnailDraw(index, mode = false)
+	{
+		//※サムネイルの位置は変わるので柔らかく組んでおく
+		var SrcX = (index % 4)*256;
+		var SrcY = (index \ 4)*144;
+		
+		//サムネイルに蓋をする
+		ThumbnailLayer[index].visible = true;
+		
+		ThumbnailDrawFlag[index]      = false;
+		
+		if(mode == true)
+		{	//サムネイルを転送する
+			
+			//INDEX フラグを立てておく
+			ThumbnailDrawFlag[index] = true;
+			
+			ThumbnailLayer[index].copyRect(26, 9, ThumbnailParts,SrcX, SrcY, 256, 144);
+		}
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ キャラクターページ変更
+	-----------------------------------------*/
+	function ChangeCharPage(index)
+	{
+		//キャラページを戻す
+		for(var i=0; i<CharPageButton.count; i++){
+			
+			var srcx = 0;
+			var srcy = 0;
+			
+			if( i == 4 ){
+				
+				if((ScType != nCGMODE_SC) && ( s['dicReplayFlagE1'] == false )){
+					srcy = CharPageButton[i].height * 3;
+				}
+				
+				if( s["CHAR_E_OPEN"] == true ){
+					srcx = (i+1) * CharPageButton[i].width;
+				}else{
+					srcx = i * CharPageButton[i].width;
+				}
+			}else if( i == 5 ){
+				srcx = (i+1) * CharPageButton[i].width;
+			}else{
+				srcx = i * CharPageButton[i].width;
+			}
+			
+			CharPageButton[i].copyRect(0,0,CharButtonParts, srcx,srcy);
+		}
+		
+		//キャラクターページを変更
+		CharPage = index;
+		
+		//最初のページから
+		PageCreate( 0 );
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ スクロールバー稼働領域の設定
+	-----------------------------------------*/
+	function SetScrollBarMove( line )
+	{
+		//UpDateMoveValue = (line * 175) / (nCURSOR_DOWN - nCURSOR_TOP);
+		
+		UpDateMoveValue =  (nCURSOR_DOWN - nCURSOR_TOP) \ line;
+		
+		UpDateLine = line;
+		
+		dm("line:"+line);
+		
+		BarFrame.visible = true;
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ スクロールバー稼働設定
+	-----------------------------------------*/
+	function BarMove( y, wheelflag = false )
+	{
+		//カーソルが表示されていない場合はここまで
+		if(BarFrame.visible == false)return;
+		
+		if(wheelflag == false)
+		{//MOUSE 処理
+			if(y < nCURSOR_TOP){
+				BarFrame.top = nCURSOR_TOP;
+			}else if((nCURSOR_DOWN+(BarFrame.height\2)) < y){
+				BarFrame.top = nCURSOR_DOWN;
+			}else{
+				if((y - (BarFrame.height\2)) <= nCURSOR_TOP){
+					BarFrame.top = nCURSOR_TOP;
+				}else{
+					BarFrame.top = y - (BarFrame.height\2);
+				}
+			}
+		}
+		else if(wheelflag == true)
+		{//wheel処理
+			
+			if(y < nCURSOR_TOP){
+			//次に移動できないようならTOPに戻す
+				BarFrame.top = nCURSOR_TOP;
+			}else if(nCURSOR_DOWN < y){
+			//次に移動できないようならBOTTOMに戻す
+				BarFrame.top = nCURSOR_DOWN;
+			}else{
+				/*
+				if((y - (BarFrame.height\2)) <= nCURSOR_TOP){
+					BarFrame.top = nCURSOR_TOP;
+				}else{
+					BarFrame.top = y - (BarFrame.height\2);
+				}*/
+				BarFrame.top = y;
+			}
+			
+		}
+		
+		//ScrollBase.top = -( UpDateMoveValue * (BarFrame.top-nCURSOR_TOP) );
+		
+		ScrollBase.top = -(nTHUMB_VALUE * (BarFrame.top \ UpDateMoveValue));
+		
+		
+		
+	}
+	
+	
+	
+	
+	
+	// <input> -----------------------------------------------------------------
+	
+	function DefaultAction()
+	{
+		if(CgCursor.PaintFlag)
+		{//カーソル更新終了
+			CgCursor.PaintFlag = false;
+			
+			Wait(nBUTTONWAIT);
+			
+			if(ScType == nCGMODE_SC)
+			{//CG MODE 画像表示関数
+				CgVewFunc();
+			}else{
+			 //REPLAY MODE ファイル実行
+			 	ReplayStart();
+			}
+			
+			return;
+		}
+		
+		
+		//MODE 変更処理
+		if(ModeButton.PaintFlag){
+			
+			ModeButton.PaintFlag = false;
+			
+			Wait(nBUTTON_WAIT);
+			
+			//MODE変更関数
+			ModeChange();
+			
+			return;
+		}
+		
+		/*
+		//ページボタンを押す
+		for(var i=0; i<PageLayer.count; i++){
+			//更新フラグを確認する
+			if(PageLayer[i].PaintFlag){
+				
+				PageLayer[i].PaintFlag = false;
+				
+				Wait(nBUTTON_WAIT);
+				
+				//ページ変更
+				PageCreate(i);
+				
+				return;
+			}
+		}
+		*/
+		
+		
+		//キャラページボタン
+		for(var i=0; i<CharPageButton.count; i++){
+			
+			if(CharPageButton[i].PaintFlag){
+				
+				CharPageButton[i].PaintFlag = false;
+				
+				Wait(nBUTTON_WAIT);
+				
+				//キャラクターページ変更
+				ChangeCharPage(i);
+				
+				return;
+			}
+		}
+		
+		
+		
+		
+		//リターンボタン
+		if(ReturnButton.PaintFlag){
+			
+			ReturnButton.PaintFlag = false;
+			
+			Wait(nBUTTON_WAIT);
+			
+			RightMouseUpAction();
+			
+			return;
+		}
+		
+		
+		
+		//PlayerAction処理
+		if(PlayListButton.PaintFlag){
+			
+			PlayListButton.PaintFlag = false;
+			
+			Wait(nBUTTON_WAIT);
+			
+			PlayerAction = 1;
+			
+			//PlayerAction関数
+			PlayerActionFunc();
+			
+			PlayerAction = false;
+			
+			return;
+		}
+		
+		
+		for(var i=0; i<MusicButton.count; i++){
+			//更新フラグを確認
+			if(MusicButton[i].PaintFlag){
+				
+				MusicButton[i].PaintFlag = false;
+				
+				Wait(nBUTTON_WAIT);
+				
+				PlayerAction = i+2;
+				
+				//PlayerAction関数
+				
+				PlayerActionFunc();
+				
+				PlayerAction = false;
+				
+				return;
+			}
+		}
+		
+		
+		
+		
+		//LIST BORDが表示されている場合はListとPlayerのみの動作
+		if(MusicListBord.visible == true)
+		{
+			MusicListOnOffCursorFunc();
+			
+			return;
+		}
+		
+		
+		@if(_DEBUG == 1)
+		//DEBUG 
+		DebugFlag = System.getKeyState(VK_TAB);
+		
+		
+		if(System.getKeyState(VK_UP)){
+			ScrollBase.top -= 5;
+		}else if(System.getKeyState(VK_DOWN)){
+			ScrollBase.top += 5;
+		}
+		
+		@endif
+		
+		MapRes = BaseBg.GetProvincePixel();
+		
+		//カーソルが画面外に出た際は判定しない
+		if((BaseBg.cursorX < 0) || (BaseBg.width < BaseBg.cursorX) || (BaseBg.cursorY < 0) || (BaseBg.height < BaseBg.cursorY))MapRes = 0;
+		
+		
+		//カーソル制御フラグON中はカーソル関数だけ
+		if(CursorMove){
+			
+			BarMove( PriLayer.cursorY );
+			
+			return;
+		}
+		
+		//カーソルフラグを寝かす
+		CursorMove = false;
+		
+		if(!MapRes){
+			//矩形領域の中だけ
+			if( (0 <=ThumBase.cursorX) && (0 <= ThumBase.cursorY) && (ThumBase.cursorY < 530) ){
+				//サムネイルマップを見る
+				MapRes = ScrollBase.GetProvincePixel();
+			}
+		}
+		
+		if(MapRes != PrevRes)
+		{
+			CursorOnFunc(MapRes);
+			
+			CursorOffFunc(PrevRes);
+		}
+		
+		PrevRes = MapRes;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 右クリック処理
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		if((ScType == nCGMODE_SC) && CgScreen.visible == true)
+		{//CG 描画中なのでここまで
+			
+			CgViewCount = CgViewList.count;
+			
+			CgVewFunc();
+			
+			return;
+		}
+		
+		
+		//LIST BORDが表示されている場合はListを消去
+		if(MusicListBord.visible == true)
+		{
+			PlayerAction = 1;
+			
+			PlayerActionFunc();
+			
+			return;
+		}
+		
+		
+		//画面破棄 or CG MODEに戻る
+		DeleteWork( SpecialDelete );
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 左クリック処理
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		//Barを戻す
+		if(CursorMove){
+			BarFrame.copyRect(0,0,BarParts,BarFrame.width,0);
+		}
+		
+		CursorMove = false;
+		
+		if((ScType == nCGMODE_SC) && CgScreen.visible == true)
+		{//CG 描画中なのでここまで
+			
+			CgVewFunc();
+			
+			return;
+		}
+		
+		
+		
+		
+		//LIST BORDが表示されている場合はList専用の処理へ
+		if(MusicListBord.visible == true)
+		{
+			//*
+			//プレイヤーボタンはCG MODEにあわせる
+			ListClickFunc( ListMapReg );
+			
+			//*/
+			return;
+			
+		}
+		
+		
+		//配列クリア
+		CgViewList.clear();
+		
+		var Inx = 0;
+		
+		//０はここまで
+		if(!MapRes)return;
+		
+		
+		
+		if(ScType == nCGMODE_SC)
+		{//CG MODE
+			
+			if( (9 < MapRes) && (MapRes < 46) )
+			{//CG INDEX
+				
+				//サムネイルが表示されていなければ終了
+				if(ThumbnailDrawFlag[MapRes-10] == 0)return;
+				
+				//配列をCOPYする
+				CgViewList.assignStruct( CgViewFlagCheck( CgDrawArray[MapRes-10], ChkFlagArray[MapRes-10][1] ) );
+				
+				//カウントを初期化しておく
+				CgViewCount = -1;
+				
+				//更新
+				CgCursor.update();
+			}
+			
+		}else{
+		 //REPLAY MODE
+			if( (9 < MapRes) && (MapRes < 46) )
+			{//THUMBNAIL INDEX
+				
+				//サムネイルが表示されていなければ終了
+				if(ThumbnailDrawFlag[MapRes-10] == 0){
+					
+					ReplayFile = "";
+					
+					return;
+				}
+				
+				//リプレイファイルを読み込む
+				ReplayFile = CgDrawArray[MapRes-10][0];
+				
+				//更新
+				CgCursor.update();
+				
+			}
+		}
+		
+		
+		
+		//共通ボタン処理
+		if(
+			((0 < MapRes) && (MapRes < 10)) ||
+			((45< MapRes) && (MapRes < 53))
+		)
+		{// CHAR & PAGE BUTTON & MUSIC BUTTON
+			
+			//共通ボタン処理
+			CommonButtonWork( MapRes );
+			
+			//共通ボタン処理郡はここまで
+			return;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 共通ボタン処理
+	-----------------------------------------*/
+	function CommonButtonWork( inx )
+	{
+		switch( inx ){
+			
+		case 1:{
+		//MODE CHANGE
+			
+			if(ScType == nCGMODE_SC){
+				ModeButton.copyRect(0,0,CommonParts,0,ModeButton.height*2);
+			}else{
+				ModeButton.copyRect(0,0,CommonParts,ModeButton.width,ModeButton.height*2);
+			}
+			
+			ModeButton.update();
+			
+		}break;
+		case 2:{
+		//戻る
+			ReturnButton.copyRect(0,0,CommonParts, ModeButton.width*2,ReturnButton.height*2);
+			
+			ReturnButton.update();
+		}break;
+		
+		case 4:{
+		//Char 01
+			if(!CharPage)return;
+			
+			CharPageButton[inx-4].copyRect(0,0,CharButtonParts ,CharPageButton[inx-4].width*0,CharPageButton[inx-4].height*2);
+			
+			CharPageButton[inx-4].update();
+		}break;
+		case 5:{
+		//Char 02
+			if(CharPage == 1)return;
+			
+			CharPageButton[inx-4].copyRect(0,0,CharButtonParts ,CharPageButton[inx-4].width*1,CharPageButton[inx-4].height*2);
+			
+			CharPageButton[inx-4].update();
+		}break;
+		case 6:{
+		//Char 03
+			if(CharPage == 2)return;
+			
+			CharPageButton[inx-4].copyRect(0,0,CharButtonParts ,CharPageButton[inx-4].width*2,CharPageButton[inx-4].height*2);
+			
+			CharPageButton[inx-4].update();
+			
+		}break;
+		case 7:{
+		//Char 04
+			if(CharPage == 3)return;
+			
+			CharPageButton[inx-4].copyRect(0,0,CharButtonParts ,CharPageButton[inx-4].width*3,CharPageButton[inx-4].height*2);
+			
+			CharPageButton[inx-4].update();
+		}break;
+		case 8:{
+		//Char 05
+			if( CharPage == 4 )return;
+			
+			if((ScType != nCGMODE_SC) && ( s['dicReplayFlagE1'] == false ))return;
+			
+			if( s["CHAR_E_OPEN"] == false ){
+				CharPageButton[inx-4].copyRect(0,0,CharButtonParts ,CharPageButton[inx-4].width*4,CharPageButton[inx-4].height*2);
+			}else{
+				CharPageButton[inx-4].copyRect(0,0,CharButtonParts ,CharPageButton[inx-4].width*5,CharPageButton[inx-4].height*2);
+			}
+			
+			CharPageButton[(inx-4)].update();
+		}break;
+		case 9:{
+		//Char 06
+			if(CharPage == 5)return;
+			if(ScType != nCGMODE_SC)return;
+			
+			CharPageButton[inx-4].copyRect(0,0,CharButtonParts ,CharPageButton[inx-4].width*6,CharPageButton[inx-4].height*2);
+			
+			CharPageButton[(inx-4)].update();
+		}break;
+		
+		
+		case 46:{
+		//プレイリスト
+			PlayListButton.copyRect(0, 0, SpecialParts, 0, PlayListButton.height*2);
+			
+			PlayListButton.update();
+			
+		}break;
+		case 47:{
+		//prev
+			MusicButton[0].copyRect(0,0, SpecialParts, 298, MusicButton[0].height*2 );
+			
+			MusicButton[0].update();
+		}break;
+		case 48:{
+		//play
+			if(!MusicPlay){
+				MusicButton[1].copyRect(0,0, SpecialParts, 110, MusicButton[1].height*2 );
+			}else{
+				MusicButton[1].copyRect(0,0, SpecialParts, 110+MusicButton[1].width ,MusicButton[1].height*2 );
+			}
+			MusicButton[1].update();
+		}break;
+		case 49:{
+		//stop
+			MusicButton[2].copyRect(0,0, SpecialParts, 376, MusicButton[2].height*2 );
+			
+			MusicButton[2].update();
+		}break;
+		case 50:{
+		//next
+			MusicButton[3].copyRect(0,0, SpecialParts, 454, MusicButton[3].height*2 );
+			MusicButton[3].update();
+		}break;
+		case 51:{
+		//repeat
+			if(RepeatMode < 2){
+			//単発リピート or OFF
+				MusicButton[4].copyRect(0,0, SpecialParts, 532,MusicButton[4].height*2 );
+			}else{
+			//全曲リピート
+				MusicButton[4].copyRect(0,0, SpecialParts, 688,MusicButton[4].height*2 );
+			}
+			MusicButton[4].update();
+		}break;
+		case 52:{
+		//shuffle
+			MusicButton[5].copyRect(0,0, SpecialParts, 610, MusicButton[5].height*2);
+			MusicButton[5].update();
+		}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	なし
+	
+	説明：
+	Mouse Downを処理するハンドラ
+	
+	-----------------------------------------*/
+	function LeftMouseDownAction()
+	{
+		if(MapRes == 3 && BarFrame.visible)
+		{
+			CursorMove = true;
+			
+			BarFrame.copyRect(0,0,BarParts,BarFrame.width*2,0);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆イベント取得関数
+	
+	引数：
+	shift	同時キー
+	
+	delta	方向：正:奥　負:手前
+	
+	x		X座標
+	
+	y		Y座標
+	
+	説明：
+	Mouse Wheelを処理するハンドラ
+	
+	-----------------------------------------*/
+	function MouseWheelAction(shift, delta, x, y)
+	{
+		super.MouseWheelAction(shift, delta, x, y);
+		
+		//ホイール処理を有効にするか
+		if(nCG_WHEEL_WORK == false)return;
+		
+		//プレイリスト表示時は操作させない
+		if(MusicListBord.visible == true)return;
+		
+			if( (ScType == nCGMODE_SC) && (CgScreen.visible == true) )
+			{//CG更新
+				if( (delta > 0) || (delta < 0) )
+				{//↑方向 or ↓方向
+					
+					//描画処理
+					CgVewFunc( delta );
+				}
+			}
+			else if(BarFrame.visible == true)
+			{//BAR表示のみ
+				if( (delta > 0) )
+				{//↑方向
+					//BarMove( BarFrame.top - (nTHUMB_VALUE+1) );
+					//BarMove( BarFrame.top - (nTHUMB_VALUE+(BarFrame.height\2)) );
+					//BarMove( BarFrame.top  );
+					//BarMove( BarFrame.top - ((nTHUMB_VALUE < UpDateMoveValue) ? UpDateMoveValue+1 : nTHUMB_VALUE+1) );
+					var page = BarFrame.top \ UpDateMoveValue;
+					--page;
+					var cursor_y;
+					if(page <= 0){
+						cursor_y = nCURSOR_TOP - 1;
+					}else{
+						cursor_y = (UpDateMoveValue*page);
+					}
+					
+					BarMove(cursor_y , true );
+					//BarMove( BarFrame.top -  UpDateMoveValue, true );
+					
+				}
+				else if(delta < 0)
+				{//↓方向
+					//BarMove( BarFrame.top + (nTHUMB_VALUE+1) );
+					//BarMove( BarFrame.top + (nTHUMB_VALUE+(BarFrame.height+10)) );
+					//BarMove( BarFrame.top + ((nTHUMB_VALUE < UpDateMoveValue) ? UpDateMoveValue+(BarFrame.height+10) : nTHUMB_VALUE+(BarFrame.height+10)) );
+					var page = BarFrame.top \ UpDateMoveValue;
+					++page;
+					var cursor_y = (UpDateMoveValue*page);
+					if(page == UpDateLine){
+						cursor_y = nCURSOR_DOWN + 1;
+					}
+					BarMove(cursor_y , true );
+					//BarMove( BarFrame.top + BarFrame.height );
+				}
+			}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ カーソルＯＮ関数
+	-----------------------------------------*/
+	function CursorOnFunc(index)
+	{
+		//カーソル非表示
+		CgCursor.visible = false;
+		
+		switch(index){
+		case 0:{
+			//カーソル非表示
+			CgCursor.visible = false;
+		}break;
+		case 1:{
+		//mode change
+			if(ScType == nCGMODE_SC){
+				ModeButton.copyRect(0,0,CommonParts,0,ModeButton.height);
+			}else{
+				ModeButton.copyRect(0,0,CommonParts,ModeButton.width,ModeButton.height);
+			}
+		}break;
+		case 2:{
+		//戻る
+			ReturnButton.copyRect(0,0,CommonParts, ModeButton.width*2,ReturnButton.height);
+		}break;
+		case 3:{
+		//bar
+			BarFrame.copyRect(0,0,BarParts,BarFrame.width,0);
+		}break;
+		
+		case 4:{
+		//Char 01
+			if(CharPage == 0)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*0,CharPageButton[index-4].height);
+			
+		}break;
+		case 5:{
+		//Char 02
+			if(CharPage == 1)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*1,CharPageButton[index-4].height);
+		}break;
+		case 6:{
+		//Char 03
+			if(CharPage == 2)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*2,CharPageButton[index-4].height);
+		}break;
+		case 7:{
+		//Char 04
+			if(CharPage == 3)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*3,CharPageButton[index-4].height);
+		}break;
+		case 8:{
+		//Char 05
+			if(CharPage == 4)return;
+			
+			if((ScType != nCGMODE_SC) && ( s['dicReplayFlagE1'] == false ))return;
+			
+			if( s["CHAR_E_OPEN"] == false ){
+				CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*4,CharPageButton[index-4].height);
+			}else{
+				CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*5,CharPageButton[index-4].height);
+			}
+			
+		}break;
+		case 9:{
+		//Char 06
+			if(CharPage == 5)return;
+			if(ScType != nCGMODE_SC)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*6,CharPageButton[index-4].height);
+		}break;
+		
+		case 10:{
+		//index 1
+			if(ThumbnailDrawFlag[0])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+			}
+		}break;
+		case 11:{
+		//index 2
+			if(ThumbnailDrawFlag[1])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 12:{
+		//index 3
+			if(ThumbnailDrawFlag[2])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 13:{
+		//index 4
+			if(ThumbnailDrawFlag[3])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 14:{
+		//index 5
+			if(ThumbnailDrawFlag[4])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 15:{
+		//index 6
+			if(ThumbnailDrawFlag[5])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 16:{
+		//index 7
+			if(ThumbnailDrawFlag[6])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 17:{
+		//index 8
+			if(ThumbnailDrawFlag[7])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 18:{
+		//index 9
+			if(ThumbnailDrawFlag[8])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 19:{
+		//index 10
+			if(ThumbnailDrawFlag[9])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 20:{
+		//index 11
+			if(ThumbnailDrawFlag[10])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 21:{
+		//index 12
+			if(ThumbnailDrawFlag[11])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+			}
+		}break;
+		
+		case 22:{
+		//index 13
+			if(ThumbnailDrawFlag[12])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+			}
+		}break;
+		case 23:{
+		//index 14
+			if(ThumbnailDrawFlag[13])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 24:{
+		//index 15
+			if(ThumbnailDrawFlag[14])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 25:{
+		//index 16
+			if(ThumbnailDrawFlag[15])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 26:{
+		//index 17
+			if(ThumbnailDrawFlag[16])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 27:{
+		//index 18
+			if(ThumbnailDrawFlag[17])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 28:{
+		//index 19
+			if(ThumbnailDrawFlag[18])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 29:{
+		//index 20
+			if(ThumbnailDrawFlag[19])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 30:{
+		//index 21
+			if(ThumbnailDrawFlag[20])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 31:{
+		//index 22
+			if(ThumbnailDrawFlag[21])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 32:{
+		//index 23
+			if(ThumbnailDrawFlag[22])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 33:{
+		//index 24
+			if(ThumbnailDrawFlag[23])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+			}
+		}break;
+		
+		case 34:{
+		//index 25
+			if(ThumbnailDrawFlag[24])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+			}
+		}break;
+		case 35:{
+		//index 26
+			if(ThumbnailDrawFlag[25])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 36:{
+		//index 27
+			if(ThumbnailDrawFlag[26])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 37:{
+		//index 28
+			if(ThumbnailDrawFlag[27])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 38:{
+		//index 29
+			if(ThumbnailDrawFlag[28])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 39:{
+		//index 30
+			if(ThumbnailDrawFlag[29])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 40:{
+		//index 31
+			if(ThumbnailDrawFlag[30])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 41:{
+		//index 32
+			if(ThumbnailDrawFlag[31])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 42:{
+		//index 33
+			if(ThumbnailDrawFlag[32])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 43:{
+		//index 34
+			if(ThumbnailDrawFlag[33])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 44:{
+		//index 35
+			if(ThumbnailDrawFlag[34])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+				
+			}
+		}break;
+		case 45:{
+		//index 36
+			if(ThumbnailDrawFlag[35])
+			{//カーソル表示
+				CgCursor.visible = true;
+				
+				CgCursor.setPos(ThumbnailLayer[index-10].left+21,ThumbnailLayer[index-10].top+4);
+			}
+		}break;
+		
+		case 46:{
+		//play list
+			PlayListButton.copyRect(0, 0, SpecialParts, 0, PlayListButton.height);
+		}break;
+		case 47:{
+		//prev
+			MusicButton[0].copyRect(0,0, SpecialParts, 298, MusicButton[0].height );
+		}break;
+		case 48:{
+		//play
+			if(!MusicPlay){
+				MusicButton[1].copyRect(0,0, SpecialParts, 110, MusicButton[1].height );
+			}else{
+				MusicButton[1].copyRect(0,0, SpecialParts, 110+MusicButton[1].width ,MusicButton[1].height );
+			}
+		}break;
+		case 49:{
+		//stop
+			MusicButton[2].copyRect(0,0, SpecialParts, 376, MusicButton[2].height );
+		}break;
+		case 50:{
+		//next
+			MusicButton[3].copyRect(0,0, SpecialParts, 454, MusicButton[3].height);
+		}break;
+		case 51:{
+		//repeat
+			if(RepeatMode < 2){
+			//単発リピート or OFF
+				MusicButton[4].copyRect(0,0, SpecialParts, 532,MusicButton[4].height );
+			}else{
+			//全曲リピート
+				MusicButton[4].copyRect(0,0, SpecialParts, 688,MusicButton[4].height );
+			}
+		}break;
+		case 52:{
+		//shuffle
+			MusicButton[5].copyRect(0,0, SpecialParts, 610, MusicButton[5].height);
+		}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ カーソルＯff関数
+	-----------------------------------------*/
+	function CursorOffFunc(index)
+	{
+		if( (!index) || ((9 < index) && (index < 46)) )return false;
+		
+		switch(index){
+		case 1:{
+		//mode change
+			if(ScType == nCGMODE_SC){
+				ModeButton.copyRect(0,0,CommonParts,0,0);
+			}else{
+				ModeButton.copyRect(0,0,CommonParts,ModeButton.width,0);
+			}
+		}break;
+		case 2:{
+		//戻る
+			ReturnButton.copyRect(0,0,CommonParts, ModeButton.width*2,0);
+		}break;
+		case 3:{
+		//bar
+			BarFrame.copyRect(0,0,BarParts,0,0);
+		}break;
+		
+		case 4:{
+		//Char 01
+			if(CharPage == 0)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*0,0);
+			
+		}break;
+		case 5:{
+		//Char 02
+			if(CharPage == 1)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*1,0);
+		}break;
+		case 6:{
+		//Char 03
+			if(CharPage == 2)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*2,0);
+		}break;
+		case 7:{
+		//Char 04
+			if(CharPage == 3)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*3,0);
+		}break;
+		case 8:{
+		//Char 05
+			if(CharPage == 4)return;
+			
+			if((ScType != nCGMODE_SC) && ( s['dicReplayFlagE1'] == false ))return;
+			
+			if( s["CHAR_E_OPEN"] == false ){
+				CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*4,0);
+			}else{
+				CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*5,0);
+			}
+			
+		}break;
+		case 9:{
+		//Char 06
+			if(CharPage == 5)return;
+			if(ScType != nCGMODE_SC)return;
+			
+			CharPageButton[index-4].copyRect(0,0,CharButtonParts ,CharPageButton[index-4].width*6,0);
+		}break;
+		
+		case 46:{
+		//play list
+			PlayListButton.copyRect(0, 0, SpecialParts, 0,0);
+		}break;
+		case 47:{
+		//prev
+			MusicButton[0].copyRect(0,0, SpecialParts, 298,0);
+		}break;
+		
+		case 48:{
+		//play
+			if(!MusicPlay){
+				MusicButton[1].copyRect(0,0, SpecialParts, 110, 0 );
+			}else{
+				if(!MusicPlayerObj.paused){
+					MusicButton[1].copyRect(0,0, SpecialParts, 110+MusicButton[1].width ,0 );
+				}else{
+					MusicButton[1].copyRect(0,0, SpecialParts, 110+MusicButton[1].width ,MusicButton[1].height*2 );
+				}
+			}
+		}break;
+		case 49:{
+		//stop
+			MusicButton[2].copyRect(0,0, SpecialParts, 376, 0 );
+		}break;
+		case 50:{
+		//next
+			MusicButton[3].copyRect(0,0, SpecialParts, 454, 0);
+		}break;
+		case 51:{
+		//repeat
+			if(RepeatMode == 0){
+			//OFF
+				MusicButton[4].copyRect(0,0, SpecialParts, 532,0 );
+			}else if(RepeatMode == 1){
+			//単発リピート
+				MusicButton[4].copyRect(0,0, SpecialParts, 532, MusicButton[4].height*2);
+			}else{
+			//全曲リピート
+				MusicButton[4].copyRect(0,0, SpecialParts, 688,MusicButton[4].height*2 );
+			}
+		}break;
+		case 52:{
+		//shuffle
+			if(!SuffuleMode){
+				MusicButton[5].copyRect(0,0, SpecialParts, 610, 0);
+			}else{
+				MusicButton[5].copyRect(0,0, SpecialParts, 610, MusicButton[5].height*2);
+			}
+		}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ CG 描画関数
+	-----------------------------------------*/
+	function CgVewFunc( wheelchange = 0 )
+	{
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		//画面キャプチャーをしておく
+		MainWnd.EffectObj.TransSetFunc();
+		
+		//最前面に移動
+		MainWnd.EffectObj.ClearLayer.absolute   = CgScreen.absolute + 2;
+		
+		MainWnd.EffectObj.CaptureLayer.absolute = CgScreen.absolute + 1;
+		
+		//SYSTEM音声を停止しておく
+		MainWnd.SystemObj.FileStop();
+		
+		if( (CgViewCount == CgViewList.count) )
+		{//終了
+			
+			//通常サイズに戻す
+			CgSizeFlag = false;
+			
+			CgScreen.setPos(0,0);
+			
+			CgScreen.fillRect(0, 0, MainWnd.PrimaryLayer.width, MainWnd.PrimaryLayer.height, 0);
+			
+			//END FLAGを立てる
+			CgViewEnd = true;
+			
+			ScrollTimer.enabled  = false;
+			
+		}else{
+		//画像を読み込む
+			
+			var ViewFileName = void;
+			
+			if(wheelchange == 0)
+			{//通常処理 
+				//ロードして次のファイル名をセットする
+				
+				if(CgViewCount < (CgViewList.count-1)){
+					
+					if(CgViewCount < (CgViewList.count-1)){
+						ViewFileName = CgViewList[++CgViewCount];
+					}
+				}
+				
+			}else{
+			//ホイールを使用しての変更処理
+				
+				if( (0 < wheelchange ) && (0 < CgViewCount) ){
+					--CgViewCount;
+				}else if( (wheelchange < 0) && (CgViewCount != (CgViewList.count-1)) ){
+					++CgViewCount;
+				}else{
+					return;
+				}
+				
+				ViewFileName = CgViewList[CgViewCount];
+				
+				//座標を原点に戻す
+				CgScreen.left = 0;
+				CgScreen.top  = 0;
+			}
+			
+			//拡張子確認
+			if((ViewFileName !== void) && (ViewFileName.indexOf(".") == -1))ViewFileName += ".png";
+			
+			//リソース確認 or 終了確認
+			if( (ViewFileName === void) || (!ResourceCheck(ViewFileName)) ){
+				
+				CgViewCount = CgViewList.count;
+				
+				CgVewFunc( 0 );
+				
+				return;
+			}
+			
+			
+			
+			CgScreen.loadImages(ViewFileName);
+			
+			CgScreen.setSizeToImageSize();
+			
+			CgViewEnd    = false;
+			
+			ScrollCgFlag = false;
+			
+			UpDownScroll = false;
+			
+			SideScroll   = false;
+			
+			ScrollTimer.enabled  = false;
+			
+			//SCROLL CHECK
+			if(MainWnd.PrimaryLayer.width < CgScreen.width){
+				
+				ScrollCgFlag = true;
+				
+				SideScroll   = true;
+				
+				ScrollTimer.enabled  = true;
+				
+			}
+			
+			if(MainWnd.PrimaryLayer.height < CgScreen.height){
+				
+				ScrollCgFlag = true;
+				
+				UpDownScroll = true;
+				
+				ScrollTimer.enabled  = true;
+			}
+		}
+		
+		
+		//画像フェードタイム
+		var cg_fade_time = (wheelchange == 0) ? nCG_FADE_TIME : nWHEEL_FADE_TIME;
+		
+		CgScreen.visible = true;
+		
+		//アクティブを変更
+		MainWnd.ChangeActive(MainWnd.EffectObj);
+		
+		//トランジションの開始
+		MainWnd.EffectObj.ActTransition(%["type"=>0,"time"=>cg_fade_time],TransEndFunc);
+		
+		//タイマー再開
+		MainWnd.DefaultTimer.enabled = true;
+		
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ トランジション終了関数
+	-----------------------------------------*/
+	function TransEndFunc()
+	{
+		//ホイール抑制フラグを寝かす
+		WheelControl = false;
+		
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		if(CgViewEnd){
+			
+			CgScreen.visible = false;
+			
+			CgViewEnd = false;
+			
+			ScrollCgFlag = false;
+			
+			UpDownScroll = false;
+			
+			SideScroll   = false;
+			
+			ScrollTimer.enabled  = false;
+		}
+		
+		//アクティブを変更する
+		MainWnd.ChangeActive(this);
+		
+		//タイマー再開
+		MainWnd.DefaultTimer.enabled = true;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ＣＧ 移動処理関数
+	
+	引数：
+	なし
+	
+	説明：
+	Scroll Cgの移動
+	
+	-----------------------------------------*/
+	function ScrollMove()
+	{
+		if(SideScroll)
+		{//左右の移動
+			
+			if(MainWnd.PrimaryLayer.cursorX < 50)
+			{//右に移動
+				if(0 < (CgScreen.left+5)){
+					
+					CgScreen.left = 0;
+					
+					return;
+				}
+				
+				CgScreen.left += 5;
+			}
+			else if((MainWnd.PrimaryLayer.width-50) < MainWnd.PrimaryLayer.cursorX)
+			{//左に移動
+				
+				if(-(CgScreen.width-MainWnd.PrimaryLayer.width) > (CgScreen.left-5)){
+					
+					CgScreen.left = -(CgScreen.width-MainWnd.PrimaryLayer.width);
+					
+					return;
+				}
+				
+				CgScreen.left -= 5;	
+				
+			}
+		}
+		
+		if(UpDownScroll)
+		{//上下の移動
+			if(MainWnd.PrimaryLayer.cursorY < 50)
+			{//上に移動
+				
+				if(0 < (CgScreen.top+5))return;
+				
+				CgScreen.top += 5;
+			}
+			else if((MainWnd.PrimaryLayer.height-50) < MainWnd.PrimaryLayer.cursorY)
+			{//下に移動
+				
+				if((CgScreen.top-5) < -((CgScreen.height-MainWnd.PrimaryLayer.height)-5))return;
+				
+				CgScreen.top -= 5;
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ リプレイファイル実行関数
+	-----------------------------------------*/
+	function ReplayStart()
+	{
+		//タイマー停止
+		MainWnd.DefaultTimer.enabled = false;
+		
+		//SYSTEM音声を停止しておく
+		MainWnd.SystemObj.FileStop();
+		
+		//画面破棄
+		RightMouseUpAction();
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ Player実行関数
+	-----------------------------------------*/
+	function PlayerActionFunc()
+	{
+		switch(PlayerAction){
+		case 0:{
+		}break;
+		case 1:{
+		//PlayList表示
+			//ON CURSORに戻しておく
+			PlayListButton.copyRect(0, 0, SpecialParts, 0, PlayListButton.height );
+			
+			ListMode   = !ListMode;
+			
+			//ボタン消去
+			ListMapOffCursor();
+			
+			ListMapReg = ListPrevReg = 0;
+			
+			MapRes     = PrevRes     = 0;
+			
+			//タイマー起動
+			MoveTimer.enabled  = true;
+			
+		}break;
+		case 2:{
+		//List Back
+			//ON CURSORに戻しておく
+			MusicButton[0].copyRect(0,0, SpecialParts, 298,MusicButton[0].height);
+			
+			//LIST BORDを戻す
+			MusicCursorPrevFunc();
+			
+			if(!SuffuleMode)
+			{//通常処理
+				--NowSelectMusic;
+				
+				//0の場合は最後に持っていく
+				if(NowSelectMusic < 0)NowSelectMusic = (MusicPlayerObj.playFileName.count - 1);
+				
+			}else{
+			 //Suffle Mode
+				--SuffleCount;
+				
+				if(SuffleCount < 0){
+				//リストの最後にもってくる
+					SuffleCount = (MusicPlayerObj.playFileName.count - 1);
+				}
+				
+				NowSelectMusic = MusicPlayerObj.shuffleList[SuffleCount];
+				
+				NowSelectMusic %= MusicPlayerObj.playFileName.count;
+			}
+			
+			
+			//フラグチェック処理
+			MusicFlagCheckFunc( false );
+			
+			
+			
+			//選択カーソルを移動しておく
+			MusicCursorMoveFunc( true );
+			
+			//さらに現在演奏中なら新しい音楽を再生する
+			if(MusicPlayerObj.status == "play"){
+				
+				MusicPlayFunc(true);
+				
+				//Playボタンを点灯させる
+				CursorOffFunc( 48 );
+			}
+			
+		}break;
+		case 3:{
+		//Play or Pause
+			if(!MusicPlay)
+			{//再生
+				
+				//ON CURSORに戻しておく 一時停止のやつ 
+				MusicButton[1].copyRect(0,0, SpecialParts, 110+MusicButton[1].width ,MusicButton[1].height*1 );
+				
+				//再生処理
+				MusicPlayFunc(true);
+				
+			}else{
+			 //演奏中 は 一時停止ボタン
+				
+				//一時停止処理
+				MusicPlayerObj.paused = !MusicPlayerObj.paused;
+				
+				if(MusicPlayerObj.paused){
+					//ON CURSORに戻しておく 一時停止のやつ
+					MusicButton[1].copyRect(0,0, SpecialParts, 110+MusicButton[1].width ,MusicButton[1].height*1 );
+				}else{
+					MusicButton[1].copyRect(0,0, SpecialParts, 110+MusicButton[1].width ,MusicButton[1].height*0 );
+				}
+				
+			}
+		}break;
+		case 4:{
+		//Stop
+			//演奏停止
+			//ON CURSORに戻しておく
+			MusicButton[2].copyRect(0,0, SpecialParts, 376, MusicButton[2].height );
+			
+			//再生処理
+			MusicPlayFunc( false );
+			
+			MusicButton[1].copyRect(0,0, SpecialParts, 110 ,0 );
+			
+		}break;
+		case 5:{
+		//List Next
+			//ON CURSORに戻しておく
+			MusicButton[3].copyRect(0,0, SpecialParts, 454, MusicButton[3].height);
+			
+			//LIST BORDを戻す
+			MusicCursorPrevFunc();
+			
+			if(!SuffuleMode)
+			{//通常処理
+				++NowSelectMusic;
+				
+				NowSelectMusic %= MusicPlayerObj.playFileName.count;
+			}else{
+			 //SuffleMode
+			 	++SuffleCount;
+			 	
+			 	SuffleCount %= MusicPlayerObj.playFileName.count;
+				
+				NowSelectMusic = MusicPlayerObj.shuffleList[SuffleCount];
+				
+				NowSelectMusic %= MusicPlayerObj.playFileName.count;
+			}
+			
+			
+			//フラグチェック処理
+			MusicFlagCheckFunc( true );
+			
+			
+			//選択カーソルを移動しておく
+			MusicCursorMoveFunc(true);
+			
+			//さらに現在演奏中なら新しい音楽を再生する
+			if(MusicPlayerObj.status == "play"){
+				
+				MusicPlayFunc(true);
+				
+				CursorOffFunc( 48 );
+			}
+			
+		}break;
+		case 6:{
+			//Repeat or Full Repeat
+			if(RepeatMode == 0){
+			//OFF→単発リピート
+				//ON CURSORに戻しておく
+				MusicButton[4].copyRect(0,0, SpecialParts, 532, MusicButton[4].height*1);
+				
+				RepeatMode = 1;
+				
+				//単発リピート
+				MusicPlayerObj.looping = true;
+				
+				if(SuffuleMode)
+				{//シャッフルモードだったら解除する
+					SuffuleMode = false;
+					
+					//OFF CURSORに戻しておく
+					MusicButton[5].copyRect(0,0, SpecialParts, 610, 0);
+				}
+				
+			}else if(RepeatMode == 1){
+			//Repeat→Full Repeat
+				//ON CURSORに戻しておく
+				MusicButton[4].copyRect(0,0, SpecialParts, 688,MusicButton[4].height*1 );
+				
+				RepeatMode = 2;
+				
+				//単発リピートを消去する
+				MusicPlayerObj.looping = false;
+				
+			}else if(RepeatMode == 2){
+			//Full Repeat → OFF
+				//ON CURSORに戻しておく
+				MusicButton[4].copyRect(0,0, SpecialParts, 532,MusicButton[4].height );
+				
+				RepeatMode = 0;
+				
+				//単発リピートを消去する
+				MusicPlayerObj.looping = false;
+			}
+		}break;
+		case 7:{
+			//Shuffle
+			//ON CURSORに戻しておく
+			MusicButton[5].copyRect(0,0, SpecialParts, 610, MusicButton[5].height*1);
+			
+			SuffuleMode = !SuffuleMode;
+			
+			if(SuffuleMode)
+			{	//シャッフルリストを作成する
+				MusicPlayerObj.createShuffle();
+				
+				//カウントを戻しておく
+				SuffleCount = 0;
+				
+				//シャッフルモードで単発リピートは解除する
+				if(RepeatMode == 1)
+				{
+					//単発リピートを消去する
+					MusicPlayerObj.looping = false;
+					
+					//カーソルを戻すよ
+					MusicButton[4].copyRect(0,0, SpecialParts, 532,0 );
+					
+					RepeatMode = 0;
+				}
+			}
+			
+		}break;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ List表示関数
+	-----------------------------------------*/
+	function ListMoveFunc()
+	{
+		if(ListMode == true)
+		{//表示
+			
+			MusicListBord.visible = true;
+			
+			if(0 < (MusicListBord.top-16)){
+				MusicListBord.setPos(0,(MusicListBord.top - 16));
+			}else{
+				//終了
+				MusicListBord.setPos(0, 0);
+				//タイマー停止
+				MoveTimer.enabled  = false;
+			}
+			
+		}else{
+		 //消去
+		 	
+			if((MusicListBord.top+16) < 706){
+				MusicListBord.setPos(0,(MusicListBord.top + 16));
+			}else{
+				//終了
+				MusicListBord.setPos(0, 710);
+				//タイマー停止
+				MoveTimer.enabled  = false;
+				
+				//Bord消しておく
+				MusicListBord.visible = false;
+				
+			}
+		}
+		
+		
+		//プレイリストボタンをOFFカーソルにしておく
+		PlayListButton.copyRect(0, 0, SpecialParts, 0, 0 );
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ MusicCursor移動処理
+	-----------------------------------------*/
+	function MusicCursorMoveFunc(mode = false)
+	{
+		if(mode == true)
+		{//選択カーソルの位置
+			
+			var DstX = (NowSelectMusic < 19) ? 112 : 747;
+			var DstY = ( NowSelectMusic != 0) ? 64+(32*(NowSelectMusic%19)) : 64;
+			var SrcX = 416*2;
+			var SrcY = NowSelectMusic*32;
+			
+			//選択してある音楽を点灯させる
+			MusicList.copyRect(DstX, DstY, MusicParts, SrcX, SrcY, 416, 32);
+			
+			//選択してある曲名をPLAYERに表示する
+			var SrcX = 0, SrcY = NowSelectMusic*30;
+			
+			//曲名を表示
+			SelectMusicNameLayer.copyRect(0, 0, ListParts, SrcX, SrcY, SelectMusicNameLayer.width, SelectMusicNameLayer.height);
+			
+		}else{
+		 //通常カーソル
+		 
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ MusicListCursor戻し処理
+	-----------------------------------------*/
+	function MusicCursorPrevFunc()
+	{
+		//選択カーソルの位置
+		var DstX = (NowSelectMusic < 19) ? 112 : 747;
+		var DstY = ( NowSelectMusic != 0) ? 64+(32*(NowSelectMusic%19)) : 64;
+		var SrcX = 0;
+		var SrcY = NowSelectMusic*32;
+		
+		//選択してある音楽を点灯させる
+		MusicList.copyRect(DstX, DstY, MusicParts, SrcX, SrcY, 416, 32);
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ MUSIC LIST表示時のカーソル判定
+	-----------------------------------------*/
+	function MusicListOnOffCursorFunc()
+	{
+		//MOVE TIMEが動いてる際は判定しない
+		if(MoveTimer.enabled == true)return;
+		
+		ListMapReg = MusicListBord.GetProvincePixel(MusicListBord.cursorX, MusicListBord.cursorY);
+		
+		if(ListMapReg != ListPrevReg)
+		{
+			ListMapOnCursor();
+			
+			ListMapOffCursor();
+		}
+		
+		ListPrevReg = ListMapReg;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ MUSIC LIST表示時のカーソル判定
+	-----------------------------------------*/
+	function ListMapOnCursor()
+	{
+		if(!ListMapReg)return;
+		
+		
+		if( (ListMapReg < 38) )
+		{
+			//現在選択済みの音楽ならここまで
+			if( NowSelectMusic == (ListMapReg-1) )return;
+			
+			var i    = (ListMapReg-1);
+			var DstX = (ListMapReg < 20) ? 112 : 747;
+			var DstY = ( i != 0 ) ? 64+(32*(i%19)) : 64;
+			var SrcX = 416*1;
+			var SrcY = i*32;
+			
+			
+			//フラグ判定 反応させない
+			if(
+				((i == 18) && (s["bgm019"] != true))  || ((i == 23) && (s["bgm024"] != true)) || 
+				((i == 24) && (s["bgm025"] != true))  ||
+				((i == 27) && (s["CLEAR_A"] != true)) || ((i == 28) && (s["CLEAR_A"] != true))|| 
+				((i == 29) && (s["CLEAR_B"] != true)) || ((i == 30) && (s["CLEAR_B"] != true))|| 
+				((i == 31) && (s["CLEAR_C"] != true)) || ((i == 32) && (s["CLEAR_C"] != true))|| 
+				((i == 33) && (s["CLEAR_D"] != true)) || ((i == 34) && (s["CLEAR_D"] != true))|| 
+				((i == 35) && (s["CLEAR_E"] != true)) || ((i == 36) && (s["CLEAR_E"] != true))
+			){
+				return;
+			}
+			
+			
+			//曲名点灯
+			MusicList.copyRect(DstX, DstY, MusicParts, SrcX, SrcY, 416, 32);
+			
+		}else{
+			//PlayList 処理にする
+			CursorOnFunc(ListMapReg);
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ MUSIC LIST表示時のカーソル判定
+	-----------------------------------------*/
+	function ListMapOffCursor()
+	{
+		if(!ListPrevReg)return;
+		
+		if( (ListPrevReg < 38) )
+		{
+			//現在選択済みの音楽ならここまで
+			if( ((ListPrevReg < 38) && (NowSelectMusic == (ListPrevReg-1))) )return;
+			
+			var i    = (ListPrevReg-1);
+			var DstX = (ListPrevReg < 20) ? 112 : 747;
+			var DstY = ( i != 0 ) ? 64+(32*(i%19)) : 64;
+			var SrcX = 0;
+			var SrcY = i*32;
+			
+			//フラグ判定 反応させない
+			if(
+				((i == 18) && (s["bgm019"] != true))  || ((i == 23) && (s["bgm024"] != true)) || 
+				((i == 24) && (s["bgm025"] != true))  ||
+				((i == 27) && (s["CLEAR_A"] != true)) || ((i == 28) && (s["CLEAR_A"] != true))|| 
+				((i == 29) && (s["CLEAR_B"] != true)) || ((i == 30) && (s["CLEAR_B"] != true))|| 
+				((i == 31) && (s["CLEAR_C"] != true)) || ((i == 32) && (s["CLEAR_C"] != true))|| 
+				((i == 33) && (s["CLEAR_D"] != true)) || ((i == 34) && (s["CLEAR_D"] != true))|| 
+				((i == 35) && (s["CLEAR_E"] != true)) || ((i == 36) && (s["CLEAR_E"] != true))
+			){
+				return;
+			}
+			
+			//曲名を戻す
+			MusicList.copyRect(DstX, DstY, MusicParts, SrcX, SrcY, 416, 32);
+			
+		}else{
+			
+			//CG MODEの処理を使用する
+			CursorOffFunc( ListPrevReg );
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ ListLeftClick関数
+	-----------------------------------------*/
+	function ListClickFunc( index )
+	{
+		if(!index)return;
+		
+		if( (index < 38) )
+		{//カーソルを移動するよ or 選択済みだから再生
+			
+			var i = (index-1);
+			
+			//フラグ判定 ????にする
+			if(
+				((i == 18) && (s["bgm019"] != true))  || ((i == 23) && (s["bgm024"] != true)) || 
+				((i == 24) && (s["bgm025"] != true))  ||
+				((i == 27) && (s["CLEAR_A"] != true)) || ((i == 28) && (s["CLEAR_A"] != true))|| 
+				((i == 29) && (s["CLEAR_B"] != true)) || ((i == 30) && (s["CLEAR_B"] != true))|| 
+				((i == 31) && (s["CLEAR_C"] != true)) || ((i == 32) && (s["CLEAR_C"] != true))|| 
+				((i == 33) && (s["CLEAR_D"] != true)) || ((i == 34) && (s["CLEAR_D"] != true))|| 
+				((i == 35) && (s["CLEAR_E"] != true)) || ((i == 36) && (s["CLEAR_E"] != true))
+			){
+				return;
+			}
+			
+			if(NowSelectMusic == (index-1)){
+			//再生
+				MusicPlayFunc(true);
+				
+				CursorOffFunc( 48 );
+				
+			}else{
+				
+				//LIST BORDを戻す
+				MusicCursorPrevFunc();
+				
+				if(SuffuleMode == true)
+				{//シャッフルモードは別処理
+					NowSelectMusic = GetSuffleIndex(index-1);
+				}else{
+				//曲選択
+					NowSelectMusic = (index-1);
+				}
+				
+				//選択カーソルを移動しておく
+				MusicCursorMoveFunc( true );
+				
+				//さらに演奏中だと再生してしまう
+				if(MusicPlayerObj.status == "play"){
+					
+					MusicPlayFunc(true);
+					
+				}
+			}
+			
+		}else{
+			
+			//共通ボタン処理
+			CommonButtonWork( index );
+			
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 音楽再生・停止関数
+	-----------------------------------------*/
+	function MusicPlayFunc(mode)
+	{
+		if(mode == true)
+		{//再生
+			MusicPlayerObj.playing(NowSelectMusic);
+			
+			//ここでフラグは立てておく
+			MusicPlay = true;
+			
+			//監視タイマーを動かす
+			MusicStatusCheck.enabled  = true;
+			
+			
+		}else{
+		 //停止
+		 	//フラグを寝かせる
+		 	MusicPlay = false;
+		 	
+		 	MusicPlayerObj.reset();
+		 	
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 音楽監視関数
+	-----------------------------------------*/
+	function MusicStatusCheckFunc()
+	{
+		if(MusicPlayerObj.status == "play")
+		{
+			//最初のループで再生ボタンを点灯させる
+			if(!MusicPlay){
+				MusicButton[1].copyRect(0,0, SpecialParts, 110 ,MusicButton[1].height*2 );
+			}
+			
+			MusicPlay = true;
+		}
+		else if(MusicPlayerObj.status == "stop")
+		{//停止した MODEによってこの後の動作が異なる
+			
+			if(MusicPlay == false)
+			{//停止ボタンを押された
+				
+				MusicPlay = false;
+				
+				//CG MODEの処理を使用する
+				CursorOffFunc( 49 );
+				
+				//監視タイマーを停止
+				MusicStatusCheck.enabled  = false;
+				
+				if(SuffuleMode == true)
+				{//シャッフルリストを再度作成しておく
+					MusicPlayerObj.createShuffle();
+					
+					SuffleCount = 0;
+				}
+				
+				return;
+			}
+			
+			
+			
+			
+			if(SuffuleMode == true)
+			{//シャッフルモード
+				
+				//カウントをあげる
+				++SuffleCount;
+				
+				if((MusicPlayerObj.playFileName.count-1) < SuffleCount)
+				{//全て再生し終わったので停止
+					
+					if(RepeatMode == 2)
+					{//Full Repeat だとシャッフルして再度頭から
+						
+						//監視タイマーを停止
+						MusicStatusCheck.enabled  = false;
+						
+						//シャッフルリストを再度作成しておく
+						MusicPlayerObj.createShuffle();
+						
+						SuffleCount = 0;
+						
+						//LIST BORDを戻す
+						MusicCursorPrevFunc();
+						
+						NowSelectMusic = MusicPlayerObj.shuffleList[SuffleCount];
+						
+						NowSelectMusic %= MusicPlayerObj.playFileName.count;
+						
+						//選択カーソルを移動しておく
+						MusicCursorMoveFunc(true);
+						
+						//再度再生
+						MusicPlayFunc(true);
+						
+					}else{
+					 //通常停止
+					 	
+						MusicPlay = false;
+						
+						//再生ボタンを戻す
+						CursorOffFunc( 49 );
+						
+						//監視タイマーを停止
+						MusicStatusCheck.enabled  = false;
+						
+						//シャッフルリストを再度作成しておく
+						MusicPlayerObj.createShuffle();
+					}
+					
+				}else{
+					
+					//LIST BORDを戻す
+					MusicCursorPrevFunc();
+					
+					NowSelectMusic = MusicPlayerObj.shuffleList[SuffleCount];
+					
+					NowSelectMusic %= MusicPlayerObj.playFileName.count;
+					
+					//選択カーソルを移動しておく
+					MusicCursorMoveFunc(true);
+					
+					//再度再生
+					MusicPlayFunc(true);
+				}
+			}
+			else if(RepeatMode == 0)
+			{//通常再生
+				MusicPlay = false;
+				
+				//再生ボタンを戻す
+				CursorOffFunc( 49 );
+				
+				//監視タイマーを停止
+				MusicStatusCheck.enabled  = false;
+			}
+			else if(RepeatMode == 2)
+			{//Full Repeat
+				
+				//LIST BORDを戻す
+				MusicCursorPrevFunc();
+				
+				//通常は次へ
+				++NowSelectMusic;
+				
+				NowSelectMusic %= MusicPlayerObj.playFileName.count;
+				
+				//選択カーソルを移動しておく
+				MusicCursorMoveFunc(true);
+				
+				//再度再生
+				MusicPlayFunc(true);
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ シャッフル INDEX取得関数
+	-----------------------------------------*/
+	function GetSuffleIndex(index)
+	{//index は選択された項目なので、SuffleListから検索してカウントをずらす
+		
+		for(var i=0; i<MusicPlayerObj.playFileName.count; i++)
+		{
+			if(MusicPlayerObj.shuffleList[i] == index){
+				
+				SuffleCount = i;
+				
+				break;
+			}
+		}
+		
+		return MusicPlayerObj.shuffleList[SuffleCount];
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 追加パッチ用サムネイル作成用
+	-----------------------------------------*/
+	function ThumbnailCreate( char_id, page )
+	{
+		//テンポラリ用レイヤ
+		var TempLayer = new BaseLayer(MainWnd, PriLayer,0,0,10,10);
+		var ThumFile  = "";
+		//サムネイル枚数
+		var nMAXTHUM_NUM = 0;
+		
+		if(ScType == nCGMODE_SC)
+		{//CG MODE
+			switch( char_id )
+			{
+				case 0:{//菜乃花
+					if( page == 0 ){
+						nMAXTHUM_NUM = 2;
+						for(var i=0; i<nMAXTHUM_NUM; i++){
+							switch( i ){
+								case 0:
+								case 1:{
+									//パッチファイル確認
+									if(!ResourceCheck(nEXTRAFILE01))continue;
+									ThumFile  = nEXTRA01_CG_THUM;
+								}break;
+							}
+							
+							//Thumbnailを読み込む
+							TempLayer.loadImages(ThumFile);
+							TempLayer.setSizeToImageSize();
+							//COPY しておく
+							ThumbnailParts.copyRect((2+(i%2))*256, 5*144, TempLayer,(i%2)*256,0,256,144);
+						}
+					}
+				}break;
+				case 1:{//このみ
+					if( page == 0 ){
+						nMAXTHUM_NUM = 2;
+						for(var i=0; i<nMAXTHUM_NUM; i++){
+							switch( i ){
+								case 0:
+								case 1:{
+									//パッチファイル確認
+									if(!ResourceCheck(nEXTRAFILE02))continue;
+									ThumFile  = nEXTRA02_CG_THUM;
+								}break;
+							}
+							
+							//Thumbnailを読み込む
+							TempLayer.loadImages(ThumFile);
+							TempLayer.setSizeToImageSize();
+							//COPY しておく
+							ThumbnailParts.copyRect((i%2)*256, 6*144, TempLayer,(i%2)*256,0,256,144);
+						}
+					}
+				}break;
+				case 2:{//花梨
+					if( page == 0 ){
+						nMAXTHUM_NUM = 2;
+						for(var i=0; i<nMAXTHUM_NUM; i++){
+							switch( i ){
+								case 0:
+								case 1:{
+									//パッチファイル確認
+									if(!ResourceCheck(nEXTRAFILE03))continue;
+									ThumFile  = nEXTRA03_CG_THUM;
+								}break;
+							}
+							
+							//Thumbnailを読み込む
+							TempLayer.loadImages(ThumFile);
+							TempLayer.setSizeToImageSize();
+							//COPY しておく
+							ThumbnailParts.copyRect((i%2)*256, 5*144, TempLayer,(i%2)*256,0,256,144);
+						}
+					}
+				}break;
+				case 3:{//雨音
+					if( page == 0 ){
+						nMAXTHUM_NUM = 2;
+						for(var i=0; i<nMAXTHUM_NUM; i++){
+							switch( i ){
+								case 0:
+								case 1:{
+									//パッチファイル確認
+									if(!ResourceCheck(nEXTRAFILE04))continue;
+									ThumFile  = nEXTRA04_CG_THUM;
+								}break;
+							}
+							
+							//Thumbnailを読み込む
+							TempLayer.loadImages(ThumFile);
+							TempLayer.setSizeToImageSize();
+							//COPY しておく
+							ThumbnailParts.copyRect((1+(i%2))*256, 4*144, TempLayer,(i%2)*256,0,256,144);
+						}
+					}
+				}break;
+				case 4:{//その他
+				/*
+					if( page == 0 ){
+					//Page01
+						nMAXTHUM_NUM = 7;
+						for(var i=0,t=5; i<nMAXTHUM_NUM; i++,t++){
+							switch( i ){
+								case 0:
+								case 1:
+								case 2:
+								case 3:
+								case 4:
+								case 5:
+								case 6:{
+									//パッチファイル確認
+									if(!ResourceCheck(nEXTRAFILE08))continue;
+									ThumFile  = nEXTRA08_CG_THUM;
+								}break;
+							}
+							
+							//Thumbnailを読み込む
+							TempLayer.loadImages(ThumFile);
+							TempLayer.setSizeToImageSize();
+							//COPY しておく
+							ThumbnailParts.copyRect((t%4)*256, (t\4)*144, TempLayer,(i%4)*256,(i\4)*144,256,144);
+						}
+					}else if( page == 1 ){
+					//Page02
+						nMAXTHUM_NUM = 9;
+						for(var i=0,t=0; i<nMAXTHUM_NUM; i++,t++){
+							switch( i ){
+								case 0:{
+									//パッチファイル確認
+									if(!ResourceCheck(nEXTRAFILE08))continue;
+									ThumFile  = nEXTRA08_CG_THUM;
+								}break;
+								default:{
+									//パッチファイル確認
+									if(!ResourceCheck(nEXTRAFILE09))continue;
+									ThumFile  = nEXTRA09_CG_THUM;
+								}break;
+							}
+							
+							//Thumbnailを読み込む
+							TempLayer.loadImages(ThumFile);
+							TempLayer.setSizeToImageSize();
+							
+							//ここだけ別処理
+							if(i == 0){
+								ThumbnailParts.copyRect((t%4)*256, (t\4)*144, TempLayer,(7%4)*256,(7\4)*144,256,144);
+							}else{
+								//COPY しておく
+								ThumbnailParts.copyRect((t%4)*256, (t\4)*144, TempLayer,((i-1)%4)*256,((i-1)\4)*144,256,144);
+							}
+						}
+					}*/
+					
+				}break;
+			}
+		}
+		else
+		{//REPLAY
+			switch( char_id ){
+				case 0:{//菜乃花
+					nMAXTHUM_NUM = 1;
+					for(var i=0; i<nMAXTHUM_NUM; i++){
+						switch( i ){
+							case 0:{
+								if(!ResourceCheck(nEXTRAFILE01))continue;
+								ThumFile  = nEXTRA01_REPLAY_THUM;
+							}break;
+						}
+						
+						//Thumbnailを読み込む
+						TempLayer.loadImages(ThumFile);
+						TempLayer.setSizeToImageSize();
+						//COPY しておく
+						ThumbnailParts.copyRect(3*256, 0*144, TempLayer,0*256,0,256,144);
+					}
+					
+					
+				}break;
+				case 1:{//このみ
+					nMAXTHUM_NUM = 1;
+					for(var i=0; i<nMAXTHUM_NUM; i++){
+						switch( i ){
+							case 0:{
+								if(!ResourceCheck(nEXTRAFILE02))continue;
+								ThumFile  = nEXTRA02_REPLAY_THUM;
+							}break;
+						}
+						
+						//Thumbnailを読み込む
+						TempLayer.loadImages(ThumFile);
+						TempLayer.setSizeToImageSize();
+						//COPY しておく
+						ThumbnailParts.copyRect(3*256, 0*144, TempLayer,(0)*256,0,256,144);
+					}
+					
+				}break;
+				case 2:{//花梨
+					nMAXTHUM_NUM = 1;
+					for(var i=0; i<nMAXTHUM_NUM; i++){
+						switch( i ){
+							case 0:{
+								if(!ResourceCheck(nEXTRAFILE03))continue;
+								ThumFile  = nEXTRA03_REPLAY_THUM;
+							}break;
+						}
+						
+						//Thumbnailを読み込む
+						TempLayer.loadImages(ThumFile);
+						TempLayer.setSizeToImageSize();
+						//COPY しておく
+						ThumbnailParts.copyRect(3*256, 0*144, TempLayer,(0)*256,0,256,144);
+					}
+					
+				}break;
+				case 3:{//雨音
+					nMAXTHUM_NUM = 1;
+					for(var i=0; i<nMAXTHUM_NUM; i++){
+						switch( i ){
+							case 0:{
+								if(!ResourceCheck(nEXTRAFILE04))continue;
+								ThumFile  = nEXTRA06_REPLAY_THUM;
+							}break;
+						}
+						
+						//Thumbnailを読み込む
+						TempLayer.loadImages(ThumFile);
+						TempLayer.setSizeToImageSize();
+						//COPY しておく
+						ThumbnailParts.copyRect((3)*256, (0)*144, TempLayer,(0)*256,0,256,144);
+					}
+				}break;
+				case 4:{//その他
+					nMAXTHUM_NUM = 7;
+					for(var i=0,t=0; i<nMAXTHUM_NUM; i++,t++){
+						switch( i ){
+							case 0:
+							case 1:
+							case 2:
+							case 3:{
+								if(!ResourceCheck(nEXTRAFILE08))continue;
+								ThumFile  = nEXTRA08_REPLAY_THUM;
+							}break;
+							case 4:
+								t = 0;
+							case 5:
+							case 6:{
+								if(!ResourceCheck(nEXTRAFILE09))continue;
+								ThumFile  = nEXTRA09_REPLAY_THUM;
+							}break;
+						}
+						
+						//Thumbnailを読み込む
+						TempLayer.loadImages(ThumFile);
+						TempLayer.setSizeToImageSize();
+						//COPY しておく
+						ThumbnailParts.copyRect((i%4)*256, (i\4)*144, TempLayer,t*256,0,256,144);
+					}
+				}break;
+			}
+			
+		}
+		
+		//テンポラリレイヤを削除する
+		invalidate TempLayer;
+		
+		TempLayer = void;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	■ CG MODE 差分単位チェック
+	----------------------------------------------------------*/
+	function CgViewFlagCheck( all_arr, type = 0 )
+	{
+		
+		//差分チェック無し
+		if( ((nCGMODE_ALL_FILE_CHECK == false) && (type == 0)) || (DebugOpen == true) )return all_arr;
+		
+		//チェック有り
+		var chk_arr = new Array();
+		
+		//配列のフラグチェック
+		for(var i=0; i<all_arr.count; i++){
+			//拡張子確認
+			var num      = all_arr[i].indexOf(".");
+			
+			var flagname = all_arr[i].toUpperCase();
+			
+			if(num != -1){
+			//拡張子を取る
+				flagname = all_arr[i].substr(0, num);
+			}
+			
+			//フラグチェック
+			if( (s[flagname] == true) )chk_arr.add( all_arr[i] );
+			
+		}
+		
+		return chk_arr;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ フラグチェック関数
+	-----------------------------------------*/
+	function MusicFlagCheckFunc( mode )
+	{
+		if( mode )
+		{//next
+			while(1)
+			{
+				switch( NowSelectMusic )
+				{
+					case 18:{
+						if(s["bgm019"] != true){
+							NowSelectMusic = 19;
+						}
+					}return;
+					case 23:{
+						if(s["bgm024"] != true){
+							NowSelectMusic = 24;
+							continue;
+						}
+					}return;
+					case 24:{
+						if(s["bgm025"] != true){
+							NowSelectMusic = 25;
+						}
+					}return;
+					case 27:
+					case 28:{
+						if(s["CLEAR_A"] != true){
+							NowSelectMusic = 29;
+							continue;
+						}
+					}return;
+					case 29:
+					case 30:{
+						if(s["CLEAR_B"] != true){
+							NowSelectMusic = 31;
+							continue;
+						}
+					}return;
+					case 31:
+					case 32:{
+						if(s["CLEAR_C"] != true){
+							NowSelectMusic = 33;
+							continue;
+						}
+					}return;
+					case 33:
+					case 34:{
+						if(s["CLEAR_D"] != true){
+							NowSelectMusic = 35;
+							continue;
+						}
+					}return;
+					case 35:
+					case 36:{
+						if(s["CLEAR_E"] != true){
+							NowSelectMusic = 0;
+						}
+					}return;
+					default:{
+						return;
+					}break;
+				}
+			}
+			
+		}else{
+		//prev
+			
+			while(1)
+			{
+				switch( NowSelectMusic )
+				{
+					case 18:{
+						if(s["bgm019"] != true){
+							NowSelectMusic = 17;
+						}
+					}return;
+					case 23:{
+						if(s["bgm024"] != true){
+							NowSelectMusic = 22;
+						}
+					}return;
+					case 24:{
+						if(s["bgm025"] != true){
+							NowSelectMusic = 23;
+							continue;
+						}
+					}return;
+					case 27:
+					case 28:{
+						if(s["CLEAR_A"] != true){
+							NowSelectMusic = 26;
+						}
+					}return;
+					case 29:
+					case 30:{
+						if(s["CLEAR_B"] != true){
+							NowSelectMusic = 28;
+							continue;
+						}
+					}return;
+					case 31:
+					case 32:{
+						if(s["CLEAR_C"] != true){
+							NowSelectMusic = 30;
+							continue;
+						}
+					}return;
+					case 33:
+					case 34:{
+						if(s["CLEAR_D"] != true){
+							NowSelectMusic = 32;
+							continue;
+						}
+					}return;
+					case 35:
+					case 36:{
+						if(s["CLEAR_E"] != true){
+							NowSelectMusic = 34;
+							continue;
+						}
+					}return;
+					default:{
+						return;
+					}break;
+				}
+			}
+			
+		}
+	}
+	
+	
+	
+	
+}
+
+
+
+
+
+
+
+/*-----------------------------------------
+■ 削除関数
+-----------------------------------------*/
+function SpecialDelete()
+{
+	//リプレイファイルを代入
+	var ReplayFile = MainObj.CgReplayObj.ReplayFile;
+	
+	if(ReplayFile == "" || ReplayFile === void){
+	//CG MODE or 通常終了
+		//オブジェクトを削除
+		invalidate MainObj.CgReplayObj;
+		
+		MainObj.CgReplayObj = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+		//クリアしておく
+		MainObj.ReplayPage = 0;
+		
+		MainObj.ReplayChar = 0;
+		
+		//タイトルに戻る or リプレイファイルに飛ぶ
+		MainObj.ChangeActive(MainObj.TitleObj);
+		
+		//ファイル名を戻しておく
+		f["bgm"] = f["titlebgm"];
+		
+		//BGM OFFならファイル名だけ移動
+		if(s["bgm"] == true){
+			//タイトルBGMを再度流す
+			MainObj.BgmObj.FilePlay(f["bgm"], true);
+		}
+		
+		
+		//タイマー再開
+		MainObj.DefaultTimer.enabled = true;
+		
+	}else{
+	//REPLAY MODE
+		
+		//画面キャプチャーをしておく
+		MainObj.EffectObj.TransSetFunc();
+		
+		//オブジェクトを削除
+		invalidate MainObj.CgReplayObj;
+		
+		MainObj.CgReplayObj = void;
+		
+		//ガベージを強制的に動かす
+		System.doCompact();
+		
+		//アクティブを変えておく
+		MainObj.ScreenFormat();
+		
+		//リプレイフラグを立てる
+		MainObj.ReplayFlag = true;
+		
+		//コンティニューフラグを寝かす
+		MainObj.ContinueFlag   = false;
+		
+		//JUMPの為にフラグを立てる
+		MainObj.PaserObj.LogTopSave = true;
+		
+		//シナリオをロードする
+		MainObj.PaserObj.ChageFile(ReplayFile);
+		
+	}
+}
+
+
+
+
+//==============================================================================
+/*[END OF FILE]*/
+
+case 3:{
+								if(!ResourceCheck(nEXTRAFILE08))continue;
+								ThumFile  = nEXTRA08_REPLAY_THUM;
+							}break;
+							case 4:
+								t = 0;
+							case 5:
+							case 6:{
+								if(!ResourceCheck(nEXTRAFILE09))continue;
+								ThumFile  = nEXTRA09_REPLAY_THUM;
+							}break;
+						}
+						
+						//Thumbnail銈掕銇胯炯銈�
+						TempLayer.loadImages(ThumFile);
+						TempLayer.setSizeToImageSize();
+						//COPY 銇椼仸銇娿亸
+						ThumbnailParts.copyRect((i%4)*256, (i\4)*144, TempLayer,t*256,0,256,144);
+					}
+				}break;
+			}
+			
+		}
+		
+		//銉嗐兂銉濄儵銉儸銈ゃ儰銈掑墛闄ゃ仚銈�
+		invalidate TempLayer;
+		
+		TempLayer = void;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*----------------------------------------------------------
+	鈻� CG MODE 宸垎鍗樹綅銉併偋銉冦偗
+	----------------------------------------------------------*/
+	function CgViewFlagCheck( all_arr, type = 0 )
+	{
+		
+		//宸垎銉併偋銉冦偗鐒°仐
+		if( ((nCGMODE_ALL_FILE_CHECK == false) && (type == 0)) || (DebugOpen == true) )return all_arr;
+		
+		//銉併偋銉冦偗鏈夈倞
+		var chk_arr = new Array();
+		
+		//閰嶅垪銇儠銉┿偘銉併偋銉冦偗
+		for(var i=0; i<all_arr.count; i++){
+			//鎷″嫉瀛愮⒑瑾�
+			var num      = all_arr[i].indexOf(".");
+			
+			var flagname = all_arr[i].toUpperCase();
+			
+			if(num != -1){
+			//鎷″嫉瀛愩倰鍙栥倠
+				flagname = all_arr[i].substr(0, num);
+			}
+			
+			//銉曘儵銈般儊銈с儍銈�
+			if( (s[flagname] == true) )chk_arr.add( all_arr[i] );
+			
+		}
+		
+		return chk_arr;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	鈻� 銉曘儵銈般儊銈с儍銈枹鏁�
+	-----------------------------------------*/
+	function MusicFlagCheckFunc( mode )
+	{
+		if( mode )
+		{//next
+			while(1)
+			{
+				switch( NowSelectMusic )
+				{
+					case 18:{
+						if(s["bgm019"] != true){
+							NowSelectMusic = 19;
+						}
+					}return;
+					case 23:{
+						if(s["bgm024"] != true){
+							NowSelectMusic = 24;
+							continue;
+						}
+					}return;
+					case 24:{
+						if(s["bgm025"] != true){
+							NowSelectMusic = 25;
+						}
+					}return;
+					case 27:
+					case 28:{
+						if(s["CLEAR_A"] != true){
+							NowSelectMusic = 29;
+							continue;
+						}
+					}return;
+					case 29:
+					case 30:{
+						if(s["CLEAR_B"] != true){
+							NowSelectMusic = 31;
+							continue;
+						}
+					}return;
+					case 31:
+					case 32:{
+						if(s["CLEAR_C"] != true){
+							NowSelectMusic = 33;
+							continue;
+						}
+					}return;
+					case 33:
+					case 34:{
+						if(s["CLEAR_D"] != true){
+							NowSelectMusic = 35;
+							continue;
+						}
+					}return;
+					case 35:
+					case 36:{
+						if(s["CLEAR_E"] != true){
+							NowSelectMusic = 0;
+						}
+					}return;
+					default:{
+						return;
+					}break;
+				}
+			}
+			
+		}else{
+		//prev
+			
+			while(1)
+			{
+				switch( NowSelectMusic )
+				{
+					case 18:{
+						if(s["bgm019"] != true){
+							NowSelectMusic = 17;
+						}
+					}return;
+					case 23:{
+						if(s["bgm024"] != true){
+							NowSelectMusic = 22;
+						}
+					}return;
+					case 24:{
+						if(s["bgm025"] != true){
+							NowSelectMusic = 23;
+							continue;
+						}
+					}return;
+					case 27:
+					case 28:{
+						if(s["CLEAR_A"] != true){
+							NowSelectMusic = 26;
+						}
+					}return;
+					case 29:
+					case 30:{
+						if(s["CLEAR_B"] != true){
+							NowSelectMusic = 28;
+							continue;
+						}
+					}return;
+					case 31:
+					case 32:{
+						if(s["CLEAR_C"] != true){
+							NowSelectMusic = 30;
+							continue;
+						}
+					}return;
+					case 33:
+					case 34:{
+						if(s["CLEAR_D"] != true){
+							NowSelectMusic = 32;
+							continue;
+						}
+					}return;
+					case 35:
+					case 36:{
+						if(s["CLEAR_E"] != true){
+							NowSelectMusic = 34;
+							continue;
+						}
+					}return;
+					default:{
+						return;
+					}break;
+				}
+			}
+			
+		}
+	}
+	
+	
+	
+	
+}
+
+
+
+
+
+
+
+/*-----------------------------------------
+鈻� 鍓婇櫎闁㈡暟
+-----------------------------------------*/
+function SpecialDelete()
+{
+	//銉儣銉偆銉曘偂銈ゃ儷銈掍唬鍏�
+	var ReplayFile = MainObj.CgReplayObj.ReplayFile;
+	
+	if(ReplayFile == "" || ReplayFile === void){
+	//CG MODE or 閫氬父绲備簡
+		//銈儢銈搞偋銈儓銈掑墛闄�
+		invalidate MainObj.CgReplayObj;
+		
+		MainObj.CgReplayObj = void;
+		
+		//銈儥銉笺偢銈掑挤鍒剁殑銇嫊銇嬨仚
+		System.doCompact();
+		
+		//銈儶銈€仐銇︺亰銇�
+		MainObj.ReplayPage = 0;
+		
+		MainObj.ReplayChar = 0;
+		
+		//銈裤偆銉堛儷銇埢銈� or 銉儣銉偆銉曘偂銈ゃ儷銇銇�
+		MainObj.ChangeActive(MainObj.TitleObj);
+		
+		//銉曘偂銈ゃ儷鍚嶃倰鎴汇仐銇︺亰銇�
+		f["bgm"] = f["titlebgm"];
+		
+		//BGM OFF銇倝銉曘偂銈ゃ儷鍚嶃仩銇戠Щ鍕�
+		if(s["bgm"] == true){
+			//銈裤偆銉堛儷BGM銈掑啀搴︽祦銇�
+			MainObj.BgmObj.FilePlay(f["bgm"], true);
+		}
+		
+		
+		//銈裤偆銉炪兗鍐嶉枊
+		MainObj.DefaultTimer.enabled = true;
+		
+	}else{
+	//REPLAY MODE
+		
+		//鐢婚潰銈儯銉椼儊銉ｃ兗銈掋仐銇︺亰銇�
+		MainObj.EffectObj.TransSetFunc();
+		
+		//銈儢銈搞偋銈儓銈掑墛闄�
+		invalidate MainObj.CgReplayObj;
+		
+		MainObj.CgReplayObj = void;
+		
+		//銈儥銉笺偢銈掑挤鍒剁殑銇嫊銇嬨仚
+		System.doCompact();
+		
+		//銈€偗銉嗐偅銉栥倰澶夈亪銇︺亰銇�
+		MainObj.ScreenFormat();
+		
+		//銉儣銉偆銉曘儵銈般倰绔嬨仸銈�
+		MainObj.ReplayFlag = true;
+		
+		//銈炽兂銉嗐偅銉嬨儱銉笺儠銉┿偘銈掑瘽銇嬨仚
+		MainObj.ContinueFlag   = false;
+		
+		//JUMP銇偤銇儠銉┿偘銈掔珛銇︺倠
+		MainObj.PaserObj.LogTopSave = true;
+		
+		//銈枫儕銉偑銈掋儹銉笺儔銇欍倠
+		MainObj.PaserObj.ChageFile(ReplayFile);
+		
+	}
+}
+
+
+
+
+//==============================================================================
+/*[END OF FILE]*/
+

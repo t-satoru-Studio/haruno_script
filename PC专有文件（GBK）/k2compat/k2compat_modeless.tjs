@@ -13,7 +13,7 @@ class        WIN32ModelessDialogEX      extends WIN32DialogEX {
 		super.finalize(...);
 	}
 
-	// visibleã§modeless dialogã‚’open/closeã™ã‚‹
+	// visible¤Çmodeless dialog¤òopen/close¤¹¤ë
 	var _visible = false, _stored = false, _initialParam;
 	property visible {
 		getter { return _visible; }
@@ -30,7 +30,7 @@ class        WIN32ModelessDialogEX      extends WIN32DialogEX {
 					store(getDialogTemplate(_initialParam));
 				}
 				_visible = true;
-				open(Window.mainWindow ? null : void); // â€»Zã§ã¯MainWindowãŒãªã„ã¨TVPGetApplicationWindowãŒå¤±æ•—ã™ã‚‹
+				open(Window.mainWindow ? null : void); // ¡ùZ¤Ç¤ÏMainWindow¤¬¤Ê¤¤¤ÈTVPGetApplicationWindow¤¬Ê§”¡¤¹¤ë
 				onOpen(first);
 			}
 		}
@@ -43,7 +43,7 @@ class        WIN32ModelessDialogEX      extends WIN32DialogEX {
 	/*virtual*/function getDialogTemplate(elmov) {
 		var cx, cy;
 		if (_width !== void || _height !== void) {
-			// ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºã«å½±éŸ¿ã•ã‚Œã‚‹ã®ã§å®Ÿã‚µã‚¤ã‚ºã¨ã¯ç•°ãªã‚‹ãŒè¡¨ç¤ºæ™‚ã«ãƒªã‚µã‚¤ã‚ºã™ã‚‹ã“ã¨ã§å¯¾å¿œã™ã‚‹
+			// ¥Õ¥©¥ó¥È¥µ¥¤¥º¤ËÓ°í‘¤µ¤ì¤ë¤Î¤ÇŒg¥µ¥¤¥º¤È¤Ï®¤Ê¤ë¤¬±íÊ¾•r¤Ë¥ê¥µ¥¤¥º¤¹¤ë¤³¤È¤ÇŒê¤¹¤ë
 			var units = getBaseUnits();
 			cx = _width  * 4 \ units.h if (_width  !== void);
 			cy = _height * 8 \ units.v if (_height !== void);
@@ -55,7 +55,7 @@ class        WIN32ModelessDialogEX      extends WIN32DialogEX {
 	}
 	/*virtual*/function getDialogStyle() { return DS_SHELLFONT/*DS_SETFONT*/ | WS_VISIBLE; }
 
-	// borderStyleã‹ã‚‰STYLE/EXSTYLEã‚’æ±ºå®šã™ã‚‹
+	// borderStyle¤«¤éSTYLE/EXSTYLE¤ò›Q¶¨¤¹¤ë
 	function getWindowStyle(style = WS_OVERLAPPEDWINDOW, exStyle = 0) {
 		var origStyle   = style;
 		var origExStyle = exStyle;
@@ -91,7 +91,7 @@ class        WIN32ModelessDialogEX      extends WIN32DialogEX {
 		return [ style, exStyle ];
 	}
 
-	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚¢ã‚¤ãƒ†ãƒ ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’ onCommand/onNotify_ã‚¢ã‚¤ãƒ†ãƒ å ã§å‘¼ã³è¿”ã™
+	// ¥À¥¤¥¢¥í¥°¥¢¥¤¥Æ¥à¤Î¥³©`¥ë¥Ğ¥Ã¥¯¤ò onCommand/onNotify_¥¢¥¤¥Æ¥àÃû ¤Çºô¤Ó·µ¤¹
 	function onCommand(msg, wp, lp) {
 		super.onCommand(...);
 		_invokeCallback("onCommand", getNamedId(wp & 0xFFFF), wp>>16, lp);
@@ -113,7 +113,7 @@ class        WIN32ModelessDialogEX      extends WIN32DialogEX {
 		}
 	}
 
-	// è¤‡æ•°å€‹ã®AsyncTriggerã‚’æ±ç”¨ã«ç”Ÿæˆã™ã‚‹å‡¦ç†ï¼ˆcallback methodåã‚’ã‚­ãƒ¼ã«ä¿å­˜ï¼‰
+	// Ñ}Êı‚€¤ÎAsyncTrigger¤òšøÓÃ¤ËÉú³É¤¹¤ë„IÀí£¨callback methodÃû¤ò¥­©`¤Ë±£´æ£©
 	var _asyncTriggers;
 	function createAsyncTrigger(cbmethod, mode = atmAtIdle, cached = true) {
 		if (cbmethod == "") return;
@@ -236,6 +236,13 @@ class        WIN32ModelessDialogEX      extends WIN32DialogEX {
 		setSize(w, h) if (w !== void || h !== void);
 	}
 	function setSize(w, h) {
+		_width  = (int)+w if (w !== void);
+		_height = (int)+h if (h !== void);
+		_updateSize();
+	}
+}
+
+n setSize(w, h) {
 		_width  = (int)+w if (w !== void);
 		_height = (int)+h if (h !== void);
 		_updateSize();

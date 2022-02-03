@@ -5,10 +5,10 @@
 // Creator : Kazuyuki Uchino
 // Memo : Startup File
 //------------------------------------------------------------------------------
-// startup.tjs - ã‚¹ã‚¿ãƒ¼ãƒˆã‚¢ãƒƒãƒ—ã‚¹ã‚¯ãƒªãƒ—ãƒˆ
-// ã“ã®ã‚¹ã‚¯ãƒªãƒ—ãƒˆã¯ä¸€ç•ªæœ€åˆã«å®Ÿè¡Œã•ã‚Œã‚‹ã‚¹ã‚¯ãƒªãƒ—ãƒˆã§ã™
+// startup.tjs - ¥¹¥¿©`¥È¥¢¥Ã¥×¥¹¥¯¥ê¥×¥È
+// ¤³¤Î¥¹¥¯¥ê¥×¥È¤ÏÒ»·¬×î³õ¤ËŒgĞĞ¤µ¤ì¤ë¥¹¥¯¥ê¥×¥È¤Ç¤¹
 
-// sys_source/Init.tjs ã‚’å®Ÿè¡Œ
+// sys_source/Init.tjs ¤òŒgĞĞ
 
 // krkr2compact
 // for command line
@@ -39,11 +39,11 @@ class        TestWindow extends Window {
 		super.finalize(...);
 	}
 	function onCloseQuery {
-//		System.terminate(); // [XXX] ãƒ—ãƒ­ã‚»ã‚¹ãŒæ®‹ã‚‹ï¼Ÿ
+//		System.terminate(); // [XXX] ¥×¥í¥»¥¹¤¬²Ğ¤ë£¿
 		return super.onCloseQuery(true);
 	}
 	function setup(w, h) {
-		caption = "å‰é‡Œå‰é‡Œï¼’äº’æ›ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µãƒ³ãƒ—ãƒ«";
+		caption = "¼ªÀï¼ªÀï£²»¥“Q¥¦¥£¥ó¥É¥¦¥µ¥ó¥×¥ë";
 
 		borderStyle = bsSingle;
 		showScrollBars  = false;
@@ -54,7 +54,7 @@ class        TestWindow extends Window {
 		with (prim) {
 			.setSize(w, h);
 			.visible = true;
-			redrawSampleText("ï¼­ï¼³ ï¼°ã‚´ã‚·ãƒƒã‚¯");
+			redrawSampleText("£Í£Ó £Ğ¥´¥·¥Ã¥¯");
 		}
 		add(prim);
 
@@ -124,7 +124,7 @@ class        TestWindow extends Window {
 			.fillRect(0, 0, .width, .height, 0);
 			.font.face = fontface if (fontface != "");
 			.font.height = 32;
-			.drawText(0, 0, "abcdefghijkæ—¥æœ¬èª", 0xFFFFFF);
+			.drawText(0, 0, "abcdefghijkÈÕ±¾ÕZ", 0xFFFFFF);
 		}
 	}
 
@@ -142,11 +142,11 @@ class        TestWindow extends Window {
 	}
 	function onFontSelect(fr) {
 		var lay = this.primaryLayer;
-		var sel = lay.font.doUserSelect(_defaultFontFlags, "ãƒ•ã‚©ãƒ³ãƒˆã®é¸æŠ", "ãƒ•ã‚©ãƒ³ãƒˆã‚’é¸æŠã—ã¦ãã ã•ã„", "ABCDEFGHIã‚ã„ã†ãˆãŠäºœèƒƒå®‡çµµå¾¡");
+		var sel = lay.font.doUserSelect(_defaultFontFlags, "¥Õ¥©¥ó¥È¤Îßx’k", "¥Õ¥©¥ó¥È¤òßx’k¤·¤Æ¤¯¤À¤µ¤¤", "ABCDEFGHI¤¢¤¤¤¦¤¨¤ª„Î¸Óî½}Óù");
 		if (!sel) {
-			System.inform("ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚Œã¾ã—ãŸ");
+			System.inform("¥­¥ã¥ó¥»¥ë¤µ¤ì¤Ş¤·¤¿");
 		} else {
-			System.inform("é¸æŠã•ã‚Œã¾ã—ãŸ:"+lay.font.face);
+			System.inform("ßx’k¤µ¤ì¤Ş¤·¤¿:"+lay.font.face);
 			redrawSampleText();
 		}
 	}
@@ -190,7 +190,7 @@ class        TestWindow extends Window {
 	function recreatePadMenuList() {
 		PadEmptyMenuItem.visible = !padList.count;
 		var list = PadMenu.children, map = %[], ext = [];
-		// æ‰‹æŠœãå®Ÿè£…ã«ã¤ã...
+		// ÊÖ’i¤­Œg×°¤Ë¤Ä¤­...
 		for (var i = 0; i < padList.count; i++) map[padList[i]] = padList[i];
 		for (var i = 0; i < list.count; i++) {
 			var item = list[i];
@@ -219,7 +219,7 @@ class        TestWindow extends Window {
 
 
 if (System.getArgument("-consoleonly") == "yes") {
-	System.exitOnNoWindowStartup = false; // [???] æ©Ÿèƒ½ã—ãªã„ï¼Ÿ
+	System.exitOnNoWindowStartup = false; // [???] ™CÄÜ¤·¤Ê¤¤£¿
 	Debug.console.visible = true;
 	return;
 }
@@ -249,6 +249,15 @@ Plugins.link("fstat.dll");
 Plugins.link("krmovie.dll");
 Plugins.link("wumsadp.dll");
 Plugins.link("wuvorbis.dll");
+Plugins.link("KAGParserEx.dll");
+Plugins.link("windowEx.dll");
+
+Scripts.execStorage("sys_source/Init.tjs");
+
+
+
+
+vorbis.dll");
 Plugins.link("KAGParserEx.dll");
 Plugins.link("windowEx.dll");
 

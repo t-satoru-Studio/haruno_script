@@ -2,21 +2,21 @@ Krkr2CompatUtils.requireWIN32Dialog();
 
 class FontSelectDialog extends WIN32GenericDialogEX
 {
-	var fontList;						//< „Éï„Ç©„É≥„ÉàÂêç‰∏ÄË¶ßÈÖçÂàó
-	var initialSelect;					//< ÂàùÊúüÈÅ∏Êäû„Éï„Ç©„É≥„ÉàÔºàfontList„Ç§„É≥„Éá„ÉÉ„ÇØ„ÇπÁï™Âè∑Ôºâ
-	var itemHeight;						//< ListBox„ÅÆÔºëË°å„ÅÆÈ´ò„Åï
-	var itemPadding;					//< ListBox„ÅÆÈöôÈñì
-	var fontHeight;						//< „Éï„Ç©„É≥„Éà„ÅÆÈ´ò„Åï
-	var fontRasterizer;					//< „É©„Çπ„Çø„É©„Ç§„Ç∂
-	var sampleText;						//< „Çµ„É≥„Éó„É´„ÉÜ„Ç≠„Çπ„Éà
-	var useFontFace;					//< fsfUseFontFace„Ç™„Éó„Ç∑„Éß„É≥ÊåáÂÆö„ÅÆÊúâÁÑ°
+	var fontList;						//< •’•©•Û•»√˚“ª”E≈‰¡–
+	var initialSelect;					//< ≥ı∆⁄ﬂxík•’•©•Û•»£®fontList•§•Û•«•√•Ø•π∑¨∫≈£©
+	var itemHeight;						//< ListBox§Œ£±––§Œ∏ﬂ§µ
+	var itemPadding;					//< ListBox§Œœ∂Èg
+	var fontHeight;						//< •’•©•Û•»§Œ∏ﬂ§µ
+	var fontRasterizer;					//< •È•π•ø•È•§•∂
+	var sampleText;						//< •µ•Û•◊•Î•∆•≠•π•»
+	var useFontFace;					//< fsfUseFontFace•™•◊•∑•Á•Û÷∏∂®§Œ”–üo
 
-	var fontLayer;						//< „Éï„Ç©„É≥„ÉàÊèèÁîª„É¨„Ç§„É§Ôºà‰Ωø„ÅÑÂõû„ÅóÁî®Ôºâ
-	var layerCreated;					//< „Éï„Ç©„É≥„ÉàÊèèÁîªÊ∏à„Åø„ÅÆ„Éï„É©„Ç∞ÈÖçÂàó
-	var selectLayer, selectBitmap;		//< ListSelectÊèèÁîªÁî®„É¨„Ç§„É§„ÉªBitmap
-	var sampleLayer, sampleBitmap;		//< „Çµ„É≥„Éó„É´ÊèèÁîªÁî®„É¨„Ç§„É§„ÉªBitmap
+	var fontLayer;						//< •’•©•Û•»√Ëª≠•Ï•§•‰£® π§§ªÿ§∑”√£©
+	var layerCreated;					//< •’•©•Û•»√Ëª≠úg§ﬂ§Œ•’•È•∞≈‰¡–
+	var selectLayer, selectBitmap;		//< ListSelect√Ëª≠”√•Ï•§•‰Å9ß9Bitmap
+	var sampleLayer, sampleBitmap;		//< •µ•Û•◊•Î√Ëª≠”√•Ï•§•‰Å9ß9Bitmap
 
-	// [TODO] „É™„ÇΩ„Éº„Çπ„Å™„Å©„Åß„Éú„Çø„É≥„ÅÆÊñáË®Ä/Êï∞ÂÄ§„ÇíÂ∑Æ„ÅóÊõø„Åà„Çâ„Çå„Çã„Çà„ÅÜ„Å´„Åô„Çã
+	// [TODO] •Í•Ω©`•π§ §…§«•‹•ø•Û§ŒŒƒ—‘/ ˝Çé§Ú≤Ó§∑ÃÊ§®§È§Ï§Î§Ë§¶§À§π§Î
 	function getResourceString (name, def) { return def; }
 	function getResourceInteger(name, def) { return def; }
 
@@ -29,19 +29,19 @@ class FontSelectDialog extends WIN32GenericDialogEX
 		super.finalize(...);
 	}
 	function FontSelectDialog(lay, face, flags, caption, prompt, sample) {
-		// „Éú„Çø„É≥ÂêçÁß∞„ÇíÂèñÂæó
+		// •‹•ø•Û√˚≥∆§Ú»°µ√
 		var tagOK = getResourceString("ButtonOK",     "&OK");
-		var tagNG = getResourceString("ButtonCancel", "„Ç≠„É£„É≥„Çª„É´");
+		var tagNG = getResourceString("ButtonCancel", "•≠•„•Û•ª•Î");
 
-		// „ÉÄ„Ç§„Ç¢„É≠„Ç∞ÁîüÊàê
+		// •¿•§•¢•Ì•∞…˙≥…
 		super.WIN32GenericDialogEX(%[ title:caption, width:200, itemtexts:%[ IDOK=>tagOK, IDCANCEL=>tagNG ] ]);
 
-		// ‰ΩúÊ•≠Áî®„É¨„Ç§„É§„ÉªBitmap
+		// ◊˜òI”√•Ï•§•‰Å9ß9Bitmap
 		fontLayer    = new Layer(lay.window, lay);
 		selectLayer  = new Layer(lay.window, lay);
 		selectBitmap = new global.WIN32Dialog.Bitmap(selectLayer);
 
-		// Â§âÊï∞ÂàùÊúüÂåñ
+		// â‰ ˝≥ı∆⁄ªØ
 		useFontFace = flags & fsfUseFontFace;
 		fontList = getFontList(lay, flags);
 		initialSelect = getInitialSelect(face);
@@ -52,11 +52,11 @@ class FontSelectDialog extends WIN32GenericDialogEX
 		itemPadding = getResourceInteger("FontDialogListPadding", 4);
 		itemHeight = (fontHeight < 0 ? -fontHeight : fontHeight) + itemPadding;
 
-		// ListSelect„ÅÆÈ´ò„Åï„ÇíÊ±∫ÂÆö
+		// ListSelect§Œ∏ﬂ§µ§ÚõQ∂®
 		var selheight = getResourceInteger("FontDialogListHeight", 150);
 		if (selheight <= 0) selheight = 150;
 
-		// „ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÅÆÂ≠ê„Ç¢„Ç§„ÉÜ„É†„ÇíËøΩÂä†
+		// •¿•§•¢•Ì•∞§Œ◊”•¢•§•∆•‡§Ú◊∑º”
 		addLText(prompt);
 		nextLine();
 		addListSelect("Select", selheight, void, void, fontList);
@@ -76,15 +76,15 @@ class FontSelectDialog extends WIN32GenericDialogEX
 		addButton(IDCANCEL, makeStepRight(0, 60), 8);
 	}
 
-	// „Éï„Ç©„É≥„Éà‰∏ÄË¶ß„ÇíÂèñÂæó
+	// •’•©•Û•»“ª”E§Ú»°µ√
 	function getFontList(lay, flags) {
 		var list = [];
 		list.assign(lay.font.getList(flags));
-//		list.sort(); // „ÇΩ„Éº„Éà‰∏çË¶ÅÔºü
+//		list.sort(); // •Ω©`•»≤ª“™£ø
 		return list;
 	}
 
-	// ÁèæÂú®ÈÅ∏Êäû‰∏≠„ÅÆ„Éï„Ç©„É≥„Éà„ÇíË™ø„Åπ„Çã
+	// ¨F‘⁄ﬂxík÷–§Œ•’•©•Û•»§Ú’{§Ÿ§Î
 	function getInitialSelect(face) {
 		face = (string)face;
 		if (face.indexOf(",") < 0) return fontList.find(face);
@@ -96,7 +96,7 @@ class FontSelectDialog extends WIN32GenericDialogEX
 		return -1;
 	}
 
-	// „ÉÄ„Ç§„Ç¢„É≠„Ç∞Ë°®Á§∫ÈñãÂßãÊôÇÂá¶ÁêÜ
+	// •¿•§•¢•Ì•∞±Ì æÈ_ ºïrÑI¿Ì
 	function onInit() {
 		super.onInit(...);
 		setCenterPosition();
@@ -104,12 +104,12 @@ class FontSelectDialog extends WIN32GenericDialogEX
 		selectListBox("Select", initialSelect);
 		onSelectChanged();
 	}
-	// ListBoxÈ´ò„ÅïÊåáÂÆöÁî®
+	// ListBox∏ﬂ§µ÷∏∂®”√
 	function setItemHeight(id, h) {
 		sendItemMessage(id, LB_SETITEMHEIGHT, 0, h);
 	}
 
-	// „ÉÄ„Ç§„Ç¢„É≠„Ç∞„Ç§„Éô„É≥„ÉàÂá¶ÁêÜ
+	// •¿•§•¢•Ì•∞•§•Ÿ•Û•»ÑI¿Ì
 	function onCommand(msg, wp, lp) {
 		var proc, notify = wp >>16;
 		switch (getNamedId(wp & 0xFFFF)) {
@@ -128,7 +128,7 @@ class FontSelectDialog extends WIN32GenericDialogEX
 		}
 	}
 	function onSelectChanged() {
-		// ÈÅ∏Êäû„ÅåÂ§âÊõ¥„Åï„Çå„Åü
+		// ﬂxík§¨â‰∏¸§µ§Ï§ø
 		if (sampleText != "" && sampleLayer) with (sampleLayer) {
 			// [TODO]
 			var id = "Sample";
@@ -221,6 +221,13 @@ class FontSelectDialog extends WIN32GenericDialogEX
 
 &System.doFontSelect = function (layer, *) { // flags, caption, prompt, sample) {
 	if (typeof layer != "Object" || !layer || !(layer instanceof "Layer"))
+		throw new Exception("System.doFontSelect: Specify a Layer object");
+	var dialog = new FontSelectDialog(layer, layer.font.face, *);
+	var result = dialog.open(layer.window);
+	invalidate dialog;
+	return result;
+} incontextof global;
+ instanceof "Layer"))
 		throw new Exception("System.doFontSelect: Specify a Layer object");
 	var dialog = new FontSelectDialog(layer, layer.font.face, *);
 	var result = dialog.open(layer.window);

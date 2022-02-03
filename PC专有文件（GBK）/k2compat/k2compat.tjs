@@ -1,10 +1,10 @@
 //=============================================================
-// k2compat - å‰é‡Œå‰é‡Œï¼’å°‚ç”¨ã‚¯ãƒ©ã‚¹ï¼é–¢æ•°ã®å‰é‡Œå‰é‡Œï¼ºå‘ã‘äº’æ›å®Ÿè£…
+// k2compat - ¼ªÀï¼ªÀï£²ŒŸÓÃ¥¯¥é¥¹£¯évÊı¤Î¼ªÀï¼ªÀï£ÚÏò¤±»¥“QŒg×°
 
 //-------------------------------------------------------------
-// k2compat.tjsã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹å‰ã«ä¸‹è¨˜æ¡ä»¶ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«å¼ãŒå®šç¾©å¯èƒ½ã§ã™
+// k2compat.tjs¤ò¥í©`¥É¤¹¤ëÇ°¤ËÏÂÓ›Ìõ¼ş¥³¥ó¥Ñ¥¤¥ëÊ½¤¬¶¨Áx¿ÉÄÜ¤Ç¤¹
 
-//// å„ç¨®äº’æ›å®Ÿè£…ã‚’ç„¡åŠ¹åŒ–ã—ã¾ã™
+//// ¸÷·N»¥“QŒg×°¤òŸo„¿»¯¤·¤Ş¤¹
 //
 //	@set (K2COMPAT_PURGE_MENU = 1) // MenuItem, Window.menu (menu.dll)
 //	@set (K2COMPAT_PURGE_KAGPARSER = 1) // KAGParser (KAGParrser.dll
@@ -13,27 +13,27 @@
 //	@set (K2COMPAT_PURGE_WINDOWPROP = 1) // Window.innerSunken, Window.showScrollBars
 //	@set (K2COMPAT_PURGE_PTDRAWDEVICE = 1) // Window.PassThroughDrawDevice
 //	@set (K2COMPAT_PURGE_PAD = 1) // Pad
-//	@set (K2COMPAT_PURGE_DEBUG = 1) // ä¸‹è¨˜ã®Debugã‚¯ãƒ©ã‚¹å‘¨ã‚Šã®å®Ÿè£…ä¸€æ‹¬
-//		@set (K2COMPAT_PURGE_CONSOLE = 1) // ã‚³ãƒ³ã‚½ãƒ¼ãƒ« (Debug.console)
-//		@set (K2COMPAT_PURGE_CONTROLLER = 1) // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ© (Debug.controller)
-//		@set (K2COMPAT_PURGE_SCRIPTEDITOR = 1) // ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚¨ãƒ‡ã‚£ã‚¿ (Debug.scripted)
-//		@set (K2COMPAT_PURGE_WATCH = 1) // ç›£è¦–å¼ (Debug.watchexp)
-//		@set (K2COMPAT_PURGE_HOTKEY = 1) // Shift+F1ï½F4ã®ãƒ›ãƒƒãƒˆã‚­ãƒ¼
+//	@set (K2COMPAT_PURGE_DEBUG = 1) // ÏÂÓ›¤ÎDebug¥¯¥é¥¹ÖÜ¤ê¤ÎŒg×°Ò»À¨
+//		@set (K2COMPAT_PURGE_CONSOLE = 1) // ¥³¥ó¥½©`¥ë (Debug.console)
+//		@set (K2COMPAT_PURGE_CONTROLLER = 1) // ¥³¥ó¥È¥í©`¥é (Debug.controller)
+//		@set (K2COMPAT_PURGE_SCRIPTEDITOR = 1) // ¥¹¥¯¥ê¥×¥È¥¨¥Ç¥£¥¿ (Debug.scripted)
+//		@set (K2COMPAT_PURGE_WATCH = 1) // ±OÒ•Ê½ (Debug.watchexp)
+//		@set (K2COMPAT_PURGE_HOTKEY = 1) // Shift+F1¡«F4¤Î¥Û¥Ã¥È¥­©`
 
-//// System.desktop{Left,Top,Width,Height} ã®ä»•æ§˜ã‚’å¤‰æ›´ã—ã¾ã™(è¦windowEx.dllãƒ—ãƒ©ã‚°ã‚¤ãƒ³)
-//	@set (K2COMPAT_SPEC_DESKTOPINFO =  1) // å¸¸ã«ãƒ—ãƒ©ã‚¤ãƒãƒªãƒ¢ãƒ‹ã‚¿ã®Desktopæƒ…å ±ã‚’è¿”ã—ã¾ã™
-//	@set (K2COMPAT_SPEC_DESKTOPINFO = -1) // Window.mainWindowã®ã‚ã‚‹Desktopæƒ…å ±ã‚’è¿”ã—ã¾ã™
-//  â€»æœªæŒ‡å®šã®å ´åˆã¯Zæœ¬æ¥ã®ä»•æ§˜(å…¨ãƒ¢ãƒ‹ã‚¿çµ±åˆã—ãŸåº§æ¨™æƒ…å ±)ã®ã¾ã¾ã«ãªã‚Šã¾ã™
+//// System.desktop{Left,Top,Width,Height} ¤ÎÊË˜”¤ò‰ä¸ü¤·¤Ş¤¹(ÒªwindowEx.dll¥×¥é¥°¥¤¥ó)
+//	@set (K2COMPAT_SPEC_DESKTOPINFO =  1) // ³£¤Ë¥×¥é¥¤¥Ş¥ê¥â¥Ë¥¿¤ÎDesktopÇéˆó¤ò·µ¤·¤Ş¤¹
+//	@set (K2COMPAT_SPEC_DESKTOPINFO = -1) // Window.mainWindow¤Î¤¢¤ëDesktopÇéˆó¤ò·µ¤·¤Ş¤¹
+//  ¡ùÎ´Ö¸¶¨¤ÎˆöºÏ¤ÏZ±¾À´¤ÎÊË˜”(È«¥â¥Ë¥¿½yºÏ¤·¤¿×ù˜ËÇéˆó)¤Î¤Ş¤Ş¤Ë¤Ê¤ê¤Ş¤¹
 
-//// System.screen{Width,Height} ã®ä»•æ§˜ã‚’å¤‰æ›´ã—ã¾ã™(è¦windowEx.dllãƒ—ãƒ©ã‚°ã‚¤ãƒ³)
-//	@set (K2COMPAT_SPEC_SCREENINFO = 1) // å¸¸ã«ãƒ—ãƒ©ã‚¤ãƒãƒªãƒ¢ãƒ‹ã‚¿ã®Desktopæƒ…å ±ã‚’è¿”ã—ã¾ã™
-//  â€»æœªæŒ‡å®šã®å ´åˆã¯Zæœ¬æ¥ã®ä»•æ§˜(mainWindowã®ã‚ã‚‹Screenã‚µã‚¤ã‚ºã‚’è¿”ã™)ã®ã¾ã¾ã«ãªã‚Šã¾ã™
+//// System.screen{Width,Height} ¤ÎÊË˜”¤ò‰ä¸ü¤·¤Ş¤¹(ÒªwindowEx.dll¥×¥é¥°¥¤¥ó)
+//	@set (K2COMPAT_SPEC_SCREENINFO = 1) // ³£¤Ë¥×¥é¥¤¥Ş¥ê¥â¥Ë¥¿¤ÎDesktopÇéˆó¤ò·µ¤·¤Ş¤¹
+//  ¡ùÎ´Ö¸¶¨¤ÎˆöºÏ¤ÏZ±¾À´¤ÎÊË˜”(mainWindow¤Î¤¢¤ëScreen¥µ¥¤¥º¤ò·µ¤¹)¤Î¤Ş¤Ş¤Ë¤Ê¤ê¤Ş¤¹
 
 
-//// k2compat.tjsã®ãƒ‡ãƒãƒƒã‚°ãƒ­ã‚°è¡¨ç¤ºã‚’æœ‰åŠ¹ã«ã—ã¾ã™
+//// k2compat.tjs¤Î¥Ç¥Ğ¥Ã¥°¥í¥°±íÊ¾¤òÓĞ„¿¤Ë¤·¤Ş¤¹
 //	@set (K2COMPAT_VERBOSE = 1)
 
-//// ãƒ€ãƒŸãƒ¼ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£(Window.innerSunkenç­‰)ã«æ›¸ãè¾¼ã¾ã‚ŒãŸå ´åˆã®ãƒ­ã‚°å‡ºåŠ›ã‚’æŠ‘åˆ¶ã—ã¾ã™
+//// ¥À¥ß©`¥×¥í¥Ñ¥Æ¥£(Window.innerSunkenµÈ)¤Ë•ø¤­Şz¤Ş¤ì¤¿ˆöºÏ¤Î¥í¥°³öÁ¦¤òÒÖÖÆ¤·¤Ş¤¹
 //	@set (K2COMPAT_PURGE_DUMMYPROP_LOG = 1)
 
 
@@ -83,7 +83,7 @@ class Krkr2CompatUtils {
 		loadPlugin("windowEx.dll");
 	}
 	function onBeforeWindowExLink() {
-		// [XXX] typeof å‚ç…§ã§é…å»¶èª­ã¿è¾¼ã¿ãŒå…¥ã‚‹ï¼ãªã„å ´åˆã¯ãƒ€ãƒŸãƒ¼ã‚’ä½œæˆ
+		// [XXX] typeof ²ÎÕÕ¤ÇßWÑÓÕi¤ßŞz¤ß¤¬Èë¤ë£¯¤Ê¤¤ˆöºÏ¤Ï¥À¥ß©`¤ò×÷³É
 		if (typeof global.MenuItem == "undefined")
 			/**/   global.MenuItem  = %[];
 
@@ -137,7 +137,7 @@ class Krkr2CompatUtils {
 
 	function makeDummyProperty(cls, key, value) {
 		var chk;
-		try { chk = typeof cls[key]; } catch {} // [XXX] ã‚¯ãƒ©ã‚¹ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’ç›´æ¥typeofã™ã‚‹ã¨å®Ÿè¡Œã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãŒé•ã†ä¾‹å¤–ãŒé£›ã¶å ´åˆãŒã‚ã‚‹
+		try { chk = typeof cls[key]; } catch {} // [XXX] ¥¯¥é¥¹¤Î¥×¥í¥Ñ¥Æ¥£¤òÖ±½Ótypeof¤¹¤ë¤ÈŒgĞĞ¥³¥ó¥Æ¥­¥¹¥È¤¬ß`¤¦ÀıÍâ¤¬ïw¤ÖˆöºÏ¤¬¤¢¤ë
 		if (chk == "undefined") {
 			(function (key, value, prefix) {
 				(@"property ${key} { getter { return typeof this.${prefix}${key} != 'undefined' ? this.${prefix}${key} : ${value}; }" +
@@ -162,8 +162,8 @@ class Krkr2CompatUtils {
 	function createDebugShortcutMenuItem(win, exp, shortcut, sysarg) {
 		//trace("createDebugShortcutMenuItem", sysarg);
 		var ovr = System.getArgument("-"+sysarg);
-		if (ovr !== void) shortcut=ovr; // -hkXXX= æŒ‡å®šãŒã‚ã‚‹å ´åˆã¯ä¸Šæ›¸ã
-		if (shortcut == "") return; // -hkXXX="" ãªã‚‰ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆç„¡åŠ¹
+		if (ovr !== void) shortcut=ovr; // -hkXXX= Ö¸¶¨¤¬¤¢¤ëˆöºÏ¤ÏÉÏ•ø¤­
+		if (shortcut == "") return; // -hkXXX="" ¤Ê¤é¥·¥ç©`¥È¥«¥Ã¥ÈŸo„¿
 
 		var item = new MenuItem(win, sysarg);
 		with (item) {
@@ -187,14 +187,14 @@ class Krkr2CompatUtils {
 			value = target ? (string)target : "null";
 			/**/ if (target instanceof "Function") key = "(Function)";
 			else if (target instanceof "Property") key = "(Property)";
-			else if (target instanceof "Class")    key = "(Class)"; // [MEMO] Scripts.getClassNames ã¯ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã«ã—ã‹åŠ¹ã‹ãªã„
+			else if (target instanceof "Class")    key = "(Class)"; // [MEMO] Scripts.getClassNames ¤Ï¥¤¥ó¥¹¥¿¥ó¥¹¤Ë¤·¤«„¿¤«¤Ê¤¤
 			else if (target instanceof "Array" || target instanceof "Dictionary") {
 				var isdic = target instanceof "Dictionary", ext = [];
 				ext.assign(target);
 				var n = isdic ? ext.count\2 : ext.count;
 				value = isdic ? @"(Dictionary:${n})%[" : @"(Array:${n})[";
 				var step = isdic ? 2 : 1;
-				var large =  n >= 10; // [XXX]è‡ªå‹•æ”¹è¡Œå¯¾å¿œã®é–¾å€¤
+				var large =  n >= 10; // [XXX]×Ô„Ó¸ÄĞĞŒê¤Îé“‚
 				var showkey = isdic || large;
 				var cr = (sep != "" && large);
 				if (cr) value += "\n";
@@ -233,7 +233,7 @@ with (global.Krkr2CompatUtils = new Krkr2CompatUtils()) // replace singleton ins
 
 	@if (! K2COMPAT_PURGE_MENU)
 	if (typeof global.MenuItem == "undefined") {
-		// [MEMO] é…å»¶èª­ã¿è¾¼ã¿ã«è‹¥å¹²å•é¡Œã‚ã‚Šï¼Ÿ(WindowExã¨ã®ç›¸æ€§ï¼‰
+		// [MEMO] ßWÑÓÕi¤ßŞz¤ß¤ËÈô¸É†–î}¤¢¤ê£¿(WindowEx¤È¤ÎÏàĞÔ£©
 		var del = "delete global.MenuItem; delete global.Window.menu;";
 		&global.MenuItem = .delayLoadPlugin("menu.dll", "MenuItem", del);
 		&Window.menu = .makeDelay("var ref = global.MenuItem; return &this.menu = (global.Window.menu incontextof this);", null);
@@ -243,13 +243,13 @@ with (global.Krkr2CompatUtils = new Krkr2CompatUtils()) // replace singleton ins
 
 	@if (! K2COMPAT_PURGE_KAGPARSER)
 	if (typeof global.KAGParser == "undefined") {
-		// [MEMO] é…å»¶èª­ã¿è¾¼ã¿ã«è‹¥å¹²å•é¡Œã‚ã‚Šï¼Ÿ(KAGParserExã¨ã®ç›¸æ€§ï¼‰
+		// [MEMO] ßWÑÓÕi¤ßŞz¤ß¤ËÈô¸É†–î}¤¢¤ê£¿(KAGParserEx¤È¤ÎÏàĞÔ£©
 		&global.KAGParser = .delayLoadPlugin("KAGParser.dll", "KAGParser", "delete global.KAGParser;");
 		delaylink = true;
 	}
 	@endif
 
-	// Plugins.linkãƒ•ãƒƒã‚¯
+	// Plugins.link¥Õ¥Ã¥¯
 	if (delaylink) {
 		.hookInjection(Plugins, "link", function {
 			return global.Krkr2CompatUtils.hookPluginLink(...);
@@ -335,6 +335,25 @@ with (global.Krkr2CompatUtils = new Krkr2CompatUtils()) // replace singleton ins
 				@if (! K2COMPAT_PURGE_SCRIPTEDITOR)
 				create(this, function { with (scripted)   .visible=!.visible; } incontextof Debug, "Shift+F2", "hkeditor");
 				@endif
+				@if (! K2COMPAT_PURGE_WATCH)
+				create(this, function { with (watchexp)   .visible=!.visible; } incontextof Debug, "Shift+F3", "hkwatch");
+				@endif
+			}
+			return r;
+		} incontextof null);
+		@endif
+	} else {
+		var dummyObject = %[];
+		@if (! K2COMPAT_PURGE_CONSOLE)
+		&Debug.console = dummyObject;
+		@endif
+		@if (! K2COMPAT_PURGE_CONTROLLER)
+		&Debug.controller = dummyObject;
+		@endif
+	}
+	@endif // !K2COMPAT_PURGE_DEBUG
+}
+dif
 				@if (! K2COMPAT_PURGE_WATCH)
 				create(this, function { with (watchexp)   .visible=!.visible; } incontextof Debug, "Shift+F3", "hkwatch");
 				@endif

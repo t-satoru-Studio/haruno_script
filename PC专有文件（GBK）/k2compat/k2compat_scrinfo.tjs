@@ -1,4 +1,4 @@
-// System.screen{Width,Height}ã®ä»•æ§˜ã‚’å¤‰æ›´ã™ã‚‹
+// System.screen{Width,Height}¤ÎÊË˜”¤ò‰ä¸ü¤¹¤ë
 
 Krkr2CompatUtils.require("deskinfo");
 
@@ -7,4 +7,6 @@ property _System_screenHeight { getter { return _System_primary_getMonitorInfo("
 
 &System.screenWidth  = &_System_screenWidth;
 &System.screenHeight = &_System_screenHeight;
+
+eight;
 

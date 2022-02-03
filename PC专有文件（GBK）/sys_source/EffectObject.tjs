@@ -1,0 +1,1339 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2008/04/04
+// File : EffectObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Effect Control
+//------------------------------------------------------------------------------
+
+@if(__EFFECTOBJECT_TJS__ == 0)
+@set(__EFFECTOBJECT_TJS__ = 1)
+
+
+class _SHAKE {
+	var x;
+	var y;
+	var layer;
+	var wait;
+	var startTime;
+	var flag;
+	
+	
+	/*-----------------------------------------
+	°Ù•≥•Û•π•»•È•Ø•ø
+	-----------------------------------------*/
+	function _SHAKE(elm){
+		this.x         = elm.layer.left;
+		this.y         = elm.layer.top;
+		this.layer     = elm.layer;
+		this.wait      = +elm.wait;
+		this.flag      = false;
+		this.startTime = System.getTickCount();
+		System.addContinuousHandler(doSetShaqeLoop);
+	}
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•’•°•§• •È•§•∫
+	-----------------------------------------*/
+	function finalize(){
+		layer.left = x;
+		layer.top  = y;
+		System.removeContinuousHandler(doSetShaqeLoop);
+	}
+	
+	
+	
+	/*-----------------------------------------
+	°Û Shake loopåg––Èv ˝
+	-----------------------------------------*/
+	function doSetShaqeLoop(tick)
+	{
+		if((startTime+wait) < tick)
+		{//“∆Ñ”ÑI¿Ì
+			if(!flag){
+				layer.left = x + Math.floor(Math.random()+3);
+				layer.top  = y + -Math.floor(Math.random()+1);
+			}else{
+				layer.left = x + -Math.floor(Math.random()+3);
+				layer.top  = y +  Math.floor(Math.random()+1);
+			}
+			
+			flag = !flag;
+			
+			startTime = tick;
+		}
+		
+	}
+	
+	
+}
+
+
+
+/*-----------------------------------------
+°ı—›≥ˆ•Ø•È•π
+
+
+’h√˜£∫
+—›≥ˆÑI¿Ì∏˜∑N
+-----------------------------------------*/
+class _EFFECTOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	°ı•·•Û•–°°•™•÷•∏•ß•Ø•»
+	-----------------------------------------*/
+	var CaptureLayer;
+	
+	var ClearLayer;
+	
+	var TransitionTimer;
+	
+	var EndFunction;
+	
+	var LoadTrans;
+	
+	var FlashTime;
+	
+	var FlashNum;
+	
+	var FlTime;
+	
+	// quake ”√•ø•§•ﬁ
+	var	quakeTimer;
+	
+	var quaking      = false; // ìe§Ï§∆§§§Î§´
+	
+	var quakeEndTick = 0; // ìe§Ï§ÚΩK¡À§µ§ª§Î tick
+	
+	var quakeHorzMax = 0; // ∫·’Ò∑˘
+	
+	var quakeVertMax = 0; // øk’Ò∑˘
+	
+	var quakePhase   = 0;
+	
+	var quakeLayer   = [];
+	
+	var quakeBaseXpos= [];
+	
+	var quakeBaseYpos= [];
+	
+	var WaitTimmer;
+	
+	var WaitTime;
+	
+	var BeforWaitTime;
+	
+	var AfterWaitTime;
+	
+	var EffectTransLayer;
+	
+	var cancelskip;
+	
+	var EffectType;
+	
+	var AnimeObject = [];
+	
+	var ShakeObject = [];
+	
+	var SetTransFlag;				//•π•Ø•Í•◊•»Ç»§«[SetTrans]§Ú∫Ù§–§Ï§ø§´
+	
+	var LeftMouseClickControl;		//◊Û•Ø•Í•√•Ø“÷÷∆
+	
+	var EffectCancelFlag;			//•®•’•ß•Ø•»§ÚCANCELø…ƒ‹§´§…§¶§´£ø
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•≥•Û•π•»•È•Ø•ø
+	
+	“˝ ˝£∫
+	
+	
+	-----------------------------------------*/
+	function _EFFECTOBJECT(wnd, pri)
+	{
+		super.BaseObject(wnd, pri);
+		
+		
+		wnd.add(CaptureLayer     = new BaseLayer(wnd, pri, 0,0, nWND_WIDTH, nWND_HEIGHT));
+		
+		wnd.add(ClearLayer       = new BaseLayer(wnd, pri, 0,0, nWND_WIDTH, nWND_HEIGHT));
+		
+		wnd.add(EffectTransLayer = new BaseLayer(wnd, pri, 0,0, nWND_WIDTH, nWND_HEIGHT));
+		
+		//CAPTURE LAYER§ÚâT§Í§ƒ§÷§∑§∆§™§Ø
+		CaptureLayer.fillRect(0,0,nWND_WIDTH, nWND_HEIGHT, 0xff000000);
+		
+		
+		
+		CaptureLayer.visible     = false;
+		
+		ClearLayer.visible       = false;
+		
+		EffectTransLayer.visible = false;
+		
+		
+		
+		TransitionTimer = new Timer(TransCheck, "");
+		
+		TransitionTimer.interval = 16;
+		
+		TransitionTimer.enabled  = false;
+		
+		
+		// quake ”√•ø•§•ﬁ§Œ◊˜≥…
+		quakeTimer = new Timer(onQuakeTimerInterval, '');
+		
+		wnd.add(quakeTimer);
+		
+		quakeTimer.interval   = 50;
+		
+		LoadTrans             = false;
+		
+		LeftMouseClickControl = false;
+		
+		EffectCancelFlag      = false;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•’•°•§• •È•§•∫
+	
+	“˝ ˝£∫
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+		
+		if(ShakeObject.count){
+			StopShake();
+		}
+		
+		//•œ•Û•…•È§´§È«–§ÍÎx§π
+		removeEffectHandler();
+		
+		invalidate CaptureLayer;
+		
+		invalidate ClearLayer;
+		
+		invalidate EffectTransLayer;
+		
+		invalidate TransitionTimer;
+		
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Û System HandlerΩ‚≥˝Èv ˝
+	-----------------------------------------*/
+	function removeEffectHandler()
+	{
+		//§≥§≥§«§ﬁ§»§·§∆Ω‚≥˝§π§Î
+		System.removeContinuousHandler(WaitLoop);
+		
+		System.removeContinuousHandler(FlashFunc);
+		
+		System.removeContinuousHandler(ZoomCheck);
+		
+		System.removeContinuousHandler(MoveCheck);
+		
+		System.removeContinuousHandler(AnimeCheck);
+		
+		//MoveStop
+		AllMoveStop();
+		
+		//Shake§ÚÕ£÷π§π§Î
+		if(ShakeObject.count){
+			StopShake();
+		}
+		
+		//•¢•À•·èä÷∆ΩK¡À
+		AnimeStop();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•§•Ÿ•Û•»»°µ√Èv ˝
+	
+	“˝ ˝£∫
+	§ §∑
+	
+	’h√˜£∫
+	Mouse Up§ÚÑI¿Ì§π§Î•œ•Û•…•È
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		
+		//CANCEL •’•È•∞§¨ON§Œàˆ∫œ§œ§≥§≥§ﬁ§«
+		if(EffectCancelFlag == true)return;
+		
+		if(EffectType == 1){
+		//•»•È•Û•∏•∑•Á•Û
+			if(TransitionTimer.enabled == false)return;
+			
+			EffectType = 0;
+			
+			//•»•È•Û•∏•∑•Á•ÛΩK¡À•’•È•∞
+			CaptureLayer.TransitionEnd = true;
+			
+			TransCheck();
+			
+		}else if(EffectType == 2 && cancelskip){
+		//WAIT
+			
+			EffectType = 0;
+			
+			BeforWaitTime = 1;
+			
+			WaitTime      = 0;
+			
+			WaitLoop();
+			
+		}else if(EffectType == 3){
+		//FLASH
+			EffectType = 0;
+			
+			FlashNum   = 0;
+			
+			FlashTime  = 0;
+			
+			FlashFunc();
+			
+		}else if(EffectType == 4){
+		//ZOOM
+			EffectType = 0;
+			
+			//ª≠œÒíàøs»´ΩK¡À
+			AllZoomStop();
+			
+		}else if(EffectType == 5){
+		//Quake
+			EffectType = 0;
+			
+			stopQuake();
+			
+		}else if(EffectType == 6){
+		//MOVE CANCEL
+			EffectType = 0;
+			
+			AllMoveStop();
+			
+		}
+		else if(EffectType == 7)
+		{
+			EffectType = 0;
+			
+			AnimeStop();
+			
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Û •«•’•©•Î•»Èv ˝
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		//LOADïr§œ§µ§ª§ §§
+		if(LoadTrans || MainWnd.LoadFlag)return;
+		
+		//CTRL•≠©`§œ◊Û•Ø•Í•√•Ø§»Õ¨µ»ÑI¿Ì
+		if(System.getKeyState(VK_CONTROL)){
+			cancelskip = true;
+			LeftMouseUpAction();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ùª≠√ÊCaptureÈv ˝
+	
+	“˝ ˝£∫
+	§ §∑
+	
+	’h√˜£∫
+	ª≠√Ê»°µ√Èv ˝
+	
+	-----------------------------------------*/
+	function TransSetFunc()
+	{
+		//ƒÓ§Œ§ø§·§À•»•È•Û•∏•∑•Á•ÛΩK¡ÀÈv ˝§Ú§§§Ï§∆§™§Ø
+		CaptureLayer.stopTransition();
+		
+		if(MainWnd.CaptureLayer.children.count){
+			//ª≠√Ê§Ú•≠•„•◊•¡•„©`§π§Î
+			CaptureLayer.piledCopy(0, 0, MainWnd.CaptureLayer, 0, 0, MainWnd.WndScreenX, MainWnd.WndScreenY);
+		}else{
+		//“ª√∂§‚•Ï•§•‰§¨üo§§àˆ∫œ§œ¸\§«âT§Í§ƒ§÷§π
+			CaptureLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY, 0xff000000);
+		}
+		
+		//Õ∏ﬂ^∂»§Ú255§Àë¯§π
+		CaptureLayer.opacity = 255;
+		
+		//•≠•„•◊•¡•„©`•Ï•§•‰§¿§±±Ì æ§π§Î
+		CaptureLayer.visible = true;
+		
+		ClearLayer.visible   = false;
+		
+		//•Ø•Í•¢”√§œ0§«≥ı∆⁄ªØ§∑§∆§™§Ø
+		ClearLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY,0);
+		
+		//•»•È•Û•∏•∑•Á•Û•’•È•∞§Ú«ﬁ§´§∑§∆§™§Ø
+		CaptureLayer.TransitionEnd = false;
+		
+		ClearLayer.TransitionEnd   = false;
+		
+		
+		//◊Ó«∞√Ê§À“∆Ñ”
+		ClearLayer.absolute   = nEFFECTLAYER + 1;
+		
+		CaptureLayer.absolute = nEFFECTLAYER;
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•»•È•Û•∏•∑•Á•ÛÈv ˝
+	
+	“˝ ˝£∫
+	§ §∑
+	
+	’h√˜£∫
+	•»•È•Û•∏•∑•Á•ÛÈv ˝
+	
+	-----------------------------------------*/
+	function ActTransition(value, func = null, flag = false)
+	{
+		var Type = (int)value.type;
+		
+		var method;
+		
+		var Option = new Dictionary();
+		
+		var retfunction = func;
+		
+		switch(Type){
+		case 0:{//0:crossfade
+			
+			method = "crossfade";
+			
+			Option['time'] = +value.time;
+			
+			
+		}break;
+		case 1:{//1:universal
+			
+			method = "universal";
+			
+			Option['time']  = (int)value.time;
+			
+			if(ResourceCheck(value.file + ".png")){
+				Option['rule']  = value.file + ".png";
+			}else if(ResourceCheck(value.file + ".bmp")){
+				Option['rule']  = value.file + ".bmp";
+			}else{
+				//»´§∆§ §§§Œ§«Fade§Àâ‰∏¸
+				DebugMess("÷∏∂®•’•°•§•Î£∫" + value.file + " §¨¥Ê‘⁄§∑§ﬁ§ª§Û");
+				
+				method = "crossfade";
+				
+				Option['time'] = 1000;
+				
+			}
+			
+			Option['vague'] = ((int)value.vague != false ? (int)value.vague : 64);
+			
+		}break;
+		case 2:{//2:wave
+			
+			method = "wave";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['wavetype'] = ((int)value.type != false ? (int)value.type : 0);
+			
+			Option['maxh'] = ((int)value.width != false ? (int)value.width : 50);
+			
+			Option['maxomega'] = ((int)value.rad != false ? (int)value.rad : 0.2);
+			
+			Option['bgcolor1'] = ((int)value.color != false ? (int)value.color : 0);
+			
+			Option['bgcolor2'] = ((int)value.color2 != false ? (int)value.color2 : 0);
+			
+		}break;
+		case 3:{//3:mosaic
+			
+			method = "mosaic";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['maxsize'] = (int)value.size ? (int)value.size : 30;
+			
+			//¨F‘⁄§Œª≠√Ê§ÚCOPY§∑§∆§™§Ø
+			EffectTransLayer.piledCopy(0, 0, MainWnd.CaptureLayer, MainWnd.WndScreenX, MainWnd.WndScreenY);
+			
+			ClearLayer.copyRect(0,0, EffectTransLayer,0,0,EffectTransLayer.width,EffectTransLayer.height);
+			
+		}break;
+		case 4:{//4:turn
+			
+			method = "turn";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['bgcolor'] = ((int)value.color != false ? (int)value.color : 0);
+			
+		}break;
+		case 5:{//5:rotatezoom
+			
+			method = "rotatezoom";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['factor'] = value.factor !== void ? (int)value.factor : 1;
+			
+			Option['accel'] = (int)value.accel ? (int)value.accel : 0;
+			
+			Option['twist'] = (int)value.twist ? (int)value.twist : 2;
+			
+			Option['twistaccel'] = (int)value.twistaccel ? (int)value.twistaccel : -2;
+			
+		}break;
+		case 6:{//6:rotatevanish
+			
+			method = "rotatevanish";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['accel'] = (int)value.accel ? (int)value.accel : 2;
+			
+			Option['twist'] = (int)value.twist ? (int)value.twist : 2;
+			
+			Option['twistaccel'] = (int)value.twistaccel ? (int)value.twistaccel : 2;
+			
+		}break;
+		case 7:{//7:rotateswap
+			
+			method = "rotateswap";
+			
+			Option['time'] = (int)value.time;
+			
+			Option['twist'] = (int)value.twist ? (int)value.twist : 1;
+			
+			Option['bgcolor'] = ((int)value.color != false ? (int)value.color : 0);
+			
+		}break;
+		case 8:{//8:ripple
+			
+			method = "ripple";
+			
+			Option['time'] = (int)value.time;
+			
+			if(value.centerx){ Option['centerx'] = (int)value.centerx; }
+			
+			if(value.centery){ Option['centery'] = (int)value.centery; }
+			
+			Option['rwidth'] = (int)value.width ? (int)value.width : 128;
+			
+			Option['roundness'] = (int)value.round ? (int)value.round : 1.0;
+			
+			Option['speed'] = (int)value.speed ? (int)value.speed : 6;
+			
+			Option['maxdrift'] = (int)value.drift ? (int)value.drift : 24;
+			
+		}break;
+		}
+		
+		
+		
+		//•»•È•Û•∏•∑•Á•Û§ŒÕ£÷π
+		CaptureLayer.stopTransition();
+		
+		//DebugMess("cap_wid:"+CaptureLayer.width);
+		//DebugMess("cap_hei:"+CaptureLayer.height);
+		//DebugMess("cle_wid:"+ClearLayer.width);
+		//DebugMess("cle_hei:"+ClearLayer.height);
+		
+		
+		if(CaptureLayer.width != ClearLayer.width){
+			CaptureLayer.width = ClearLayer.width;
+		}
+		
+		if(CaptureLayer.height != ClearLayer.height){
+			CaptureLayer.height = ClearLayer.height;
+		}
+		
+		//•»•È•Û•∏•∑•Á•Û§ŒÈ_ º
+		CaptureLayer.beginTransition(method, true, ClearLayer, Option);
+		
+		//TimerStart
+		TransitionTimer.enabled = true;
+		
+		
+		//Option∆∆óâ
+		invalidate Option;
+		
+		//EFFECT TYPE
+		EffectType = 1;
+		
+		
+		if((retfunction === null) && (flag == false)){
+		//ΩK¡À··§ŒÈv ˝•›•§•Û•ø§Ú∏Òº{§∑§∆§™§Ø
+			EndFunction = MainWnd.PaserObj.GetTagload;
+		}else if(flag == true){
+			
+			EndFunction = void;
+			
+			return;
+		}else{
+			EndFunction = func;
+		}
+		
+		//SKIP & EFFECT CHECK
+		if(MainWnd.SkipCheck() || MainWnd.EffectCheck()){
+			TransCheck();
+		}
+		
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•»•È•Û•∏•∑•Á•Û•¡•ß•√•ØÈv ˝
+	
+	“˝ ˝£∫
+	§ §∑
+	
+	’h√˜£∫
+	•»•È•Û•∏•∑•Á•Û•¡•ß•√•ØÈv ˝
+	
+	-----------------------------------------*/	
+	function TransCheck()
+	{
+		//SKIP÷–§œº¥ΩK¡À
+		if(
+			CaptureLayer.TransitionEnd     ||
+			MainWnd.SkipCheck()            ||
+			MainWnd.EffectCheck()
+		){
+			//ƒÓ§Œ§ø§·§À•»•È•Û•∏•∑•Á•ÛΩK¡ÀÈv ˝§Ú§§§Ï§∆§™§Ø
+			CaptureLayer.stopTransition();
+			
+			//∏˜•Ï•§•‰©`§Ú∑«±Ì æ§À§π§Î
+			CaptureLayer.visible = false;
+			
+			ClearLayer.visible   = false;
+			
+			//LOADïr§ŒèÕé¢ÑI¿Ì§Œàˆ∫œ§œª≠√Ê∏¸–¬§Ú––§¶
+			if(LoadTrans){
+				CaptureLayer.update();
+			}
+			
+			LoadTrans = false;
+			
+			//•ø•§•ﬁ©`Õ£÷π
+			TransitionTimer.enabled = false;
+			
+			CaptureLayer.TransitionEnd = false;
+			
+			//•¨•Ÿ©`•∏§Úèä÷∆µƒ§ÀÑ”§´§π
+			System.doCompact();
+			
+			//ΩK¡À··§ŒÈv ˝§Úåg––§π§Î
+			if(EndFunction !== void)EndFunction();
+			
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù£◊£¡£…£‘Èv ˝
+	
+	“˝ ˝£∫
+	time
+	
+	’h√˜£∫
+	waitÈv ˝
+	
+	-----------------------------------------*/
+	function WaitFunc(value)
+	{
+		WaitTime            = +value.time;
+		
+		cancelskip          = +value.skip;
+		
+		//•œ•Û•…•È§À◊∑º”
+		System.addContinuousHandler(WaitLoop);
+		
+		BeforWaitTime       = 0;
+		
+		AfterWaitTime       = 0;
+		
+		//EFFECT TYPE
+		EffectType = 2;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù£◊£¡£…£‘ £Ã£œ£œ£–Èv ˝
+	
+	“˝ ˝£∫
+	time
+	
+	’h√˜£∫
+	waitÈv ˝
+	
+	-----------------------------------------*/
+	function WaitLoop()
+	{
+		if(!BeforWaitTime)BeforWaitTime = System.getTickCount();
+		
+		AfterWaitTime = System.getTickCount();
+		
+		if(((BeforWaitTime+WaitTime) < AfterWaitTime))
+		{//¥Œ§Œ•ø•∞§Ú»°§Í§À––§Ø
+			
+			cancelskip = false;
+			
+			//•œ•Û•…•È§´§È«–§ÍÎx§π
+			System.removeContinuousHandler(WaitLoop);
+			
+			//¥Œ§Œ•ø•∞§Ú»°µ√§∑§À§§§Ø
+			MainWnd.PaserObj.GetTagload();
+			
+			return;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ £∆£Ã£¡£”£»
+	-----------------------------------------*/
+	function SetFlash(value)
+	{
+		EffectType = 3;
+		
+		//•Ï•§•‰©`§ÚâT§Í§ƒ§÷§π
+		ClearLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY, 0xff000000 | (int)value.color);
+		
+		ClearLayer.visible = false;
+		
+		FlashNum  = (int)value.num;
+		
+		FlTime    = (int)value.time;
+		
+		FlashTime = System.getTickCount();
+		
+		//•œ•Û•…•È§Œ◊∑º”
+		System.addContinuousHandler(FlashFunc);
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ £∆£Ã£¡£”£» Èv ˝
+	-----------------------------------------*/
+	function FlashFunc()
+	{
+		var AfterTime = System.getTickCount();
+		
+		if(
+			(MainWnd.SkipCheck())   ||
+			(MainWnd.EffectCheck()) ||
+			(!FlashNum && ((FlashTime + FlTime) < AfterTime))
+		){
+			//∏˜•Ï•§•‰©`§Ú∑«±Ì æ§À§π§Î
+			CaptureLayer.visible = false;
+			
+			ClearLayer.visible = false;
+			
+			System.removeContinuousHandler(FlashFunc);
+			
+			//¥Œ§Œ•ø•∞§Ú»°µ√§∑§À§§§Ø
+			MainWnd.PaserObj.GetTagload();
+			
+			return;
+		}
+		
+		if((FlashTime + FlTime) < AfterTime){
+		
+			if(!ClearLayer.visible){
+				
+				ClearLayer.visible = true;
+				
+				--FlashNum;
+				
+			}else{
+				
+				ClearLayer.visible = false;
+			}
+			
+			FlashTime = AfterTime;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	//------------------------------------------------------------ quakeÈvﬂB --
+	
+	
+	/*-----------------------------------------
+	°ı Quake åg––Èv ˝
+	-----------------------------------------*/
+	function doQuake(elm)
+	{
+		EffectType = 5;
+		
+		//≈‰¡–§Ú≥ı∆⁄ªØ
+		quakeLayer.clear();
+		
+		quakeBaseXpos.clear();
+		
+		quakeBaseYpos.clear();
+		
+		
+		
+		
+		if((elm.mode === void) || (+elm.mode == 0)){
+			//ª≠œÒ•Ï•§•‰§Ú∏Òº{
+			for(var i=0; i<nIMAGEMAX; i++){
+				if((MainWnd.ImageObj.ImgObj[i] === void) || (MainWnd.ImageObj.ImgObj[i].visible == false))continue;
+				quakeLayer.add(MainWnd.ImageObj.ImgObj[i]);
+				quakeBaseXpos.add(MainWnd.ImageObj.ImgObj[i].left);
+				quakeBaseYpos.add(MainWnd.ImageObj.ImgObj[i].top);
+			}
+		}else{
+			var mesviewflag = false;
+			//¨F‘⁄§Œ◊¥ëB§Ú±£≥÷
+			if(MainWnd.MessObj.MessFrame.visible){
+				mesviewflag = true;
+			}
+			
+			//•’•Ï©`•‡§Ú•≠•„•◊•¡•„©`§µ§ª§ §§§ø§·§À“ªµ©∑«±Ì æ§À§π§Î
+			MainWnd.MessObj.MessFrame.visible = false;
+			MainWnd.MessObj.MessHidden.visible= false;
+			
+			//•Ø•È•§•¢•Û•»ª≠√Ê§Œ§ﬂ
+			TransSetFunc();
+			//•Ø•Í•¢”√§œcolor§«âT§Í§ƒ§÷§∑§∆§™§Ø
+			ClearLayer.fillRect(0,0,MainWnd.WndScreenX, MainWnd.WndScreenY,(0xff000000 | +elm.color));
+			//ΩÒªÿ§œ±Ì æ
+			ClearLayer.visible = true;
+			
+			//•·•√•ª©`•∏•¶•£•Û•…•¶§Œ··§À“∆Ñ”
+			CaptureLayer.absolute = nTITLELAYER + 1;
+			
+			ClearLayer.absolute   = nTITLELAYER;
+			
+			CaptureLayer.left = 0;
+			CaptureLayer.top  = 0;
+			ClearLayer.left   = 0;
+			ClearLayer.top    = 0;
+			
+			CaptureLayer.opacity = 255;
+			ClearLayer.opacity   = 255;
+			
+			
+			//≈‰¡–§À∏Òº{
+			quakeLayer.add(CaptureLayer);
+			quakeBaseXpos.add(0);
+			quakeBaseYpos.add(0);
+			
+			if(mesviewflag){
+				//•’•Ï©`•‡§Ú•≠•„•◊•¡•„©`§µ§ª§ §§§ø§·§À“ªµ©∑«±Ì æ§À§∑§ø§Œ§Úë¯§π
+				MainWnd.MessObj.MessFrame.visible = true;
+				MainWnd.MessObj.MessHidden.visible= true;
+			}
+		}
+		
+		
+		
+		// elm §Àèæ§√§∆ quake §ÚÈ_ º
+		if(elm.time !== void)
+		{
+			quakeEndTick = System.getTickCount() + +elm.time;
+		}
+		else
+		{
+			quakeEndTick = -1;
+		}
+		
+		if(elm.hmax !== void){
+			quakeHorzMax = +elm.hmax;
+		}else{
+			 quakeHorzMax = 10;
+		}
+		
+		if(elm.vmax !== void){
+			quakeVertMax = +elm.vmax;
+		} else{
+			quakeVertMax = 10;
+		}
+		
+		quakeTimer.enabled = true;
+		
+		quaking = true;
+		
+		quakePhase = true;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ı Quake åg––Èv ˝
+	-----------------------------------------*/
+	function onQuakeTimerInterval()
+	{
+		// quakeTimer §À§Ë§Í∫Ù§–§Ï§Î
+		if(
+			(MainWnd.SkipCheck())   ||
+			(MainWnd.EffectCheck()) ||
+			(quakeEndTick != -1 && System.getTickCount() > quakeEndTick)
+		){
+			stopQuake();
+			
+			return;
+		}
+		
+		
+		
+		
+		var x, y;
+		
+		if(quakeHorzMax == quakeVertMax)
+		{
+			// §¿§§§ø§§Õ¨§∏
+			x = int(((Math.random()) * quakeHorzMax) - quakeHorzMax);
+			y = int(((Math.random()) * quakeVertMax) - quakeVertMax);
+			
+			if(!quakePhase){
+				x = 0 - x;
+				y = 0 - y;
+			}
+		}
+		else if(quakeHorzMax < quakeVertMax)
+		{
+			// økìe§Ï
+			x = int(Math.random() * quakeHorzMax - quakeHorzMax);
+			y = int((quakePhase ? (Math.random()) : -(Math.random())) * quakeVertMax);
+		}
+		else
+		{
+			// ∫·ìe§Ï
+			x = int((quakePhase ? Math.random() : -(Math.random())) * quakeHorzMax);
+			y = int(Math.random() * quakeVertMax - quakeVertMax);
+		}
+		
+		quakePhase = !quakePhase;
+		
+		
+		//•Ï•§•‰§Œ“∆Ñ”
+		for(var i=0; i<quakeLayer.count; i++){
+			quakeLayer[i].left = quakeBaseXpos[i] + x;
+			quakeLayer[i].top  = quakeBaseYpos[i] + y;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ı QUAKE Õ£÷π
+	-----------------------------------------*/
+	function stopQuake()
+	{
+		// ìe§Ï§ÚÕ£÷π
+		
+		//•Ï•§•‰§Ú‘™§Àë¯§π
+		for(var i=0; i<quakeLayer.count; i++){
+			quakeLayer[i].left = quakeBaseXpos[i];
+			quakeLayer[i].top  = quakeBaseYpos[i];
+		}
+		
+		quakeLayer.clear();
+		
+		quakeBaseXpos.clear();
+		
+		quakeBaseYpos.clear();
+		
+		quakeTimer.enabled = false;
+		
+		quaking = false;
+		
+		//MODE 1 ”√§À∑«±Ì æ§À§∑§∆§™§Ø
+		CaptureLayer.visible = false;
+		
+		ClearLayer.visible   = false;
+		
+		//¥Œ§Œ•ø•∞§Ú»°µ√§∑§À§§§Ø
+		MainWnd.PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Û Shake loop
+	-----------------------------------------*/
+	function SetShakeLoop(elm)
+	{
+		//SKIP ÷–§œ§π§∞ΩK¡À
+		if(MainWnd.SkipCheck() || MainWnd.EffectCheck())return;
+		
+		var layer = +elm.layer;
+		
+		//ª≠œÒ•Ï•§•‰
+		elm.layer = MainWnd.ImageObj.ImgObj[layer];
+		
+		if(elm.layer === void)return;
+		
+		var inx = "imagefile%d".sprintf(layer);
+		f[inx+"shake"]     = true;
+		f[inx+"shakewait"] = +elm.wait;
+		
+		ShakeObject.add(new _SHAKE(elm));
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Û Shake loop
+	-----------------------------------------*/
+	function StopShake()
+	{
+		var cnt = ShakeObject.count;
+		
+		for(var i=0; i<cnt; i++){
+			
+			//•Ì©`•…÷–§œΩ‚≥˝§∑§ §§
+			if((MainWnd.LoadFlag == false)){
+				//•’•È•∞§ÚΩ‚≥˝
+				var inx = "imagefile%d".sprintf(i);
+				f[inx+"shake"]     = void;
+				f[inx+"shakewait"] = void;
+			}
+			
+			invalidate ShakeObject[i];
+			
+			ShakeObject[i] = void;
+		}
+		
+		ShakeObject.clear();
+		
+		System.doCompact();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù MOVE “∆Ñ”¥_’J
+	-----------------------------------------*/
+	function MoveCheck()
+	{
+		EffectType = 6;
+		
+		if(
+			(MainWnd.MoveCount == 0) ||
+			(MainWnd.SkipCheck())    ||
+			(MainWnd.EffectCheck())
+		){//»´•Ï•§•‰“∆Ñ”ΩK¡À
+			System.removeContinuousHandler(this.MoveCheck);
+			
+			//ª≠œÒ“∆Ñ”»´ΩK¡À
+			AllMoveStop();
+			
+			//¥Œ§Œ•ø•∞§Ú»°µ√§∑§À§§§Ø
+			MainWnd.PaserObj.GetTagload();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù ZOOM ¥_’J
+	-----------------------------------------*/
+	function ZoomCheck()
+	{
+		EffectType = 4;
+		
+		//ZOOM
+		var cnt          = nIMAGEMAX;
+		
+		var ZoomEndFlag  = true;
+		
+		for(var i=0; i<cnt; i++){
+			
+			if(MainWnd.ImageObj.ZoomObj[i] === void)continue;
+			
+			if(MainWnd.ImageObj.ZoomObj[i].moving)
+			{//£±§ƒ§«§‚Ñ”§§§∆§§§Ï§–false§À§π§Î
+				ZoomEndFlag = false;
+				
+				break;
+			}
+		}
+		
+		
+		
+		if(
+			(ZoomEndFlag  == true)   ||
+			(MainWnd.SkipCheck())    ||
+			(MainWnd.EffectCheck())
+		){//»´•Ï•§•‰“∆Ñ”ΩK¡À
+			System.removeContinuousHandler(this.ZoomCheck);
+			
+			//ª≠œÒíàøs»´ΩK¡À
+			AllZoomStop();
+			
+			//¥Œ§Œ•ø•∞§Ú»°µ√§∑§À§§§Ø
+			MainWnd.PaserObj.GetTagload();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù Anime Ñ”◊˜¥_’J
+	-----------------------------------------*/
+	function AnimeCheck()
+	{
+		EffectType = 7;
+		
+		if(MainWnd.AnimeCount == 0)
+		{//»´•Ï•§•‰“∆Ñ”ΩK¡À
+			System.removeContinuousHandler(this.AnimeCheck);
+			
+			var i = 0;
+			
+			//¡¢§¡Ω}“∆Ñ”‘O∂®
+			while(AnimeObject.count != i){
+				
+				if(!AnimeObject[i].anime){
+					AnimeObject.erase(i);
+					i = 0;
+					continue;
+				}
+				
+				++i;
+			}
+			
+			//¥Œ§Œ•ø•∞§Ú»°µ√§∑§À§§§Ø
+			MainWnd.PaserObj.GetTagload();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù Anime èä÷∆ΩK¡À
+	-----------------------------------------*/
+	function AnimeStop()
+	{
+		var cnt = AnimeObject.count;
+		
+		for (var i=0; i<cnt; i++){
+			AnimeObject[i].loop = false;
+			AnimeObject[i].AnimeStop();
+		}
+		
+		AnimeObject.clear();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ ALL MOVE STOP
+	-----------------------------------------*/
+	function AllMoveStop()
+	{
+		EffectType = 0;
+		
+		//MOVE
+		if((isvalid MainWnd.ImageObj) && (MainWnd.ImageObj.moveObject !== void)){
+			var cnt = MainWnd.ImageObj.moveObject.count;
+			
+			for(var i=0; i<cnt; i++){
+				if(MainWnd.ImageObj.moveObject[i] !== void){
+					MainWnd.ImageObj.moveObject[i].stopMove();
+				}
+			}
+			
+			//¡¢§¡Ω}“∆Ñ”≈‰¡–§Ú•Ø•Í•¢§π§Î
+			MainWnd.ImageObj.moveObject.clear();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ ALL ZOOM STOP
+	ª≠œÒíàøs»´ΩK¡À
+	-----------------------------------------*/
+	function AllZoomStop()
+	{
+		//ZOOM
+		var cnt = nIMAGEMAX;
+		
+		for(var i=0; i<cnt; i++){
+			if(
+				(MainWnd.ImageObj.ZoomObj[i] === void) ||
+				(!MainWnd.ImageObj.ZoomObj[i].moving)
+			){
+				continue;
+			}
+			
+			MainWnd.ImageObj.ZoomObj[i].finish();
+		}
+	}
+	
+}
+
+
+@endif
+
+			AnimeObject[i].loop = false;
+			AnimeObject[i].AnimeStop();
+		}
+		
+		AnimeObject.clear();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	‚ñ† ALL MOVE STOP
+	-----------------------------------------*/
+	function AllMoveStop()
+	{
+		EffectType = 0;
+		
+		//MOVE
+		if((isvalid MainWnd.ImageObj) && (MainWnd.ImageObj.moveObject !== void)){
+			var cnt = MainWnd.ImageObj.moveObject.count;
+			
+			for(var i=0; i<cnt; i++){
+				if(MainWnd.ImageObj.moveObject[i] !== void){
+					MainWnd.ImageObj.moveObject[i].stopMove();
+				}
+			}
+			
+			//Á´ã„Å°ÁµµÁßªÂãïÈÖçÂàó„Çí„ÇØ„É™„Ç¢„Åô„Çã
+			MainWnd.ImageObj.moveObject.clear();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	‚ñ† ALL ZOOM STOP
+	ÁîªÂÉèÊã°Á∏ÆÂÖ®ÁµÇ‰∫Ü
+	-----------------------------------------*/
+	function AllZoomStop()
+	{
+		//ZOOM
+		var cnt = nIMAGEMAX;
+		
+		for(var i=0; i<cnt; i++){
+			if(
+				(MainWnd.ImageObj.ZoomObj[i] === void) ||
+				(!MainWnd.ImageObj.ZoomObj[i].moving)
+			){
+				continue;
+			}
+			
+			MainWnd.ImageObj.ZoomObj[i].finish();
+		}
+	}
+	
+}
+
+
+@endif

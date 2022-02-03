@@ -10,7 +10,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 			unsupport(log);
 			_textLogs.add(log);
 			@if (!kirikiriz)
-			_textLogs.add("å‰é‡Œå‰é‡Œï¼’ã§ã¯ã‚³ãƒ³ã‚½ãƒ¼ãƒ«äº’æ›ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¯ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¾ã›ã‚“");
+			_textLogs.add("¼ªÀï¼ªÀï£²¤Ç¤Ï¥³¥ó¥½©`¥ë»¥“Q¥¦¥£¥ó¥É¥¦¤Ï¥µ¥İ©`¥È¤µ¤ì¤Ş¤»¤ó");
 			@endif
 		}
 		initComboBoxEx();
@@ -51,22 +51,22 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 	function onLog(line) {
 		if (!isvalid this) return;
 
-		// è¡Œæ•°ä¸Šé™å¯¾å¿œ
+		// ĞĞÊıÉÏÏŞŒê
 		_textLogs.add(line);
 		while (_textLogs.count > _maxTextLogs) _textLogs.shift();
 
 		_updateText() if (_visible);
 	}
 
-	// getLastLog ã‚’ç™»éŒ²
+	// getLastLog ¤òµÇåh
 	function setupInitialLog(text) {
 		var div = ((string)text).split(/[\r]?\n/g);
-		// æœ«å°¾ç©ºè¡Œã‚’å‰Šé™¤
+		// Ä©Î²¿ÕĞĞ¤òÏ÷³ı
 		while (div.count > 0 && div[div.count-1] == "") div.pop();
 		_textLogs.assign(div);
 	}
 
-	// ãƒ­ã‚°ãƒ†ã‚­ã‚¹ãƒˆã‚’æ›´æ–°ï¼ˆé…å»¶å¯¾å¿œï¼‰
+	// ¥í¥°¥Æ¥­¥¹¥È¤ò¸üĞÂ£¨ßWÑÓŒê£©
 	function _updateText() {
 		if (_visible) kickAsyncTrigger("onUpdateLog");
 	}
@@ -74,7 +74,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 		if (!isvalid this || !_visible) return;
 		lockItemUpdate(0);
 		try {
-			setItemText    (_editID, _textLogs.join("\n").replace(/[\r]?\n/g, "\r\n")); // [TOOD]ã‚‚ã£ã¨ã‚¹ãƒãƒ¼ãƒˆãªæ–¹æ³•ãŒã‚ã‚Œã°â€¦
+			setItemText    (_editID, _textLogs.join("\n").replace(/[\r]?\n/g, "\r\n")); // [TOOD]¤â¤Ã¤È¥¹¥Ş©`¥È¤Ê·½·¨¤¬¤¢¤ì¤Ğ¡­
 			sendItemMessage(_editID, EM_SETSEL, -2, -2);
 			sendItemMessage(_editID, EM_SCROLLCARET, 0, 0);
 		} catch (e) {
@@ -107,7 +107,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 		var set = function (key, value) {
 			if (typeof this[key] == "undefined") this[key] = value & 0xFFFFFFFF;
 		} incontextof this;
-		// [XXX] CBEN_* ãŒç™»éŒ²ã•ã‚Œã¦ã„ãªã„å ´åˆè‡ªå‰ã§å¯¾å¿œ
+		// [XXX] CBEN_* ¤¬µÇåh¤µ¤ì¤Æ¤¤¤Ê¤¤ˆöºÏ×ÔÇ°¤ÇŒê
 		set("CBEN_ENDEDITA", -800 - 5);
 		set("CBEN_ENDEDITW", -800 - 6);
 //		set("CBEM_DELETEITEM",  CB_DELETESTRING);
@@ -118,7 +118,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 		r.windowClass = COMBOBOXEX; // WC_COMBOBOXEX
 		return r;
 	}
-	// ComboBox ã® CBEN_ENDEDIT é€šçŸ¥ã‹ã‚‰ ENTERã‚­ãƒ¼å…¥åŠ›ã‚’å–å¾—
+	// ComboBox ¤Î CBEN_ENDEDIT Í¨Öª¤«¤é ENTER¥­©`ÈëÁ¦¤òÈ¡µÃ
 	function onNotify_eval(id, nm) {
 		var sz = 0;
 		switch (nm.code) {
@@ -138,7 +138,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 		_evalID = getNumberdId(_lineName);
 		/*
 		setComboBoxTexts(_evalID, [
-			"ã‚ã‚ã‚ã‚ã‚ã‚",
+			"¤¢¤¢¤¢¤¢¤¢¤¢",
 			"bbbbbbbbbbbb",
 			"cccccccccccc" ]);
 		 */
@@ -146,7 +146,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 	function clearEvalComboBox() {
 		while (sendItemMessage(_evalID, CB_DELETESTRING, 0, 0) > 0);
 	}
-	// ComboBoxExã®å ´åˆã¯CB_ADDSTRINGãŒåŠ¹ã‹ãªã„ï¼ˆä»£ã‚ã‚Šã«CBEM_INSERTITEMã‚’ä½¿ã†ï¼‰
+	// ComboBoxEx¤ÎˆöºÏ¤ÏCB_ADDSTRING¤¬„¿¤«¤Ê¤¤£¨´ú¤ï¤ê¤ËCBEM_INSERTITEM¤òÊ¹¤¦£©
 	function setComboBoxTexts(id, array) {
 		clearEvalComboBox();
 		for (var i = 0; i < array.count; i++) {
@@ -154,7 +154,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 		}
 	}
 	function addComboBoxText(id, str) {
-		// CBEM_INSERTITEMWç”¨æ§‹é€ ä½“ã‚’Blobã§ä½œæˆorz
+		// CBEM_INSERTITEMWÓÃ˜‹ÔìÌå¤òBlob¤Ç×÷³Éorz
 		var sz = 4*9;
 		var blob = new global.WIN32Dialog.Blob(sz);
 		blob.setDWord(/*mask*/0, /*CBEIF_TEXT*/1);
@@ -166,7 +166,7 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 		return idx;
 	}
 
-	var _historyMaxCount = 100; // [XXX]å±¥æ­´ä¸Šé™
+	var _historyMaxCount = 100; // [XXX]ÂÄšsÉÏÏŞ
 
 	function _updateStatusText() {}
 	function onExecute {
@@ -188,11 +188,20 @@ class        DebugConsoleCompatDialog extends DebugPadCompatDialog {
 			Debug.message(@"${_title}: ${eval} = ${cr}"+result);
 		}
 		if (store) {
-			// å±¥æ­´ã«è¿½åŠ 
+			// ÂÄšs¤Ë×·¼Ó
 			var id = _evalID;
 			var cnt = sendItemMessage(id, CB_GETCOUNT, 0, 0);
 			if (cnt >= _historyMaxCount) {
 				while (sendItemMessage(id, CB_DELETESTRING, 0, 0) >= _historyMaxCount);
+			}
+			var idx = addComboBoxText(id, eval);
+			sendItemMessage(id, CB_SETCURSEL, idx, 0);
+			setItemText(id, "");
+		}
+	}
+
+}
+_historyMaxCount);
 			}
 			var idx = addComboBoxText(id, eval);
 			sendItemMessage(id, CB_SETCURSEL, idx, 0);

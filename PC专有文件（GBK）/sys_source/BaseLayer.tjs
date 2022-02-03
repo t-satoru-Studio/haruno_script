@@ -1,0 +1,496 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/04/27
+// File : BaseLayer.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Base layer Class
+//------------------------------------------------------------------------------
+
+@if(__BASELAYER_TJS__ == 0)
+@set(__BASELAYER_TJS__ = 1)
+
+class BaseLayer extends Layer {
+	
+	/*-----------------------------------------
+	°Ù •Ø•È•π •™•÷•∏•ß•Ø•»
+	-----------------------------------------*/
+	//MainWindow
+	var MainWnd;
+	
+	//•◊•È•§•ﬁ•Í•Ï•§•‰
+	var PriLayer;
+	
+	//onPaint··§À∫Ù§–§Ï§ÎActionÈv ˝
+	var ActionFunc;
+	
+	//PaintÈv ˝§¨∫Ù§–§Ï§øÈv ˝
+	var PaintFlag;
+	
+	//•»•È•Û•∏•∑•Á•ÛΩK¡À•’•È•∞
+	var TransitionEnd;
+	
+	//MapFile
+	var MapFile;
+	
+	//ResourceFile
+	var ResFile;
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•≥•Û•π•»•È•Ø•ø
+	
+	“˝ ˝£∫
+	wnd	•·•§•Û•¶•£•Û•…•¶•™•÷•∏•ß•Ø•»
+	
+	pri	•◊•È•§•ﬁ•Í•Ï•§•‰
+	
+	-----------------------------------------*/
+	function BaseLayer(wnd, pri, px, py, szx, szy, file=void)
+	{
+		super.Layer(wnd, pri);
+		
+		//Main Window
+		MainWnd      = wnd;
+		
+		PriLayer     = pri;
+		
+		//ResourceFile
+		ResFile      = file;
+		
+		with(super){
+			
+			if(file !== void){
+				.loadImages(file);
+				.setSizeToImageSize();
+			}else{
+				.setSize(szx, szy);
+			}
+			.setPos(px, py);
+			.visible = 1;
+			.opacity = 255;
+			.fillRect(px, py, szx, szy, 0);
+			.update();
+		}
+		
+		wnd.add(this);
+		
+		ActionFunc   = false;
+		
+		PaintFlag    = void;
+		
+		TransitionEnd= false;
+		
+		//DEBUG”√§À•Ï•§•‰ ˝§Ú ˝§®§Î
+		@if( _DEBUG == 1)
+		f["dbg_layer"] += 1;
+		@endif
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•’•°•§• •È•§•∫
+	
+	“˝ ˝£∫
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+		
+		MapFile  = void;
+		
+		ResFile  = void;
+		
+		//DEBUG”√§À•Ï•§•‰ ˝§Ú ˝§®§Î
+		@if( _DEBUG == 1)
+		f["dbg_layer"] -= 1;
+		@endif
+		
+		//•¨•Ÿ©`•∏§Úèä÷∆µƒ§ÀÑ”§´§π
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ò•§•Ÿ•Û•»Èv ˝
+	
+	“˝ ˝£∫
+	§ §∑
+	
+	’h√˜£∫
+	√Ëª≠§µ§Ï§Î÷±«∞§À∫Ù§–§Ï§ÎÈv ˝
+	
+	-----------------------------------------*/
+	function onPaint()
+	{
+		// √Ëª≠§Œ÷±«∞§À∫Ù§–§Ï§Î
+		super.onPaint(...);
+		
+		//◊Ó≥ı§ŒUPDATE§«false§À§π§Î
+		if(PaintFlag === void){
+			PaintFlag = false;
+		}else{
+			//PaintFlag§Ú§ø§∆§Î
+			PaintFlag = true;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ò•§•Ÿ•Û•»Èv ˝
+	
+	“˝ ˝£∫
+	§ §∑
+	
+	’h√˜£∫
+	•»•È•Û•∏•∑•Á•ÛΩK¡ÀÈv ˝
+	
+	-----------------------------------------*/
+	function onTransitionCompleted(dest, src)
+	{
+		TransitionEnd = true;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ùª≠œÒ§Œ’i§ﬂﬁz§ﬂ
+	
+	“˝ ˝£∫
+	file	ª≠œÒ§Œ•’•°•§•Î√˚
+	
+	’h√˜£∫
+	ª≠œÒ§Ú’i§ﬂﬁz§‡
+	
+	-----------------------------------------*/
+	function loadImages(file, x = void, y = void , opacity = 255)
+	{
+		//•’•°•§•Î•¡•ß•√•Ø
+		@if(_DEBUG == 1)
+			var filetype = [".bmp",".png",".jpg",".tlg",""];
+			var result = false;
+			for(var i=0; i<filetype.count; i++){
+				if(Storages.isExistentStorage(file+filetype[i])){
+					result = true;
+					break;
+				}
+			}
+			
+			if(!result){
+				System.inform( file+"§¨¥Ê‘⁄§∑§ﬁ§ª§Û§«§∑§ø" );
+				return;
+			}
+		@endif
+		
+		
+		super.loadImages(file);
+		
+		super.setSizeToImageSize();
+		
+		//◊˘òÀ÷∏∂®
+		if( (x !== void) && (y !== void) ){
+			super.setPos(x, y);
+		}
+		
+		//Õ∏√˜∂»
+		super.opacity = opacity;
+		
+		//ª≠œÒ§Œ±£≥÷
+		ResFile = file;
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•’•°•§•Î•≥•‘©`
+	
+	
+	’h√˜£∫
+	ª≠œÒ§´§È§Œ•≥•‘©`
+	
+	-----------------------------------------*/
+	function copyRect( x, y, src, sl = void, st = void, sw = void, sh = void)
+	{
+		if( sl === void )sl = 0;
+		
+		if( st === void )st = 0;
+		
+		if( sw === void )sw = this.width;
+		
+		if( sh === void )sh = this.height;
+		
+		
+		super.copyRect( x, y, src, sl, st, sw, sh );
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ùæÿ–Œ•≥•‘©`
+	
+	
+	’h√˜£∫
+	ª≠œÒ§´§È§Œ•≥•‘©`
+	
+	-----------------------------------------*/
+	function fileCopyRect(dleft, dtop, src, sleft, stop, swidth, sheight)
+	{
+		/*if(sleft < 0){
+			swidth = swidth + sleft;
+			sleft  = 0;
+		}
+		
+		if(stop < 0){
+			sheight = sheight + stop;
+			stop    = 0;
+		}*/
+		
+		//ª≠œÒ§Œ±£≥÷
+		ResFile = src.ResFile;
+		
+		//•’•°•§•Î§´§È§Œ‹ûÀÕ
+		super.copyRect(dleft, dtop, src, sleft, stop, swidth, sheight);
+		
+		invalidate src;
+		
+		src = void;
+		
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•’•°•§•Î•≥•‘©`
+	
+	
+	’h√˜£∫
+	ª≠œÒ§´§È§Œ•¢•Î•’•°•÷•Ï•Û•…•≥•‘©`
+	
+	-----------------------------------------*/	
+	function pileRect(dleft, dtop, src, sleft = 0, stop = 0, swidth = this.width, sheight = this.height, opa = 255 )
+	{
+		Debug.message(super.type);
+		super.pileRect(dleft, dtop, src, sleft, stop, swidth, sheight, 255);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù •Ï•§•‰âT§Í§ƒ§÷§∑
+	-----------------------------------------*/
+	function drawRect(color, x = 0, y = 0, w = void ,h = void )
+	{
+		if( w === void)w = this.width;
+		if( h === void)h = this.height;
+		
+		super.fillRect(x, y, w, h, color );
+	}
+	
+	
+	
+	/*-----------------------------------------
+	°ÙÓI”Úª≠œÒ§Œ’i§ﬂﬁz§ﬂ
+	
+	“˝ ˝£∫
+	file	ÓI”Úª≠œÒ§Œ•’•°•§•Î√˚
+	
+	’h√˜£∫
+	ÓI”Úª≠œÒ§Ú’i§ﬂﬁz§‡
+	
+	-----------------------------------------*/
+	function loadProvinceImage(file)
+	{	//ÓI”Úª≠œÒ§Œ’i§ﬂﬁz§ﬂ
+		super.loadProvinceImage(file);
+		
+		//ÓI”Úª≠œÒ§Œ±£≥÷
+		MapFile = file;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ÙÓI”Úª≠œÒ§Œ…´Çé»°µ√Èv ˝
+	
+	“˝ ˝£∫
+	Object	ÓI”Úª≠œÒ§ÚÈvﬂB∏∂§±§∑§ø•™•÷•∏•ß•Ø•»
+	
+	’h√˜£∫
+	ÈvﬂB∏∂§±§È§Ï§ø•Ï•§•‰§Œ◊˘òÀ§ŒŒª÷√§ÀÈv§Ô§È§∫
+	‘≠µ„‘O÷√§À§µ§Ï§∆§∑§ﬁ§¶ÓI”Úª≠œÒ§Œ—a’˝Èv ˝
+	
+	-----------------------------------------*/
+	function GetProvincePixel( x = void, y = void)
+	{
+		if(MapFile == false){return 0;}
+		
+		if(!MainWnd.WndActiveFlag)return 0;
+		
+		
+		//‘O÷√◊˘òÀ
+		var obj_x = left + ((PriLayer !== null) ? PriLayer.left : 0);
+		
+		var obj_y = top  + ((PriLayer !== null) ? PriLayer.top : 0);
+		
+		var obj_width = width;
+		
+		var obj_height= height;
+		
+		var MouseX = (x === void) ? MainWnd.PrimaryLayer.cursorX : x;
+		
+		var MouseY = (y === void) ? MainWnd.PrimaryLayer.cursorY : y;
+		
+		
+		
+		
+		//•™•÷•∏•ß•Ø•»§Œª≠œÒƒ⁄§Àüo§§§»§≠§œΩK¡À
+		if((MouseX < obj_x) || ((obj_x+obj_width) < MouseX) ||
+		  (MouseY < obj_y)  || ((obj_y+obj_height)< MouseY) ||
+		  (obj_width <= (MouseX - obj_x))                   ||
+		  (obj_height <= (MouseY - obj_y))
+		){
+			return 0;
+		}
+		
+		
+		return getProvincePixel((MouseX - obj_x), (MouseY - obj_y));
+	}
+}
+
+
+
+
+
+
+
+/*-----------------------------------------
+°ˆ •’•°•§•Î•Ï•§•‰•™•÷•∏•ß•Ø•»
+
+° Èv ˝”√§À π§¶ª≠œÒ§¿§±•Ì©`•…§∑§ø•™•÷•∏•ß•Ø•»
+-----------------------------------------*/
+class FileLayer extends Layer {
+	
+	//•Í•Ω©`•π•’•°•§•Î√˚
+	var ResFile;
+	
+	
+	/*-----------------------------------------
+	°Ù•≥•Û•π•»•È•Ø•ø
+	
+	“˝ ˝£∫
+	wnd	•·•§•Û•¶•£•Û•…•¶•™•÷•∏•ß•Ø•»
+	
+	pri	•◊•È•§•ﬁ•Í•Ï•§•‰
+	
+	-----------------------------------------*/
+	function FileLayer(wnd, pri, file)
+	{
+		super.Layer(wnd, pri);
+		
+		ResFile = file;
+		
+		with(super){
+			.loadImages(file);
+			.setSizeToImageSize();
+		}
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•’•°•§• •È•§•∫
+	
+	“˝ ˝£∫
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+	}
+
+}
+
+
+
+@endif
+
+
+-----------------
+	‚óÜ„Ç≥„É≥„Çπ„Éà„É©„ÇØ„Çø
+	
+	ÂºïÊï∞Ôºö
+	wnd	„É°„Ç§„É≥„Ç¶„Ç£„É≥„Éâ„Ç¶„Ç™„Éñ„Ç∏„Çß„ÇØ„Éà
+	
+	pri	„Éó„É©„Ç§„Éû„É™„É¨„Ç§„É§
+	
+	-----------------------------------------*/
+	function FileLayer(wnd, pri, file)
+	{
+		super.Layer(wnd, pri);
+		
+		ResFile = file;
+		
+		with(super){
+			.loadImages(file);
+			.setSizeToImageSize();
+		}
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	‚óÜ„Éï„Ç°„Ç§„Éä„É©„Ç§„Ç∫
+	
+	ÂºïÊï∞Ôºö
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize();
+	}
+
+}
+
+
+
+@endif
+
+

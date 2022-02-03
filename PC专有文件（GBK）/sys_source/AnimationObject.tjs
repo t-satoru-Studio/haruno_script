@@ -1,0 +1,329 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/08/04
+// File : AnimationObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : Utility Function
+//------------------------------------------------------------------------------
+@if (__ANIMATIONOBJECT_TJS__== 0)
+@set(__ANIMATIONOBJECT_TJS__ = 1)
+
+class _ANIMATIONOBJECT {
+	
+	/*-----------------------------------------
+	°ˆ •—•È•·©`•ø
+	-----------------------------------------*/
+	var MainWin;			//•·•§•Û•™•÷•∏•ß•Ø•»
+	
+	var targetlayer;		//•ø©`•≤•√•»•Ï•§•‰
+	
+	var imagefilename;		//image•’•°•§•Î√˚
+	
+	var imagelayer = void;	//image•Ï•§•‰
+	
+	var type;				//AnimationType [0:Count 1:Clip]
+	
+	var loop;				//loop•’•È•∞
+	
+	var count = 0;			//•´•¶•Û•»
+	
+	var nowcnt= 0;			//¨F‘⁄§Œ•´•¶•Û•»
+	
+	var segment;			//•ª•∞•·•Û•»
+	
+	var wait;				//•¶•ß•§•»
+	
+	var x;					//x◊˘òÀ
+	
+	var y;					//y◊˘òÀ
+	
+	var w;					//ª≠œÒ§Œ∑˘
+	
+	var h;					//ª≠œÒ§Œ∏ﬂ§µ
+	
+	var startTick;			//¨F‘⁄Time
+	
+	var anime;				//Anime•’•È•∞
+	
+	var drawType;			//Layer Type
+	
+	var BaseType;			//Layer Base Type
+	
+	var stoptime;			//•¿•§•¢•Ì•∞§Ú±Ì æ§µ§Ï§øÎH§ŒïrÈg
+	
+	var delay;				//∞kÑ”§ﬁ§«§ŒﬂW—”ïrÈg
+	
+	var delayTimer;			//delay”√§Œ•ø•§•ﬁ©`
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•≥•Û•π•»•È•Ø•ø
+	-----------------------------------------*/
+	function _ANIMATIONOBJECT(win, layer, storage)
+	{
+		MainWin     = win;
+		
+		targetlayer = layer;
+		
+		BaseType    = layer.type;
+		
+		stoptime    = void;
+		
+		if(ResourceCheck((storage) + ".asd"))
+		{
+			segment = Scripts.evalStorage(storage + ".asd");
+			
+			//type
+			this.type  = +segment.type;
+			
+			this.count = +segment.count;
+			
+			this.wait  = +segment.wait;
+			
+			this.x     = (segment.x === void ? 0 : +segment.x);
+			
+			this.y     = (segment.y === void ? 0 : +segment.y);
+			
+			this.loop  = (segment.loop === void ? 0 : +segment.loop);
+			
+			this.nowcnt= (segment.start === void) ? 0 : +segment.start;
+			
+			this.drawType = (segment.layertype === void) ? targetlayer.type : getDrawLayerType(segment.layertype);
+			
+			this.delay = (segment.delay === void) ? 0 : +segment.delay;
+			
+			
+			if(this.loop == 0){
+			//£±ªÿ•¢•À•·§Œ§ﬂ•´•¶•Û•»§Ú§¢§≤§Î
+				++win.AnimeCount;
+			}
+			
+			if(this.type == 0){
+			//•´•¶•Û•»
+				
+				if(ResourceCheck(segment.storage + "%03d.png".sprintf(0))){
+					imagefilename = segment.storage + "%03d.png".sprintf(0);
+				}else if(ResourceCheck(segment.storage + "%03d.bmp".sprintf(0))){
+					imagefilename = segment.storage + "%03d.bmp".sprintf(0);
+				}else if(ResourceCheck(segment.storage + "%03d.jpg".sprintf(0))){
+					imagefilename = segment.storage + "%03d.jpg".sprintf(0);
+				}
+				
+			}else{
+			//Clip
+				if(ResourceCheck(segment.storage + ".png")){
+					imagefilename = segment.storage + ".png";
+				}else if(ResourceCheck(segment.storage + ".bmp")){
+					imagefilename = segment.storage + ".bmp";
+				}else if(ResourceCheck(segment.storage + ".jpg")){
+					imagefilename = segment.storage + ".jpg";
+				}
+				
+				this.w = +segment.w;
+				
+				this.h = +segment.h;
+			}
+			
+			imagelayer         = new BaseLayer(win, win.CaptureLayer, 0,0,0,0,imagefilename);
+			
+			imagelayer.visible = false;
+			
+			if(this.type == 0){
+				targetlayer.setSize(imagelayer.width,imagelayer.height);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,imagelayer.width,imagelayer.height);
+			}else{
+				targetlayer.setSize(this.w,this.h);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,this.w,this.h);
+			}
+			
+			targetlayer.setPos(this.x, this.y);
+			
+			targetlayer.type = this.drawType;
+			
+			startTick = System.getTickCount() - ((this.nowcnt*this.wait));
+			
+			
+			// •ø•§•ﬁ©`§ÚÈ_ º§π§Î
+			if(this.delay != 0)
+			{
+				delayTimer = new Timer(onDelayTimer, '');
+				delayTimer.interval = delay;
+				delayTimer.enabled = true;
+				
+			}else{
+				System.addContinuousHandler(AnimeHandler);
+				
+				anime = true;
+			}
+		}else{
+			DebugMess( storage + ".asd §¨§¢§Í§ﬁ§ª§Û");
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•«•π•»•È•Ø•ø
+	-----------------------------------------*/
+	function finalize()
+	{
+		if(imagelayer !== void)invalidate imagelayer;
+		
+		imagelayer = void;
+		
+		//•¨•Ÿ©`•∏§Úèä÷∆µƒ§ÀÑ”§´§π
+		System.doCompact();
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Û delay”√Èv ˝
+	-----------------------------------------*/
+	function onDelayTimer()
+	{
+		System.addContinuousHandler(AnimeHandler);
+		
+		anime = true;
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ•¢•À•·©`•∑•Á•ÛÈv ˝
+	-----------------------------------------*/
+	function AnimeHandler(tick)
+	{
+		if(MainWin.CheckBoxObj !== void){
+			if(stoptime === void){
+				stoptime = tick - startTick;
+			}
+			return;
+		}
+		
+		if(stoptime !== void){
+			startTick = tick - stoptime;
+			stoptime = void;
+		}
+		
+		
+		// ïrÈg§Úµ√§Î
+		var tm = tick - startTick;
+		
+		if(tm < 0)return;
+		
+		tm /= wait;
+		
+		if(nowcnt != tm)
+		{
+			tm = (int)tm;
+			
+			nowcnt = tm;
+			
+			if(tm > (count-1))
+			{//ΩK¡ÀÑI¿Ì
+				AnimeStop();
+				return;
+			}
+			
+			if(type == 0) {
+			//•ª•Î•¢•À•·
+				var file = "";
+				
+				if(ResourceCheck(segment.storage + "%03d.png".sprintf(tm))){
+					file = segment.storage + "%03d.png".sprintf(tm);
+				}else if(ResourceCheck(segment.storage + "%03d.bmp".sprintf(tm))){
+					file = segment.storage + "%03d.bmp".sprintf(tm);
+				}else if(ResourceCheck(segment.storage + "%03d.jpg".sprintf(tm))){
+					file = segment.storage + "%03d.jpg".sprintf(tm);
+				}
+				
+				imagelayer.loadImages(file);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,imagelayer.width,imagelayer.height);
+			} else {
+			//Clip•¢•À•·
+				targetlayer.copyRect(0,0,imagelayer,(tm*w),0,w,h);
+			}
+			
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù ΩK¡ÀÑI¿Ì
+	-----------------------------------------*/
+	function AnimeStop()
+	{
+		if(loop){
+		//•Î©`•◊§Œàˆ∫œ§œ•´•¶•Û•»§Úë¯§π
+			startTick = System.getTickCount();
+			nowcnt    = 0;
+		}else{
+			if(type == 0) {
+			//•ª•Î•¢•À•·
+				var file = "";
+				
+				if(ResourceCheck(segment.storage + "%03d.png".sprintf((count-1)))){
+					file = segment.storage + "%03d.png".sprintf((count-1));
+				}else if(ResourceCheck(segment.storage + "%03d.bmp".sprintf((count-1)))){
+					file = segment.storage + "%03d.bmp".sprintf((count-1));
+				}else if(ResourceCheck(segment.storage + "%03d.jpg".sprintf((count-1)))){
+					file = segment.storage + "%03d.jpg".sprintf((count-1));
+				}
+				
+				imagelayer.loadImages(file);
+				
+				targetlayer.copyRect(0,0,imagelayer,0,0,imagelayer.width,imagelayer.height);
+				
+				//£±ªÿ•¢•À•·§Œ§ﬂ•´•¶•Û•»§Úœ¬§≤§Î
+				--MainWin.AnimeCount;
+			} else {
+			//Clip•¢•À•·
+				targetlayer.copyRect(0,0,imagelayer,(nowcnt*w),0,w,h);
+			}
+			
+			anime     = false;
+			
+			targetlayer.type = drawType;
+			
+			System.removeContinuousHandler(AnimeHandler);
+		}
+	}
+	
+}
+
+
+@endif
+
+			//Clip„Ç¢„Éã„É°
+				targetlayer.copyRect(0,0,imagelayer,(nowcnt*w),0,w,h);
+			}
+			
+			anime     = false;
+			
+			targetlayer.type = drawType;
+			
+			System.removeContinuousHandler(AnimeHandler);
+		}
+	}
+	
+}
+
+
+@endif
+

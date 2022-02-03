@@ -1,0 +1,773 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2010/05/14
+// File : SoundObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : SoundObject
+//------------------------------------------------------------------------------
+@if (__SELECTOBJECT_TJS__== 0)
+@set(__SELECTOBJECT_TJS__ = 1)
+
+class _SELECTOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	°ˆ •—•È•·©`•ø
+	-----------------------------------------*/
+	var SelectArray = [];	//ﬂxík÷´•Ï•§•‰©`
+	
+	var SelectHidden= [];	//ﬂxík÷´Å¢•Ï•§•‰©`
+	
+	var SelectText  = [];	//ﬂxík÷´TEXT•Ï•§•‰©`
+	
+	var SelectMess  = [];	//ﬂxík÷´TEXT
+	
+	var SelAnswer   = [];	//ﬂxík÷´¥§®
+	
+	var SelResource = void;	//ﬂxík÷´•Í•Ω©`•π
+	
+	var SelChkFlag  = [];	//∑«ﬂxík•’•È•∞∏Òº{≈‰¡–
+	
+	var selnum;				//ﬂxík÷´ ˝
+	
+	var SelAns;				//¥§®∏Òº{
+	
+	var SelPre;				//¥§®∏Òº{
+	
+	var SelCnt;				//SELECT COUNT
+	
+	var m_left;				//mouse left
+	
+	var m_top;				//mouse top
+	
+	var keyactive;			//key active
+	
+	var nSELRES_NUM = 3;	//ﬂxík÷´•Í•Ω©`•π§Œ ˝
+	
+	var SelectHistory;		//ﬂxík÷´¬ƒös
+	
+	var SelHistoryId;		//ﬂxík÷´¬ƒösID
+	
+	var SelHideFlag;		//∑«ﬂxík•’•È•∞
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	° •≥•Û•π•»•È•Ø•ø
+	-----------------------------------------*/
+	function _SELECTOBJECT(win, pri)
+	{
+		super.BaseObject(win, pri);
+		
+		SelResource = void;
+	}
+	
+	
+	
+	
+	/*-----------------------------------------
+	° •«•π•»•È•Ø•ø
+	-----------------------------------------*/
+	function finalize()
+	{
+		super.finalize(...);
+		
+		//œ˜≥˝Èv ˝
+		DelSelect();
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	° ﬂxík÷´•·•√•ª©`•∏∏Òº{
+	-----------------------------------------*/
+	function SetMessage( str, id, chkflag = void )
+	{
+		//ﬂxík÷´•∆•≠•π•»∏Òº{
+		SelectMess.add(str);
+		
+		//ﬂxík÷´¥§®
+		SelAnswer.add(id);
+		
+		//ﬂxík÷´∑«±Ì æ≈‰¡–
+		SelChkFlag.add( chkflag );
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	° ﬂxík÷´◊˜≥… Èv ˝
+	-----------------------------------------*/
+	function CreateSelect()
+	{
+		SelAns = 0;
+		
+		SelPre = 0;
+		
+		var ypos = 0;
+		
+		
+		switch (SelectMess.count) {
+			case 1:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select01.png");
+				
+				ypos = 273;
+			}break;
+			
+			case 2:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select02.png");
+				
+				ypos = 243;
+			}break;
+			
+			case 3:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select03.png");
+				
+				ypos = 213;
+			}break;
+			
+			case 4:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select04.png");
+				
+				ypos = 183;
+			}break;
+			
+			case 5:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select05.png");
+				
+				ypos = 153;
+			}break;
+			
+			case 6:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select06.png");
+				
+				ypos = 123;
+			}break;
+			case 7:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select07.png");
+				
+				ypos = 93;
+			}break;
+			case 8:{
+				MainWnd.PrimaryLayer.loadProvinceImage("select08.png");
+				
+				ypos = 63;
+			}break;
+		}
+		
+		//ﬂxík÷´¬ƒös
+		SelectHistory = (string)(MainWnd.PaserObj.curStorage + "_" + MainWnd.PaserObj.curLine);
+		
+		
+		
+		//•Í•Ω©`•π§Ú‹ûÀÕ
+		SelResource = new BaseLayer(MainWnd, PriLayer, 0,0,0,0,"frm_select.png");
+		
+		SelResource.visible = false;
+		
+		selnum = SelectMess.count;
+		
+		for(var i=0; i<selnum; i++)
+		{
+			//ﬂxík÷´•’•Ï©`•‡•Ï•§•‰
+			SelectArray[i] = new BaseLayer(MainWnd, PriLayer, 0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+			
+			SelectArray[i].absolute = nSELLAYER + i;
+			
+			SelectHidden[i] = new BaseLayer(MainWnd, PriLayer, 0,0,SelectArray[i].width,SelectArray[i].height);
+			
+			SelectHidden[i].absolute = nSELLAYER+10 + i;
+			
+			//ﬂxík÷´•∆•≠•π•»•Ï•§•‰
+			SelectText[i]  = new BaseLayer(MainWnd, SelectHidden[i], 0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+			
+			SelectText[i].absolute    = (nSELLAYER+20) + i;
+			
+			//ﬂxík÷´•’•©•Û•»√˚
+			SelectText[i].font.face   = stFONTNAME;
+			
+			//ﬂxík÷´•’•©•Û•»•µ•§•∫
+			SelectText[i].font.height = nSELECT_FONTSIZE;
+			
+			//ﬂxík÷´BOLD
+			SelectText[i].font.bold   = nSELECT_FONTBOLD;
+			
+			//•∆•≠•π•»√Ëª≠
+			var x = ((SelectText[i].width\2)-((SelectMess[i].length*nSELECT_FONTSIZE)\2));
+			//var x = nSELECT_XPOS;
+			
+			;//var y = ((SelectText[i].height/2)-(nSELECT_FONTSIZE/2)) + nSELECT_FUKURO_WIDTH + nSELECT_YPOS;
+			var y = nSELECT_YPOS;
+			
+			var SelMess = SelectMess[i];
+			
+			//ﬂxík÷´¬ƒösID
+			SelHistoryId = SelectHistory+"%02d".sprintf(SelAnswer[i]);
+			
+			//∑«ﬂxík•’•È•∞
+			SelHideFlag  = SelChkFlag[i];
+			
+			//Œƒ◊÷ ˝§¿§±•Î©`•◊§µ§ª§Î
+			for(var t=0; t<SelMess.length; t++){
+				
+				TextDraw(SelectText[i], x, y, SelMess[t] );
+				
+				//X◊˘òÀ
+				// £≠£≠§¨∏∂§´§ §§§ø§·
+				x += SelectText[i].font.getEscWidthX(SelMess[t]) + nSELECT_KERNING;
+			}
+			
+			
+			//•Í•Ω©`•π’πÈ_
+			SelectArray[i].copyRect(0,0,SelResource,0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+			
+			//◊˘òÀ‘O∂®
+			SelectArray[i].setPos(
+				((PriLayer.width / 2)-(SelectArray[i].width / 2)), 
+				i == 0 ? ypos : ((SelectArray[i-1].top+SelectArray[i-1].height))+4
+			);
+			
+			SelectHidden[i].left    = SelectArray[i].left;
+			SelectHidden[i].top     = SelectArray[i].top;
+		}
+		
+		
+		//Õ∏√˜∂»‘O∂®
+		//SetSelectDensity();
+		
+		//ﬂxík÷´··SKIPÑI¿Ì
+		if((s["selectskip"] == false) && MainWnd.SkipCheck()){
+			//SKIPΩ‚≥˝
+			MainWnd.SkipFlag = false;
+			//SKIP
+			MainWnd.MessObj.MessButton[8].copyRect(0,0, MainWnd.MessObj.ButtonResource,32*8,0,32,32);
+		}
+		
+		
+		
+		//ﬂxík÷´··AUTOÑI¿Ì
+		if((s["selectauto"] == false) && MainWnd.MessObj.AutoFlag){
+			//AUTOΩ‚≥˝
+			MainWnd.MessObj.AutoFlag = false;
+			//AUTO
+			MainWnd.MessObj.MessButton[7].copyRect(0,0, MainWnd.MessObj.ButtonResource,32*7,0,32,32);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//•ﬁ•¶•π•´©`•Ω•Î◊‘Ñ”“∆Ñ”
+		if( s["mouse"] == true ){
+			MainWnd.PrimaryLayer.cursorX = SelectArray[0].left + (SelectArray[0].width\2);
+			MainWnd.PrimaryLayer.cursorY = SelectArray[0].top  + (SelectArray[0].height\2);
+			
+			SelPre = 0;
+			SelAns = 0;
+			
+			//“∆Ñ”•¢•À•· °˘—‘§Ô§Ï§ø§È π”√§π§Î§√§∆§≥§»§«
+			//MainWnd.SetCursorMove( SelectArray[0].left + (SelectArray[0].width\2), SelectArray[0].top  + (SelectArray[0].height\2), nMOUSE_MOVE_TIME );
+		}
+		
+		//•≠©`•‹©`•…•’•©©`•´•π§ÚΩ‚≥˝§∑§∆§™§Ø
+		keyactive = false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ TEXT°°DRAW
+	-----------------------------------------*/
+	function TextDraw(drawlayer, x, y, str, color = nSELECT_FONTCOLOR)
+	{
+		//¥¸Œƒ◊÷ÑI¿Ì
+		if(nSELECT_FUKURO == true){
+			
+			for(var i=0; i<=nSELECT_FUKURO_WIDTH; i++){
+				//¥¸Œƒ◊÷•∆•≠•π•»√Ëª≠
+				drawlayer.drawText(x+i, y  , str, nSELECT_FUKUROCOLOR);
+				drawlayer.drawText(x-i, y  , str, nSELECT_FUKUROCOLOR);
+				drawlayer.drawText(x  , y-i, str, nSELECT_FUKUROCOLOR);
+				drawlayer.drawText(x  , y+i, str, nSELECT_FUKUROCOLOR);
+				
+				if((nSELECT_FUKURO_WIDTH-1) == i){
+					drawlayer.drawText(x+i, y-i, str, nSELECT_FUKUROCOLOR);
+					drawlayer.drawText(x+i, y+i, str, nSELECT_FUKUROCOLOR);
+					drawlayer.drawText(x-i, y-i, str, nSELECT_FUKUROCOLOR);
+					drawlayer.drawText(x-i, y+i, str, nSELECT_FUKUROCOLOR);
+				}
+			
+			}
+		}
+		
+		
+		var shadow_color = nSELECT_SHADOWCOLOR;
+		
+		//ﬂxík÷´¬ƒös•¡•ß•√•Ø
+		if( (s["selectlog"] == true) && (s[SelHistoryId] == true) ){
+			color        = nSELECT_HISTORY_FONTCOLOR;
+			shadow_color = nSELECT_HISTORY_SHADOWCOLOR;
+		}
+		
+		
+		//∑«ﬂxík÷´
+		if( ( SelHideFlag !== void ) && (f[ SelHideFlag ] == false) && (s[ SelHideFlag ] == false) ){
+			color        = nSELECT_FLAG_FONTCOLOR; 0x777777;
+			shadow_color = nSELECT_FLAG_SHADOWCOLOR;
+		}
+		
+		
+		
+		//•∆•≠•π•»√Ëª≠
+		drawlayer.drawText(
+			x, 
+			y, 
+			str, 
+			color, 
+			0xff, 
+			true, 
+			nSELECT_SHADOW,
+			shadow_color,
+			0,
+			nSELECT_SHADOW_WIDTH,
+			nSELECT_SHADOW_HEIGHT
+		);
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ ﬂxík÷´œ˜≥˝Èv ˝
+	
+	’h√˜£∫
+	œ˜≥˝Èv ˝
+	
+	-----------------------------------------*/
+	function DelSelect()
+	{
+		if(SelResource != void)invalidate SelResource;
+		
+		SelResource = void;
+		
+		if(SelectMess.count)
+		{//TEXT
+			SelectMess.clear();
+		}
+		
+		
+		if(SelectText.count)
+		{//TEXT LAYER
+			for( var i=0; i<SelectText.count; i++){
+				invalidate SelectText[i];
+			}
+			SelectText.clear();
+		}
+		
+		
+		if(SelectArray.count)
+		{//SELECT LAYER
+			for( var i=0; i<SelectArray.count; i++){
+				invalidate SelectArray[i];
+			}
+			SelectArray.clear();
+		}
+		
+		
+		if(SelectHidden.count)
+		{//Select Hidden
+			for( var i=0; i<SelectHidden.count; i++){
+				invalidate SelectHidden[i];
+			}
+			SelectHidden.clear();
+		}
+		
+		
+		//ﬂxík÷´¥§®•Ø•Í•¢
+		SelAnswer.clear();
+		
+		//ﬂxík÷´∑«±Ì æ≈‰¡–§Ú•Ø•Í•¢
+		SelChkFlag.clear();
+		
+		//•™•÷•∏•ß•Ø•»§¨…˙§≠§∆§§§ø§È•·•√•ª©`•∏§Ú•Ø•Í•¢
+		if(isvalid MainWnd.MessObj)MainWnd.MessObj.MessFormat();
+		
+		//•¨•Ÿ©`•∏§Úèä÷∆µƒ§ÀÑ”§´§π
+		System.doCompact();
+		
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•«•’•©•Î•»Èv ˝
+	
+	“˝ ˝£∫
+	-----------------------------------------*/
+	function DefaultAction()
+	{
+		for(var i=0; i<SelectArray.count; i++){
+			if(SelectArray[SelAns-1].PaintFlag){
+				
+				SelectArray[SelAns-1].PaintFlag = false;
+				
+				Wait( nSELECT_WAIT );
+				
+				ResultFunc();
+				
+				return;
+			}
+		}
+		
+		if(!keyactive){
+		//mouse ÷∆”˘
+			SelAns = MainWnd.PrimaryLayer.GetProvincePixel();
+		}else{
+		//key ÷∆”˘
+			if(	(m_left != MainWnd.PrimaryLayer.cursorX) ||
+				(m_top  != MainWnd.PrimaryLayer.cursorY)
+			){
+				keyactive = false;
+			}
+		}
+		
+		
+		
+		
+		if(SelAns != SelPre)
+		{
+			ActiveFunc();
+			
+			ClearFunc();
+		}
+		
+		SelPre = SelAns;
+		
+		
+		//MES •’•Ï©`•‡§Œ•¡•ß•√•Ø§Ú∫Ù§”≥ˆ§π
+		MainWnd.MessObj.DefaultAction();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ LEFT MOUSE
+	
+	’h√˜£∫
+	◊Û•Ø•Í•√•Ø
+	
+	-----------------------------------------*/
+	function LeftMouseUpAction()
+	{
+		if(!SelAns || !SelectArray[0].visible){
+			
+			if(MainWnd.MessObj.MapReg != 0){
+				//•‹•ø•ÛÑI¿ÌÈv ˝
+				MainWnd.MessObj.ButtonWorkFunc();
+			}
+			
+			return;
+		}
+		
+		//∑«ﬂxík
+		if( ( SelChkFlag[SelAns-1] !== void ) && (f[ SelChkFlag[SelAns-1] ] == false) && (s[ SelChkFlag[SelAns-1] ] == false) )return;
+		
+		
+		//•Í•Ω©`•π∏¸–¬
+		SelectArray[SelAns-1].copyRect(0,0,SelResource,0,(SelResource.height/nSELRES_NUM)*2,SelResource.width,SelResource.height/nSELRES_NUM);
+		
+		SelectArray[SelAns-1].update();
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ RESULTÑI¿Ì
+	-----------------------------------------*/
+	function ResultFunc()
+	{
+		//¥§®§Ú∏Òº{
+		
+		//Õ®≥£SAVE”√
+		f["selcnt%d".sprintf(SelCnt++)] = SelAnswer[SelAns-1];
+		
+		f["selans"] = SelAnswer[SelAns-1];
+		
+		//ﬂxík÷´¬ƒös±£¥Ê
+		s[SelectHistory+"%02d".sprintf(f["selans"])] = true;
+		
+		
+		SelPre = SelAns = false;
+		
+		//¥Œ§Œ•ø•∞§Ú»°µ√§∑§À§§§Ø
+		MainWnd.PaserObj.GetTagload();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ RIGHT MOUSE
+	
+	’h√˜£∫
+	”“•Ø•Í•√•Ø
+	
+	-----------------------------------------*/
+	function RightMouseUpAction()
+	{
+		
+		if(!MainWnd.SkipCheck() && !MainWnd.MessObj.AutoFlag)
+		{//SKIP •’•È•∞÷–§œSKIPΩ‚≥˝§Œ§ﬂ
+			for(var i=0; i<selnum; i++){
+				SelectArray[i].visible = !SelectArray[i].visible;
+				SelectHidden[i].visible = !SelectHidden[i].visible;
+			}
+		}
+		
+		//FRAME
+		MainWnd.MessObj.RightMouseUpAction();
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•¢•Ø•∆•£•÷Èv ˝
+	
+	“˝ ˝£∫
+	
+	-----------------------------------------*/
+	function ActiveFunc()
+	{
+		if(!SelAns)return;
+		
+		if( ( SelChkFlag[SelAns-1] !== void ) && (f[ SelChkFlag[SelAns-1] ] == false) && (s[ SelChkFlag[SelAns-1] ] == false) )return;
+		
+		SelectArray[SelAns-1].copyRect(0,0,SelResource,0,SelResource.height/nSELRES_NUM,SelResource.width,SelResource.height/nSELRES_NUM);
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°Ù•Ø•Í•¢Èv ˝
+	
+	“˝ ˝£∫
+	
+	-----------------------------------------*/	
+	function ClearFunc()
+	{
+		if(!SelPre)return;
+		
+		if( ( SelChkFlag[SelPre-1] !== void ) && (f[ SelChkFlag[SelPre-1] ] == false) && (s[ SelChkFlag[SelPre-1] ] == false) )return;
+		
+		SelectArray[SelPre-1].copyRect(0,0,SelResource,0,0,SelResource.width,SelResource.height/nSELRES_NUM);
+		//SelectArray[SelPre-1].fillRect(0,0,SelResource.width,SelResource.height, 0);
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ KEY UP
+	-----------------------------------------*/
+	function KeyUpAction(key, shift, process)
+	{
+		switch(key){
+			case VK_RETURN:{
+			//return
+			//alt•≠©`§¨—∫§µ§Ï§∆§§§ø§È§≥§≥§ﬁ§«
+			if(shift & ssAlt)return;
+				LeftMouseUpAction();
+			}break;
+			
+			case VK_UP:{
+			//°¸
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				if(SelAns < 2){
+					SelAns = selnum;
+				}else{
+					--SelAns;
+				}
+			}break;
+			
+			case VK_DOWN:{
+			//°˝
+				keyactive = true;
+				m_left    = MainWnd.PrimaryLayer.cursorX;
+				m_top     = MainWnd.PrimaryLayer.cursorY;
+				
+				if(selnum  == SelAns){
+					SelAns = 1;
+				}else{
+					++SelAns;
+				}
+				
+				//∑«ﬂxík•’•È•∞§¨§¢§Îàˆ∫œ§œ‘Ÿé¢§«∫Ù§”≥ˆ§∑§∆§ﬂ§Î
+				if( ( SelChkFlag[SelAns-1] !== void ) && (f[ SelChkFlag[SelAns-1] ] == false) && (s[ SelChkFlag[SelAns-1] ] == false) ){
+					KeyUpAction(key, shift, process);
+				}
+				
+			}break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ •€•§©`•ÎÑI¿Ì
+	-----------------------------------------*/
+	function MouseWheelAction(shift, delta, x, y)
+	{
+		if(!SelectArray[0].visible)return;
+		
+		keyactive = true;
+		m_left    = MainWnd.PrimaryLayer.cursorX;
+		m_top     = MainWnd.PrimaryLayer.cursorY;
+		
+		if(delta < 0){
+		//œ¬∑ΩœÚ
+			KeyUpAction(VK_DOWN);
+		}else{
+		//…œ∑ΩœÚ
+			//KeyUpAction(VK_UP);
+			MainWnd.MessObj.MouseWheelAction( shift, delta, x, y );
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ Õ∏√˜∂»‘O∂®
+	-----------------------------------------*/
+	function SetSelectDensity()
+	{
+		//Õ∏√˜∂»‘O∂®
+		var density = 255*(s["wnddensity"]/100);
+		
+		if( density < 0){
+			density = 0;
+		}else if(255 < density){
+			density = 255;
+		}
+		
+		for(var i=0; i<SelectArray.count; i++){
+			SelectArray[i].opacity = density;
+		}
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	°ˆ •∆•≠•π•»‘Ÿ√Ëª≠
+	-----------------------------------------*/
+	function ReWriteText()
+	{
+		for(var i=0; i<SelectArray.count; i++)
+		{
+			//•∆•≠•π•»§Ú•Ø•Í•¢§∑§∆§™§Ø
+			SelectText[i].drawRect( 0 );
+			
+			//•∆•≠•π•»√Ëª≠
+			var x = ((SelectText[i].width\2)-((SelectMess[i].length*nSELECT_FONTSIZE)\2));
+			//var x = nSELECT_XPOS;
+			
+			;//var y = ((SelectText[i].height/2)-(nSELECT_FONTSIZE/2)) + nSELECT_FUKURO_WIDTH + nSELECT_YPOS;
+			var y = nSELECT_YPOS;
+			
+			var SelMess = SelectMess[i];
+			
+			//ﬂxík÷´¬ƒösID
+			SelHistoryId = SelectHistory+"%02d".sprintf(SelAnswer[i]);
+			
+			//∑«ﬂxík•’•È•∞
+			SelHideFlag  = SelChkFlag[i];
+			
+			//Œƒ◊÷ ˝§¿§±•Î©`•◊§µ§ª§Î
+			for(var t=0; t<SelMess.length; t++){
+				
+				TextDraw(SelectText[i], x, y, SelMess[t] );
+				
+				//X◊˘òÀ
+				// £≠£≠§¨∏∂§´§ §§§ø§·
+				x += SelectText[i].font.getEscWidthX(SelMess[t]) + nSELECT_KERNING;
+			}
+		}
+	}
+	
+}
+
+@endif
+IZE)\2));
+			//var x = nSELECT_XPOS;
+			
+			;//var y = ((SelectText[i].height/2)-(nSELECT_FONTSIZE/2)) + nSELECT_FUKURO_WIDTH + nSELECT_YPOS;
+			var y = nSELECT_YPOS;
+			
+			var SelMess = SelectMess[i];
+			
+			//ÈÅ∏ÊäûËÇ¢Â±•Ê≠¥ID
+			SelHistoryId = SelectHistory+"%02d".sprintf(SelAnswer[i]);
+			
+			//ÈùûÈÅ∏Êäû„Éï„É©„Ç∞
+			SelHideFlag  = SelChkFlag[i];
+			
+			//ÊñáÂ≠óÊï∞„Å†„Åë„É´„Éº„Éó„Åï„Åõ„Çã
+			for(var t=0; t<SelMess.length; t++){
+				
+				TextDraw(SelectText[i], x, y, SelMess[t] );
+				
+				//XÂ∫ßÊ®ô
+				// ÔºçÔºç„Åå‰ªò„Åã„Å™„ÅÑ„Åü„ÇÅ
+				x += SelectText[i].font.getEscWidthX(SelMess[t]) + nSELECT_KERNING;
+			}
+		}
+	}
+	
+}
+
+@endif

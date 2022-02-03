@@ -1,0 +1,309 @@
+//------------------------------------------------------------------------------
+// Note : BASE ADV SYSTEM
+// Data : 2014/05/26
+// File : DayBordObject.tjs
+// Creator : Kazuyuki Uchino
+// Memo : 日付表示オブジェクト
+//------------------------------------------------------------------------------
+@if (__DAYBORDOBJECT_TJS__== 0)
+@set(__DAYBORDOBJECT_TJS__ = 1)
+
+
+/*-----------------------------------------
+■日付表示オブジェクト
+
+引数:
+
+なし
+
+説明
+日付表示関連をまとめたオブジェクト
+
+-----------------------------------------*/
+class _DAYBORDOBJECT extends BaseObject {
+	
+	/*-----------------------------------------
+	◆ パラメータ
+	-----------------------------------------*/
+	var BaseBord;			//ベースボード
+	
+	var DayLayer;			//日付レイヤ
+	
+	var mounthparts;		//月パーツ
+	
+	var dayparts;			//日パーツ
+	
+	var weekparts;			//曜日
+	
+	var Mover;				//移動オブジェクト
+	
+	var EraseTimer;			//タイマーオブジェクト
+	
+	var nERASETIME = 3000;	//消去時間
+	
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ コンストラクタ
+	-----------------------------------------*/
+	function _DAYBORDOBJECT(wnd, pri)
+	{
+		super.BaseObject(wnd, pri);
+		
+		//ベースボードの作成
+		BaseBord    = new BaseLayer(wnd, pri,0,0,0,0,"frm_daybase.png");
+		
+		//日付レイヤ
+		DayLayer    = new BaseLayer(wnd, BaseBord,0,0,BaseBord.width,BaseBord.height);
+		
+		//月パーツ
+		mounthparts = new BaseLayer(wnd, pri,0,0,0,0,"frm_mounthnumber.png");
+		
+		//日パーツ
+		dayparts    = new BaseLayer(wnd, pri,0,0,0,0,"frm_daynumber.png");
+		
+		//曜日パーツ
+		weekparts   = new BaseLayer(wnd, pri,0,0,0,0,"frm_weekbord.png");
+		
+		//非表示にしておく
+		BaseBord.visible    = false;
+		
+		mounthparts.visible = false;
+		
+		dayparts.visible    = false;
+		
+		weekparts.visible   = false;
+	}
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	◆ デストラクタ
+	-----------------------------------------*/
+	function finalize()
+	{
+		invalidate BaseBord;
+		
+		invalidate mounthparts;
+		
+		invalidate dayparts;
+		
+		invalidate weekparts;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 日付設定
+	
+	mon:0(prologue)
+	
+	-----------------------------------------*/
+	function SetDayBord( mon, day, week = void )
+	{
+		if(EraseTimer !== void){
+			EraseTimer.enabled  = false;
+			invalidate EraseTimer;
+		}
+		
+		EraseTimer = void;
+		
+		//基本動作オブジェクトが動いていたら削除
+		if( Mover !== void ){
+			EraseData();
+		}
+		
+		//レイヤを消去しておく
+		DayLayer.fillRect(0,0,DayLayer.width,DayLayer.height, 0);
+		
+		BaseBord.opacity = 0;
+		
+		BaseBord.visible = true;
+		
+		BaseBord.left    = -100;
+		
+		BaseBord.top     = 10;
+		
+		
+		if( (mon == 13) || (mon == 14) )
+		{//prologue or epilogue
+			if( mon == 13 ){
+				DayLayer.loadImages("frm_prologue.png");
+			}else{
+				DayLayer.loadImages("frm_epilogue.png");
+			}
+		}else{
+		//月日
+			DayLayer.loadImages("frm_mondayweek.png");
+			
+			if(12 < mon)mon = 0;
+			if(31 < day)day = 0;
+			
+			//月
+			DayLayer.copyRect(29,14,mounthparts,0,(29*mon),59,29);
+			
+			//日
+			DayLayer.copyRect(137,14,dayparts,0,(29*day),58,29);
+			
+			//曜日
+			if( (week === void) && (mon != 0) && (day != 0) ){
+			//自動判定 2014年の年号を使う
+				week = (new Date("2014/%d/%d 0:0:0".sprintf(mon,day))).getDay();
+			}
+			
+			if(week !== void){
+				DayLayer.copyRect(239,19,weekparts,0,(29*week),88,29);
+			}
+		}
+		
+		
+		//ロード用に取っておく
+		f["daybord_mon"] = mon;
+		f["daybord_day"] = day;
+		f["daybord_week"]= week;
+		
+		
+		//移動オブジェクトを作成
+		Mover = new LinearMover(BaseBord, [BaseBord.left,BaseBord.top,BaseBord.opacity, 0,BaseBord.top,255], 500, 0, DayDrawEndFunc);
+		//開始
+		if(MainWnd.SkipCheck()|| MainWnd.EffectCheck()){
+			Mover.moving = true;
+			Mover.stopMove();
+		}else{
+			Mover.startMove();
+		}
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■移動終了関数
+	-----------------------------------------*/
+	function DayDrawEndFunc()
+	{
+		invalidate Mover;
+		Mover = void;
+		
+		invalidate EraseTimer;
+		EraseTimer = void;
+		
+		
+		//開始
+		EraseTimer = new Timer(this, "EraseFunc");
+		
+		EraseTimer.interval = nERASETIME;
+		
+		EraseTimer.enabled  = true;
+		
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■ 削除関数
+	-----------------------------------------*/
+	function EraseFunc()
+	{
+		if(EraseTimer !== void){
+			EraseTimer.enabled  = false;
+			invalidate EraseTimer;
+		}
+		
+		EraseTimer = void;
+		
+		if(!BaseBord.visible)return;
+		
+		
+		BaseBord.opacity = 255;
+		BaseBord.visible = true;
+		
+		//移動オブジェクトを作成
+		Mover = new LinearMover(BaseBord, [BaseBord.left,BaseBord.top,BaseBord.opacity, 0,BaseBord.top,0], 500, 0, EraseData);
+		//開始
+		if(MainWnd.SkipCheck()|| MainWnd.EffectCheck()){
+			Mover.moving = true;
+			Mover.stopMove();
+		}else{
+			Mover.startMove();
+		}
+		
+		
+		//データ破棄
+		//EraseData();
+	}
+	
+	
+	
+	
+	
+	/*-----------------------------------------
+	■データ破棄
+	-----------------------------------------*/
+	function EraseData()
+	{
+		//ロード中はここまで
+		if(MainWnd.LoadFlag)return;
+		
+		if(EraseTimer !== void){
+			EraseTimer.enabled  = false;
+			invalidate EraseTimer;
+		}
+		
+		EraseTimer = void;
+		
+		BaseBord.opacity = 0;
+		
+		BaseBord.visible = false;
+		
+		invalidate Mover;
+		Mover = void;
+		
+		//データを破棄する
+		f["daybord_mon"] = void;
+		f["daybord_day"] = void;
+		f["daybord_week"]= void;
+	}
+	
+}
+
+
+@endif
+
+		
+		EraseTimer = void;
+		
+		BaseBord.opacity = 0;
+		
+		BaseBord.visible = false;
+		
+		invalidate Mover;
+		Mover = void;
+		
+		//銉囥兗銈裤倰鐮存銇欍倠
+		f["daybord_mon"] = void;
+		f["daybord_day"] = void;
+		f["daybord_week"]= void;
+	}
+	
+}
+
+
+@endif
+

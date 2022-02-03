@@ -3,7 +3,7 @@ function ExportRecursive(src, dst, save) {
 		try {
 			Plugins.link("fstat.dll");
 		} catch (e) {
-			System.inform("fstat.dllãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãŒå¿…è¦ã§ã™\n"+e.message);
+			System.inform("fstat.dll¥×¥é¥°¥¤¥ó¤¬±ØÒª¤Ç¤¹\n"+e.message);
 			return;
 		}
 	}
@@ -33,12 +33,14 @@ function ExportScript(src, dst, save, doneInform = true) {
 		try {
 			Plugins.link("saveStruct.dll");
 		} catch (e) {
-			System.inform("saveStruct.dllãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãŒå¿…è¦ã§ã™\n"+e.message);
+			System.inform("saveStruct.dll¥×¥é¥°¥¤¥ó¤¬±ØÒª¤Ç¤¹\n"+e.message);
 			return;
 		}
 	}
 	if (ExportRecursive(System.exePath + src + "/",
 						System.exePath + dst + "/",
 						save) && doneInform)
-		System.inform(@"${dst}ã¸å‡ºåŠ›ã—ã¾ã—ãŸ");
+		System.inform(@"${dst}¤Ø³öÁ¦¤·¤Ş¤·¤¿");
+}
+ã¸å‡ºåŠ›ã—ã¾ã—ãŸ");
 }

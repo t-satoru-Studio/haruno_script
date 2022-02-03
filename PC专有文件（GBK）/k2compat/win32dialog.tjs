@@ -1,19 +1,19 @@
 Plugins.link("win32dialog.dll") if (typeof global.WIN32Dialog == "undefined");
 
 class WIN32DialogEX extends WIN32Dialog {
-	// ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
+	// ¥³¥ó¥¹¥È¥é¥¯¥¿
 	function WIN32DialogEX(owner) {
 		this.owner = owner if (typeof owner == "Object");
-		super.WIN32Dialog(null); // å¿…ãšè‡ªåˆ†è‡ªèº«ã«ã‚¤ãƒ™ãƒ³ãƒˆã‚’æŠ•ã’ã‚‹
+		super.WIN32Dialog(null); // ±Ø¤º×Ô·Ö×ÔÉí¤Ë¥¤¥Ù¥ó¥È¤òÍ¶¤²¤ë
 	}
 	function finalize() {
 		removeAllBitmap();
 		super.finalize(...);
 	}
-	// ã‚ªãƒ¼ãƒŠãƒ¼ã¸ã®ã‚¤ãƒ™ãƒ³ãƒˆæŠ•ã’ã¯è‡ªåˆ†
+	// ¥ª©`¥Ê©`¤Ø¤Î¥¤¥Ù¥ó¥ÈÍ¶¤²¤Ï×Ô·Ö
 	var owner;
 
-	// ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆæƒ…å ±ä¿æŒç”¨ã‚¯ãƒ©ã‚¹
+	// ¥Æ¥ó¥×¥ì©`¥ÈÇéˆó±£³ÖÓÃ¥¯¥é¥¹
 	var Header = global.WIN32Dialog.Header;
 	var Items  = global.WIN32Dialog.Items;
 
@@ -21,17 +21,17 @@ class WIN32DialogEX extends WIN32Dialog {
 	var itemNames = [];
 	var itemAlias = %[];
 
-	// å„ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®çµæœä¿æŒç”¨
+	// ¸÷¥³¥ó¥È¥í©`¥ë¤Î½Y¹û±£³ÖÓÃ
 	var itemResults;
 
-	// æ–‡å­—åˆ—IDå‰²ã‚Šå½“ã¦ã‚‹ç•ªå·
+	// ÎÄ×ÖÁĞID¸î¤êµ±¤Æ¤ë·¬ºÅ
 	var namedIDnumber = 10000;
 
 	property dm { getter { return global.Debug.message; } }
 
 	property results { getter { return itemResults; } }
 
-	// ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’æµã—è¾¼ã‚€
+	// ¥Æ¥ó¥×¥ì©`¥È¤òÁ÷¤·Şz¤à
 	function store(elm) {
 		if (typeof elm != 'Object') return false;
 
@@ -45,7 +45,7 @@ class WIN32DialogEX extends WIN32Dialog {
 			var tmp = %[];
 			(global.Dictionary.assign incontextof tmp)(elm.items[i], true);
 
-			// ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®ã‚¨ã‚¤ãƒªã‚¢ã‚¹
+			// ¥Ñ¥é¥á©`¥¿¤Î¥¨¥¤¥ê¥¢¥¹
 			makeAlias(tmp, "id", "ID");
 			makeAlias(tmp, "cx", "w");
 			makeAlias(tmp, "cy", "h");
@@ -56,7 +56,7 @@ class WIN32DialogEX extends WIN32Dialog {
 			case "String":
 				if (tmp.id != "") {
 					origID = tmp.id;
-					tmp.id = namedIDnumber++; // æ–‡å­—åˆ—ã®IDã¯æ•°å€¤ã«ç½®ãæ›ãˆã‚‹
+					tmp.id = namedIDnumber++; // ÎÄ×ÖÁĞ¤ÎID¤ÏÊı‚¤ËÖÃ¤­“Q¤¨¤ë
 					itemAlias[tmp.id] = origID;
 				}
 				break;
@@ -68,11 +68,11 @@ class WIN32DialogEX extends WIN32Dialog {
 				break;
 			}
 
-			// itemMap / itemNames ã‚’è¨­å®š
+			// itemMap / itemNames ¤òÔO¶¨
 			//dm(i, origID);
 			if (origID != "" && origID != -1) {
 				if (typeof itemMap[origID] == "undefined") itemNames.add(origID);
-				else if (!tmp.multipleid) throw new Exception(@"IDãŒé‡è¤‡ã—ã¦ã„ã¾ã™: ${i}, ${origID}, ${tmp.id}");
+				else if (!tmp.multipleid) throw new Exception(@"ID¤¬ÖØÑ}¤·¤Æ¤¤¤Ş¤¹: ${i}, ${origID}, ${tmp.id}");
 				itemMap[origID] = tmp;
 				itemMap[tmp.id] = tmp if (origID != tmp.id);
 			}
@@ -84,14 +84,14 @@ class WIN32DialogEX extends WIN32Dialog {
 		}
 		head.dlgItems = cnt;
 
-		// ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ã«ãƒ†ãƒ³ãƒ—ãƒ¬æƒ…å ±ã‚’æ¸¡ã™
+		// ¥×¥é¥°¥¤¥ó¤Ë¥Æ¥ó¥×¥ìÇéˆó¤ò¶É¤¹
 		makeTemplate(head, items*);
 
 		invalidate head;
 		for (var i = 0; i < cnt; i++) invalidate items[i];
 	}
 
-	// ã‚¨ã‚¤ãƒªã‚¢ã‚¹ç”Ÿæˆ
+	// ¥¨¥¤¥ê¥¢¥¹Éú³É
 	function makeAlias(dict, orig, alias) {
 		if (typeof dict[alias] != "undefined" && typeof tmp[orig] == "undefined") {
 			tmp[orig] = tmp[alias];
@@ -99,12 +99,12 @@ class WIN32DialogEX extends WIN32Dialog {
 		}
 	}
 
-	// æ–‡å­—åˆ—IDã‚’æ¸¡ã›ã‚‹ã‚ˆã†ã«
+	// ÎÄ×ÖÁĞID¤ò¶É¤»¤ë¤è¤¦¤Ë
 	function getNumberdId(id, raiseException = true) {
 		var item = itemMap[id];
 		var r = (typeof item == "Object" && typeof item.id != "undefined") ? item.id : id;
 		if (typeof r != "Integer") {
-			var text = @"ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ID(${id})ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“";
+			var text = @"¥³¥ó¥È¥í©`¥ëID(${id})¤¬ÒŠ¤Ä¤«¤ê¤Ş¤»¤ó";
 			if (raiseException) throw new Exception(text);
 			else {
 				Debug.notice(text);
@@ -153,7 +153,7 @@ class WIN32DialogEX extends WIN32Dialog {
 	function getCheckBox(id)        { return sendItemMessage(id, BM_GETCHECK, 0, 0); }
 	function setCheckBox(id, value) { return sendItemMessage(id, BM_SETCHECK, +value, 0); }
 
-	// åˆæœŸåŒ–å‡¦ç†ç”¨
+	// ³õÆÚ»¯„IÀíÓÃ
 	function setListBoxTexts( *) { return addItemStrings(LB_ADDSTRING, *); }
 	function setComboBoxTexts(*) { return addItemStrings(CB_ADDSTRING, *); }
 	function selectListBox( *)   { return selectItem(LB_SETCURSEL, *); }
@@ -172,33 +172,33 @@ class WIN32DialogEX extends WIN32Dialog {
 
 	var parent;
 
-	// ãƒªã‚½ãƒ¼ã‚¹èª­ã¿è¾¼ã¿ä¸Šæ›¸ã
+	// ¥ê¥½©`¥¹Õi¤ßŞz¤ßÉÏ•ø¤­
 	function loadResource(dll, res) {
 		if (dll != "")  with (Storages) {
 			var path = .getPlacedPath(dll);
-			if (path == "") throw new Exception(@"${dll} ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“");
+			if (path == "") throw new Exception(@"${dll} ¤¬ÒŠ¤Ä¤«¤ê¤Ş¤»¤ó");
 			dll = .getLocalName(path);
 		} else dll = void;
 		//dm("loadResource", dll, res);
 		super.loadResource(dll, res);
 	}
 
-	// ã‚ªãƒ¼ãƒ—ãƒ³å‡¦ç†ä¸Šæ›¸ã
+	// ¥ª©`¥×¥ó„IÀíÉÏ•ø¤­
 	function open(win) {
 		parent = win;
 		var r = super.open(...);
-		//çµæœè¾æ›¸ã‚’è¿”ã™
+		//½Y¹û´Ç•ø¤ò·µ¤¹
 		return %[ result:r, items:itemResults ];
 	}
 
-	// ã‚¯ãƒ­ãƒ¼ã‚ºå‡¦ç†ä¸Šæ›¸ã
+	// ¥¯¥í©`¥º„IÀíÉÏ•ø¤­
 	function close() {
 		if (!modeless) makeResults();
 		var r = super.close(...);
 		removeAllBitmap();
 		return r;
 	}
-	// çµæœã‚’ä¿æŒã™ã‚‹
+	// ½Y¹û¤ò±£³Ö¤¹¤ë
 	function makeResults() {
 		itemResults = %[];
 		for (var i = 0; i < itemNames.count; i++) {
@@ -207,7 +207,7 @@ class WIN32DialogEX extends WIN32Dialog {
 		}
 	}
 
-	// ã‚¤ãƒ™ãƒ³ãƒˆãƒ•ãƒƒã‚¯
+	// ¥¤¥Ù¥ó¥È¥Õ¥Ã¥¯
 	function onInit(*) {
 		super.onInit(...);
 		initItems();
@@ -228,9 +228,9 @@ class WIN32DialogEX extends WIN32Dialog {
 		return false;
 	}
 
-	// æŒ‡å®šã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä¸­å¤®ã«é…ç½®ï¼ˆãŸã ã—ç”»é¢å¤–ã«ãªã‚‰ãªã„ã“ã¨ï¼‰
+	// Ö¸¶¨¥¦¥£¥ó¥É¥¦¤ÎÖĞÑë¤ËÅäÖÃ£¨¤¿¤À¤·»­ÃæÍâ¤Ë¤Ê¤é¤Ê¤¤¤³¤È£©
 	function setCenterPosition(win = parent) {
-		// ãƒ¢ãƒ‹ã‚¿æƒ…å ±ã®å–å¾—
+		// ¥â¥Ë¥¿Çéˆó¤ÎÈ¡µÃ
 		var x1, y1, x2, y2, monitor;
 		if (typeof System.getMonitorInfo != "undefined") {
 			var info = System.getMonitorInfo(true, win);
@@ -239,7 +239,7 @@ class WIN32DialogEX extends WIN32Dialog {
 		monitor = %[ x:0, y:0, w:System.screenWidth, h:System.screenHeight ] if (monitor === void);
 		with (monitor) x1=.x, y1=.y, x2=.w+x1, y2=.h+y1;
 
-		// ä½ç½®æ±ºå®š
+		// Î»ÖÃ›Q¶¨
 		var w = width, h = height;
 		var x = (x1+x2 - w)\2, y = (y1+y2 - h)\2;
 		if (win && typeof win == "Object" && isvalid win &&
@@ -247,7 +247,7 @@ class WIN32DialogEX extends WIN32Dialog {
 			x = ((.width  - w)\2) + .left;
 			y = ((.height - h)\2) + .top;
 		}
-		// ãƒ¢ãƒ‹ã‚¿ã‹ã‚‰ã¯ã¿å‡ºã¦ã„ãŸã‚‰å†…å´ã¸ç§»å‹•
+		// ¥â¥Ë¥¿¤«¤é¤Ï¤ß³ö¤Æ¤¤¤¿¤éÄÚ‚È¤ØÒÆ„Ó
 		x = x2 - width  if (x + w > x2);
 		y = y2 - height if (y + h > y2);
 		x = x1          if (x < x1);
@@ -255,7 +255,7 @@ class WIN32DialogEX extends WIN32Dialog {
 		setPos(x, y);
 	}
 
-	// åˆæœŸãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’è¨­å®šã™ã‚‹
+	// ³õÆÚ¥Ñ¥é¥á©`¥¿¤òÔO¶¨¤¹¤ë
 	function initItems() {
 		for (var i = 0; i < itemNames.count; i++) {
 			var name = itemNames[i];
@@ -264,7 +264,7 @@ class WIN32DialogEX extends WIN32Dialog {
 		}
 	}
 
-	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚³ãƒãƒ³ãƒ‰ã‚¤ãƒ™ãƒ³ãƒˆ
+	// ¥Ç¥Õ¥©¥ë¥È¥³¥Ş¥ó¥É¥¤¥Ù¥ó¥È
 	function defaultCommand(msg, wp, lp) {
 		switch (wp) {
 		case IDOK:
@@ -287,7 +287,7 @@ class WIN32DialogEX extends WIN32Dialog {
 				var key = ext[i], value = ext[i+1];
 				//dm("setParams", key, value);
 				if (typeof this[key] == "Object" && this[key] instanceof "Function") this[key](id, value);
-				else throw new Exception(@"ä¸æ˜ãª initParam: ${key}");
+				else throw new Exception(@"²»Ã÷¤Ê initParam: ${key}");
 			}
 		}
 	}
@@ -330,12 +330,12 @@ class WIN32DialogEX extends WIN32Dialog {
 		switch (getItemClass(item)) {
 
 		case BUTTON:
-			// ãƒ©ã‚¸ã‚ªãƒœã‚¿ãƒ³ã®å ´åˆã¯ãã®çŠ¶æ…‹
+			// ¥é¥¸¥ª¥Ü¥¿¥ó¤ÎˆöºÏ¤Ï¤½¤Î×´‘B
 			if (style & BS_AUTOCHECKBOX ||
 				style & BS_CHECKBOX ||
 				style & BS_AUTORADIOBUTTON ||
 				style & BS_RADIOBUTTON) return getCheckBox(id);
-			// ãã‚Œä»¥å¤–ã¯ã‚¹ãƒ†ãƒ¼ãƒˆ
+			// ¤½¤ìÒÔÍâ¤Ï¥¹¥Æ©`¥È
 			return sendItemMessage(id, BM_GETSTATE, 0, 0);
 
 		case EDIT:
@@ -343,7 +343,7 @@ class WIN32DialogEX extends WIN32Dialog {
 			return getItemText(id);
 
 		case LISTBOX:
-			// è¤‡æ•°é¸æŠã§ãã‚‹ã‹
+			// Ñ}Êıßx’k¤Ç¤­¤ë¤«
 			if (style & LBS_MULTIPLESEL) {
 				var cnt = sendItemMessage(id, LB_GETCOUNT, 0, 0);
 				var rslt = [];
@@ -351,15 +351,15 @@ class WIN32DialogEX extends WIN32Dialog {
 					rslt.add(sendItemMessage(id, LB_GETSEL, i, 0));
 				return rslt;
 			}
-			// ãã‚Œä»¥å¤–ã¯é¸æŠã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
+			// ¤½¤ìÒÔÍâ¤Ïßx’k¥¤¥ó¥Ç¥Ã¥¯¥¹
 			return sendItemMessage(id, LB_GETCURSEL, 0, 0);
 
 		case COMBOBOX:
-			// ãƒ‰ãƒ­ãƒƒãƒ—ãƒ€ã‚¦ãƒ³ãƒªã‚¹ãƒˆã§ã¯é¸æŠã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’è¿”ã™
+			// ¥É¥í¥Ã¥×¥À¥¦¥ó¥ê¥¹¥È¤Ç¤Ïßx’k¥¤¥ó¥Ç¥Ã¥¯¥¹¤ò·µ¤¹
 			if (style & CBS_DROPDOWNLIST)
 				return sendItemMessage(id, CB_GETCURSEL, 0, 0);
 
-			// ãã‚Œä»¥å¤–ã¯ãƒ†ã‚­ã‚¹ãƒˆ
+			// ¤½¤ìÒÔÍâ¤Ï¥Æ¥­¥¹¥È
 			return getItemText(id);
 
 		case SCROLLBAR:
@@ -447,9 +447,9 @@ class WIN32DialogEX extends WIN32Dialog {
 		return %[ windowClass:wndcls, x:x, y:y, cx:width, cy:height, title:text, style:style|WS_VISIBLE, exStyle:exStyle, id:id ];
 	}
 
-	// å„ç¨®ãƒ†ãƒ³ãƒ—ãƒ¬ãƒ¼ãƒˆã‚’ç”Ÿæˆã™ã‚‹é–¢æ•°
+	// ¸÷·N¥Æ¥ó¥×¥ì©`¥È¤òÉú³É¤¹¤ëévÊı
 
-	// ãƒœã‚¿ãƒ³ç³»åˆ—
+	// ¥Ü¥¿¥óÏµÁĞ
 	function DefPushButton(  text, id,    x, y, w, h, style=WS_TABSTOP, ex=0) { return Control(text, id, BUTTON, style|BS_DEFPUSHBUTTON,   x, y, w, h, ex); }
 	function    PushButton(  text, id,    x, y, w, h, style=WS_TABSTOP, ex=0) { return Control(text, id, BUTTON, style|BS_PUSHBUTTON,      x, y, w, h, ex); }
 	function AutoCheckBox(   text, id,    x, y, w, h, style=WS_TABSTOP, ex=0) { return Control(text, id, BUTTON, style|BS_AUTOCHECKBOX,    x, y, w, h, ex); }
@@ -458,11 +458,11 @@ class WIN32DialogEX extends WIN32Dialog {
 	function     RadioButton(text, id,    x, y, w, h, style=WS_TABSTOP, ex=0) { return Control(text, id, BUTTON, style|BS_RADIOBUTTON,     x, y, w, h, ex); }
 	function GroupBox(       text, id=-1, x, y, w, h, style=WS_GROUP,   ex=0) { return Control(text, id, BUTTON, style|BS_GROUPBOX,        x, y, w, h, ex); }
 
-	// ã‚¹ã‚¿ãƒ†ã‚£ãƒƒã‚¯ç³»åˆ—
+	// ¥¹¥¿¥Æ¥£¥Ã¥¯ÏµÁĞ
 	function LText(          text, id,    x, y, w, h, style=WS_GROUP,   ex=0) { return Control(text, id, STATIC, style|SS_LEFT,            x, y, w, h, ex); }
 	function CText(          text, id,    x, y, w, h, style=WS_GROUP,   ex=0) { return Control(text, id, STATIC, style|SS_CENTER,          x, y, w, h, ex); }
 	function RText(          text, id,    x, y, w, h, style=WS_GROUP,   ex=0) { return Control(text, id, STATIC, style|SS_RIGHT,           x, y, w, h, ex); }
-	function Icon(           text, id,    x, y, w, h, style=0,          ex=0) { return Control(text, id, STATIC, style|SS_ICON,            x, y, 0, 0, ex); } // w,h ã¯ç„¡è¦–ã•ã‚Œã‚‹
+	function Icon(           text, id,    x, y, w, h, style=0,          ex=0) { return Control(text, id, STATIC, style|SS_ICON,            x, y, 0, 0, ex); } // w,h ¤ÏŸoÒ•¤µ¤ì¤ë
 
 	var DefaultStyles = %[
 	EditText: ES_LEFT     |WS_BORDER           |WS_TABSTOP,
@@ -472,21 +472,21 @@ class WIN32DialogEX extends WIN32Dialog {
 	TrackBar: TBS_HORZ    |TBS_AUTOTICKS       |WS_TABSTOP,
 		];
 
-	// ã‚¨ãƒ‡ã‚£ãƒƒãƒˆç³»åˆ— EDITTEXT, BEDIT, HEDIT, or IEDIT. 
+	// ¥¨¥Ç¥£¥Ã¥ÈÏµÁĞ EDITTEXT, BEDIT, HEDIT, or IEDIT. 
 	function EditText(             id,    x, y, w, h, style=DefaultStyles.EditText, ex=0) { return Control(, id, EDIT,      style, x, y, w, h, ex); } // ES_*,  WS_TABSTOP, WS_GROUP, WS_VSCROLL, WS_HSCROLL, WS_DISABLED
-	// ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ç³»åˆ—
+	// ¥ê¥¹¥È¥Ü¥Ã¥¯¥¹ÏµÁĞ
 	function ListBox(              id,    x, y, w, h, style=DefaultStyles.ListBox,  ex=0) { return Control(, id, LISTBOX,   style, x, y, w, h, ex); } // LBS_*, WS_BORDER, WS_VSCROLL
-	// ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ç³»åˆ—
+	// ¥³¥ó¥Ü¥Ü¥Ã¥¯¥¹ÏµÁĞ
 	function ComboBox(             id,    x, y, w, h, style=DefaultStyles.ComboBox, ex=0) { return Control(, id, COMBOBOX,  style, x, y, w, h, ex); } // CBS_*, WS_TABSTOP, WS_GROUP, WS_VSCROLL, WS_DISABLED
 
-	// ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ï¼ˆè¦initCommonControlsEx(ICC_LISTVIEW_CLASSES);ï¼‰
+	// ¥ê¥¹¥È¥Ó¥å©`£¨ÒªinitCommonControlsEx(ICC_LISTVIEW_CLASSES);£©
 	function ListView(             id,    x, y, w, h, style=DefaultStyles.ListView, ex=0) { return Control(, id, LISTVIEW,  style, x, y, w, h, ex); } // LVS_*, WS_TABSTOP, WS_GROUP, WS_VSCROLL
 
-	// ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼ç³»åˆ—
+	// ¥¹¥¯¥í©`¥ë¥Ğ©`ÏµÁĞ
 	function TrackBar(             id,    x, y, w, h, style=DefaultStyles.TrackBar, ex=0) { return Control(, id, TRACKBAR,  style, x, y, w, h, ex); } // TBS_*, ...
 }
 
-// ã‚‚ã†å°‘ã—ä½¿ã„ã‚„ã™ãã—ãŸãƒãƒ¼ã‚¸ãƒ§ãƒ³
+// ¤â¤¦ÉÙ¤·Ê¹¤¤¤ä¤¹¤¯¤·¤¿¥Ğ©`¥¸¥ç¥ó
 class WIN32GenericDialogEX extends WIN32DialogEX
 {
 	var _templ, _padding, _ptSz, _cx, _cury, _curh, _maxy, _curband, _id2text;
@@ -507,7 +507,7 @@ class WIN32GenericDialogEX extends WIN32DialogEX
 			_templ = %[
 				/**/style:style, x:0, y:0, cx:cx, cy:0,
 				/**/title:.title != "" ? .title : "GenericDialog",
-				/**/pointSize:pt, typeFace:.fontFace != "" ? .fontFace : "ï¼­ï¼³ ï¼°ã‚´ã‚·ãƒƒã‚¯",
+				/**/pointSize:pt, typeFace:.fontFace != "" ? .fontFace : "£Í£Ó £Ğ¥´¥·¥Ã¥¯",
 				/**/weight:fw, items:[]
 				];
 			_id2text = .itemtexts !== void ? .itemtexts : %[];
@@ -776,6 +776,31 @@ class WIN32GenericDialogEX extends WIN32DialogEX
 		_cury = info.y1;
 		var rect = getCurrentRect(div, 0);
 		_curband.x = rect.x;
+		_curband.w = rect.w;
+	}
+	function endFrame() {
+		nextLine(0);
+		var info = _resetFrame(true);
+		_cury = info.y2 if (info.y2 > _cury);
+	}
+
+	var _heightStack = [];
+	function pushCurrentHeight() { _heightStack.push(_curh);  }
+	function popCurrentHeight() { _curh = _heightStack.pop(); }
+
+	var _stored;
+	function open() {
+		if (!_stored) {
+			nextLine();
+			_templ.cy = _maxy;
+			_stored = true;
+			store(_templ);
+			setInitParams(_inits);
+		}
+		return super.open(...);
+	}
+}
+rband.x = rect.x;
 		_curband.w = rect.w;
 	}
 	function endFrame() {
