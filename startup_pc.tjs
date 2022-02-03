@@ -1,0 +1,2 @@
+System.setArgument("TextEncoding", "utf8");
+Scripts.execStorage("sys_source/Init.tjs");
